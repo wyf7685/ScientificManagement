@@ -57,50 +57,40 @@ const rules = reactive<FormRules>({
 
 async function submitForm() {
  if (!formRef.value) return
- await formRef.value.validate(async (valid) => {
-  if (valid) {
-   
-      // 1. 构造发送给 Strapi 的数据体 (前端字段名 -> Strapi 字段名)
-      const payload: Partial<AchievementType> = {
-        type_name: form.name, 
-        type_code: form.code,
-        description: form.description,
-        // is_delete: 0 表示启用 (enabled: true)，is_delete: 1 表示停用 (enabled: false)
-        is_delete: form.enabled ? 0 : 1 
-      }
-      
-      try {
-          let res;
-          
-          if (props.isEdit) {
-              // === 编辑/更新 ===
-              // 必须使用 documentId 进行更新
-              if (!form.documentId) {
-                  ElMessage.error('更新失败：缺少 documentId');
-                  return;
-              }
-              res = await updateResultType(form.documentId, payload);
-              
-          } else {
-              // === 创建/新增 ===
-              res = await createResultType(payload);
-          }
-          
-          if (res) {
-              ElMessage.success(props.isEdit ? '修改成功' : '创建成功');
-              emit('save-success'); // 触发父组件重新加载列表
-          }
-          
-      } catch (error) {
-          console.error('API 提交失败:', error);
-          ElMessage.error(props.isEdit ? '保存修改失败' : '创建失败，请检查类型代码是否重复或网络连接');
-      }
+ const valid = await formRef.value.validate().catch(() => false)
+ if (!valid) {
+  ElMessage.warning('请检查输入项')
+  return
+ }
 
+ // 1. 构造发送给 Strapi 的数据体
+ const payload: Partial<AchievementType> = {
+  type_name: form.name,
+  type_code: form.code,
+  description: form.description,
+  is_delete: form.enabled ? 0 : 1
+ }
+
+ try {
+  let res
+  if (props.isEdit) {
+   if (!form.documentId) {
+    ElMessage.error('更新失败：缺少 documentId')
+    return
+   }
+   res = await updateResultType(form.documentId, payload)
   } else {
-   ElMessage.warning('请检查输入项')
-   return false
+   res = await createResultType(payload)
   }
- })
+
+  if (res) {
+   ElMessage.success(props.isEdit ? '修改成功' : '创建成功')
+   emit('save-success')
+  }
+ } catch (error) {
+  console.error('API 提交失败:', error)
+  ElMessage.error(props.isEdit ? '保存修改失败' : '创建失败，请检查类型代码是否重复或网络连接')
+ }
 }
 </script>
 

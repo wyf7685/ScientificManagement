@@ -15,50 +15,107 @@
     </el-row>
 
     <el-row :gutter="20" class="chart-section">
-      <el-col :span="12">
-        <el-card>
-          <template #header>成果类型分布</template>
-          <div ref="typeChartRef" class="chart-container"></div>
+      <el-col :xs="24" :md="12">
+        <el-card class="chart-card">
+          <template #header>
+            <div class="card-header">
+              <span>成果分布</span>
+              <div class="card-actions">
+                <el-radio-group v-model="distributionDimension" size="small">
+                  <el-radio-button label="type">类型</el-radio-button>
+                  <el-radio-button label="indexLevel">收录级别</el-radio-button>
+                  <el-radio-button label="department">部门</el-radio-button>
+                  <el-radio-button label="team">团队</el-radio-button>
+                </el-radio-group>
+              </div>
+            </div>
+          </template>
+          <div ref="distributionChartRef" class="chart-container large"></div>
         </el-card>
       </el-col>
-      <el-col :span="12">
-        <el-card>
-          <template #header>近5年产出趋势</template>
-          <div ref="trendChartRef" class="chart-container"></div>
+      <el-col :xs="24" :md="12">
+        <el-card class="chart-card">
+          <template #header>
+            <div class="card-header">
+              <span>堆叠趋势 + 引用</span>
+              <div class="card-actions">
+                <el-radio-group v-model="trendDimension" size="small">
+                  <el-radio-button label="type">类型</el-radio-button>
+                  <el-radio-button label="indexLevel">收录级别</el-radio-button>
+                  <el-radio-button label="department">部门</el-radio-button>
+                  <el-radio-button label="team">团队</el-radio-button>
+                </el-radio-group>
+                <el-radio-group v-model="trendRange" size="small" class="range-radio">
+                  <el-radio-button label="3y">近3年</el-radio-button>
+                  <el-radio-button label="5y">近5年</el-radio-button>
+                </el-radio-group>
+              </div>
+            </div>
+          </template>
+          <div ref="stackedChartRef" class="chart-container large"></div>
         </el-card>
       </el-col>
     </el-row>
 
-    <el-card class="recent-results">
-      <template #header>最新入库成果</template>
-      <el-table :data="recentResults" v-loading="loading">
-        <el-table-column prop="title" label="成果名称" min-width="200" />
-        <el-table-column prop="type" label="类型" width="120" />
-        <el-table-column prop="authors" label="作者" width="200">
-          <template #default="{ row }">
-            {{ row.authors?.join(', ') }}
+    <el-row :gutter="20" class="chart-section">
+      <el-col :xs="24" :md="16">
+        <el-card class="chart-card">
+          <template #header>
+            <div class="card-header">
+              <span>研究热点词云 / 关联图谱</span>
+              <el-radio-group v-model="keywordRange" size="small">
+                <el-radio-button label="1y">近1年</el-radio-button>
+                <el-radio-button label="all">全部</el-radio-button>
+              </el-radio-group>
+            </div>
           </template>
-        </el-table-column>
-        <el-table-column prop="createdAt" label="入库时间" width="180" />
-      </el-table>
-    </el-card>
+          <div ref="keywordChartRef" class="chart-container keyword"></div>
+        </el-card>
+      </el-col>
+      <el-col :xs="24" :md="8">
+        <el-card class="recent-results">
+          <template #header>最新入库成果</template>
+          <el-table :data="recentResults" v-loading="loading" size="small" height="360">
+            <el-table-column prop="title" label="成果名称" min-width="180" />
+            <el-table-column prop="type" label="类型" width="110" />
+            <el-table-column prop="createdAt" label="入库时间" width="140" />
+          </el-table>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { Document, Tickets, TrophyBase, TrendCharts } from '@element-plus/icons-vue'
-import { getStatistics, getResults } from '@/api/result'
+import { getStatistics, getResults, getAdvancedDistribution, getStackedTrend, getKeywordCloud } from '@/api/result'
 import * as echarts from 'echarts'
 
 const loading = ref(false)
 const statistics = ref(null)
 const recentResults = ref([])
 
-const typeChartRef = ref(null)
-const trendChartRef = ref(null)
-const typeChartInstance = ref(null)
-const trendChartInstance = ref(null)
+const distributionDimension = ref('type')
+const trendDimension = ref('type')
+const trendRange = ref('5y')
+const keywordRange = ref('1y')
+
+const distributionData = ref<any[]>([])
+const indexLevelDistribution = ref<any[]>([])
+const stackedTimeline = ref<string[]>([])
+const stackedSeries = ref<any[]>([])
+const citationSeries = ref<number[]>([])
+const keywordGraph = ref<{ nodes: any[]; links: any[] }>({ nodes: [], links: [] })
+
+const distributionChartRef = ref(null)
+const stackedChartRef = ref(null)
+const keywordChartRef = ref(null)
+const distributionChartInstance = ref<echarts.ECharts | null>(null)
+const stackedChartInstance = ref<echarts.ECharts | null>(null)
+const keywordChartInstance = ref<echarts.ECharts | null>(null)
+
+const colorPalette = ['#1d5bff', '#4c7eff', '#00c892', '#ff9d3c', '#7c3aed', '#0ea5e9', '#f97316']
 
 const stats = ref([
   {
@@ -92,8 +149,13 @@ const stats = ref([
 ])
 
 onMounted(async () => {
-  await loadData()
-  initCharts()
+  await Promise.all([
+    loadSummary(),
+    loadDistribution(),
+    loadStackedTrend(),
+    loadKeywordCloud()
+  ])
+  await nextTick()
   window.addEventListener('resize', handleResize)
 })
 
@@ -102,7 +164,11 @@ onBeforeUnmount(() => {
   disposeCharts()
 })
 
-async function loadData() {
+watch(distributionDimension, () => loadDistribution())
+watch([trendDimension, trendRange], () => loadStackedTrend())
+watch(keywordRange, () => loadKeywordCloud())
+
+async function loadSummary() {
   loading.value = true
   try {
     const [statsRes, resultsRes] = await Promise.all([
@@ -126,57 +192,169 @@ async function loadData() {
   }
 }
 
-function initCharts() {
-  if (!statistics.value) return
+async function loadDistribution() {
+  try {
+    const res = await getAdvancedDistribution({ dimension: distributionDimension.value })
+    distributionData.value = res?.data?.items || []
+    indexLevelDistribution.value = res?.data?.indexLevelItems || []
+    renderDistributionChart()
+  } catch (error) {
+    console.error('加载分布数据失败:', error)
+  }
+}
 
-  disposeCharts()
+async function loadStackedTrend() {
+  try {
+    const res = await getStackedTrend({
+      dimension: trendDimension.value,
+      range: trendRange.value
+    })
+    stackedTimeline.value = res?.data?.timeline || []
+    stackedSeries.value = res?.data?.stacks || []
+    citationSeries.value = res?.data?.citations || []
+    renderStackedChart()
+  } catch (error) {
+    console.error('加载趋势数据失败:', error)
+  }
+}
 
-  if (typeChartRef.value) {
-    typeChartInstance.value = echarts.init(typeChartRef.value)
-    typeChartInstance.value.setOption({
+async function loadKeywordCloud() {
+  try {
+    const res = await getKeywordCloud({ range: keywordRange.value })
+    keywordGraph.value = res?.data || { nodes: [], links: [] }
+    renderKeywordChart()
+  } catch (error) {
+    console.error('加载关键词数据失败:', error)
+  }
+}
+
+function renderDistributionChart() {
+  if (!distributionChartRef.value) return
+  if (!distributionChartInstance.value) {
+    distributionChartInstance.value = echarts.init(distributionChartRef.value)
+  }
+
+  distributionChartInstance.value.setOption(
+    {
+      color: colorPalette,
       tooltip: { trigger: 'item' },
       legend: { bottom: 10 },
       series: [
         {
           type: 'pie',
-          radius: ['40%', '70%'],
-          data: statistics.value?.typeDistribution || []
+          radius: ['46%', '74%'],
+          label: { show: false },
+          itemStyle: { borderColor: '#fff', borderWidth: 2 },
+          emphasis: {
+            label: { show: true, fontWeight: 'bold', fontSize: 14 }
+          },
+          data: distributionData.value
         }
       ]
-    })
+    },
+    true
+  )
+}
+
+function renderStackedChart() {
+  if (!stackedChartRef.value) return
+  if (!stackedChartInstance.value) {
+    stackedChartInstance.value = echarts.init(stackedChartRef.value)
   }
 
-  if (trendChartRef.value) {
-    const trendData = statistics.value?.yearlyTrend || []
-    trendChartInstance.value = echarts.init(trendChartRef.value)
-    trendChartInstance.value.setOption({
-      tooltip: { trigger: 'axis' },
-      xAxis: {
-        type: 'category',
-        data: trendData.map((item) => item.year)
+  const barSeries = (stackedSeries.value || []).map((item, index) => ({
+    name: item.name,
+    type: 'bar',
+    stack: 'total',
+    barMaxWidth: 38,
+    emphasis: { focus: 'series' },
+    itemStyle: { color: colorPalette[index % colorPalette.length] },
+    data: item.data || []
+  }))
+
+  const lineSeries = {
+    name: '引用',
+    type: 'line',
+    yAxisIndex: 1,
+    smooth: true,
+    symbol: 'circle',
+    symbolSize: 8,
+    itemStyle: { color: '#ff6b00' },
+    lineStyle: { color: '#ff6b00', width: 3 },
+    data: citationSeries.value || []
+  }
+
+  stackedChartInstance.value.setOption(
+    {
+      color: colorPalette,
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      legend: { bottom: 10 },
+      grid: { left: '3%', right: '4%', bottom: 55, containLabel: true },
+      xAxis: { type: 'category', data: stackedTimeline.value },
+      yAxis: [
+        { type: 'value', name: '数量' },
+        { type: 'value', name: '引用', splitLine: { show: false } }
+      ],
+      series: [...barSeries, lineSeries]
+    },
+    true
+  )
+}
+
+function renderKeywordChart() {
+  if (!keywordChartRef.value) return
+  if (!keywordChartInstance.value) {
+    keywordChartInstance.value = echarts.init(keywordChartRef.value)
+  }
+
+  const nodes = (keywordGraph.value.nodes || []).map((item, index) => ({
+    ...item,
+    symbolSize: Math.max(14, Math.min(42, item.value)),
+    itemStyle: { color: colorPalette[index % colorPalette.length] }
+  }))
+
+  const categories = Array.from(new Set(nodes.map((item) => item.category).filter(Boolean))).map(
+    (name) => ({ name })
+  )
+
+  keywordChartInstance.value.setOption(
+    {
+      tooltip: {
+        formatter: (params: any) => `${params.data.name}<br/>热度: ${params.data.value}`
       },
-      yAxis: { type: 'value' },
+      legend: { data: categories.map((item) => item.name), top: 6 },
       series: [
         {
-          type: 'bar',
-          data: trendData.map((item) => item.count),
-          itemStyle: { color: '#1d5bff' }
+          type: 'graph',
+          layout: 'force',
+          roam: true,
+          force: { repulsion: 90, edgeLength: [50, 140] },
+          data: nodes,
+          links: keywordGraph.value.links || [],
+          categories,
+          label: { show: true, formatter: '{b}', color: '#0f172a' },
+          lineStyle: { color: '#cbd5e1', opacity: 0.6 },
+          emphasis: { focus: 'adjacency' }
         }
       ]
-    })
-  }
+    },
+    true
+  )
 }
 
 function handleResize() {
-  typeChartInstance.value?.resize()
-  trendChartInstance.value?.resize()
+  distributionChartInstance.value?.resize()
+  stackedChartInstance.value?.resize()
+  keywordChartInstance.value?.resize()
 }
 
 function disposeCharts() {
-  typeChartInstance.value?.dispose()
-  trendChartInstance.value?.dispose()
-  typeChartInstance.value = null
-  trendChartInstance.value = null
+  distributionChartInstance.value?.dispose()
+  stackedChartInstance.value?.dispose()
+  keywordChartInstance.value?.dispose()
+  distributionChartInstance.value = null
+  stackedChartInstance.value = null
+  keywordChartInstance.value = null
 }
 </script>
 
@@ -221,5 +399,40 @@ function disposeCharts() {
 
 .chart-container {
   height: 300px;
+}
+
+.chart-container.large {
+  height: 340px;
+}
+
+.chart-container.keyword {
+  height: 360px;
+}
+
+.chart-card {
+  min-height: 360px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.range-radio {
+  margin-left: 6px;
+}
+
+.recent-results {
+  height: 420px;
 }
 </style>

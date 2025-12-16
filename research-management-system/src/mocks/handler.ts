@@ -1,14 +1,20 @@
-import { users, results, resultTypes, projects, uploads, nextId, demands } from './data'
+import { users, results, resultTypes, projects, uploads, nextId, demands, dashboardAnalytics, crawlerSources, crawlerSettings } from './data'
 
 const now = () => new Date().toISOString().slice(0, 10)
 
-export function handleMockRequest(config = {}) {
+// Strapi 风格的成果类型/字段定义数据，支持增删改查
+const achievementTypesData = initializeAchievementTypes()
+const achievementFieldDefsData = initializeAchievementFieldDefs()
+
+export function handleMockRequest(config: Record<string, any> = {}) {
   const method = (config.method || 'get').toLowerCase()
   const url = (config.url || '').split('?')[0]
   const params = config.params || {}
   const body = parseBody(config.data)
   const token = extractToken(config)
   const currentUser = getUserByToken(token)
+
+  console.log('Mock Request:', method, url, body)
 
   // 认证相关
   if (method === 'post' && url === '/auth/login') {
@@ -74,9 +80,156 @@ export function handleMockRequest(config = {}) {
     return success(buildStatistics(mine))
   }
 
+  if (method === 'get' && url === '/results/advanced-distribution') {
+    const dimension = params.dimension || 'type'
+    const items = dashboardAnalytics.distribution[dimension] || []
+    const indexLevelItems = dashboardAnalytics.distribution.indexLevel || []
+    return success({
+      dimension,
+      items,
+      indexLevelItems
+    })
+  }
+
+  if (method === 'get' && url === '/results/stacked-trend') {
+    const dimension = params.dimension || 'type'
+    const range = params.range || '5y'
+    const trend = dashboardAnalytics.stackedTrend[dimension] || dashboardAnalytics.stackedTrend.type
+    return success({
+      dimension,
+      range,
+      ...sliceTrendByRange(trend, range)
+    })
+  }
+
+  if (method === 'get' && url === '/results/keywords') {
+    const range = params.range || '1y'
+    return success({
+      range,
+      nodes: dashboardAnalytics.keywordGraph.nodes,
+      links: dashboardAnalytics.keywordGraph.links
+    })
+  }
+
   // 成果类型
   if (method === 'get' && url === '/result-types') {
     return success(resultTypes)
+  }
+
+  // 成果类型 (Strapi 风格接口，兼容 /achievement-types 与 /api/achievement-types)
+  const isAchievementTypes = url === '/achievement-types' || url === '/api/achievement-types'
+  if (method === 'get' && isAchievementTypes) {
+    const excludeDeleted = params['filters[is_delete][$ne]']
+    const filtered = achievementTypesData.filter((item) => {
+      if (excludeDeleted === undefined || excludeDeleted === null) return true
+      return item.is_delete !== Number(excludeDeleted)
+    })
+    return strapiListResponse(filtered, params)
+  }
+
+  if (method === 'post' && isAchievementTypes) {
+    const payload = body?.data || {}
+    const documentId = payload.documentId || payload.type_code || nextId('rt')
+    const newType = {
+      id: achievementTypesData.length + 1,
+      documentId,
+      type_name: payload.type_name || payload.name || '',
+      type_code: payload.type_code || payload.code || documentId,
+      description: payload.description || '',
+      is_delete: payload.is_delete ?? 0,
+      createdAt: now(),
+      updatedAt: now(),
+      publishedAt: now()
+    }
+    achievementTypesData.push(newType)
+    resultTypes.push({
+      id: documentId,
+      name: newType.type_name || newType.type_code,
+      code: newType.type_code,
+      description: newType.description,
+      enabled: newType.is_delete === 0,
+      fields: []
+    })
+    return { data: newType, meta: {} }
+  }
+
+  if (method === 'put' && (url.startsWith('/achievement-types/') || url.startsWith('/api/achievement-types/'))) {
+    const documentId = url.split('/')[2]
+    const payload = body?.data || {}
+    const target = achievementTypesData.find((item) => item.documentId === documentId)
+    if (!target) return fail(404, '未找到成果类型')
+
+    target.type_name = payload.type_name ?? target.type_name
+    target.type_code = payload.type_code ?? target.type_code
+    target.description = payload.description ?? target.description
+    target.is_delete = payload.is_delete ?? target.is_delete
+    target.updatedAt = now()
+
+    const baseType = resultTypes.find((item) => item.id === documentId)
+    if (baseType) {
+      baseType.name = target.type_name
+      baseType.code = target.type_code
+      baseType.description = target.description
+      baseType.enabled = target.is_delete === 0
+    }
+
+    return { data: target, meta: {} }
+  }
+
+  // 成果类型字段 (Strapi 风格接口，兼容 /achievement-field-defs 与 /api/achievement-field-defs)
+  const isAchievementFieldDefs = url === '/achievement-field-defs' || url === '/api/achievement-field-defs'
+  if (method === 'get' && isAchievementFieldDefs) {
+    const typeFilterKey = 'filters[achievement_type_id][documentId][$eq]'
+    const typeId = params[typeFilterKey]
+    const excludeDeleted = params['filters[is_delete][$ne]']
+
+    const filtered = achievementFieldDefsData.filter((item) => {
+      if (typeId && item.achievement_type_id !== typeId) return false
+      if (excludeDeleted !== undefined && excludeDeleted !== null && item.is_delete === Number(excludeDeleted)) return false
+      return true
+    })
+
+    return strapiListResponse(filtered, params)
+  }
+
+  if (method === 'post' && isAchievementFieldDefs) {
+    const payload = body?.data || {}
+    const achievementTypeId = payload.achievement_type_id || payload.achievement_type || ''
+    const documentId = payload.documentId || `${achievementTypeId || 'field'}-${nextId('afd')}`
+    const newField = {
+      id: achievementFieldDefsData.length + 1,
+      documentId,
+      achievement_type_id: achievementTypeId,
+      field_code: payload.field_code,
+      field_name: payload.field_name,
+      field_type: (payload.field_type || 'TEXT').toString().toUpperCase(),
+      is_required: Number(payload.is_required || 0),
+      description: payload.description || '',
+      is_delete: payload.is_delete ?? 0,
+      createdAt: now(),
+      updatedAt: now(),
+      publishedAt: now()
+    }
+    achievementFieldDefsData.push(newField)
+    return { data: newField, meta: {} }
+  }
+
+  if (method === 'put' && (url.startsWith('/achievement-field-defs/') || url.startsWith('/api/achievement-field-defs/'))) {
+    const documentId = url.split('/')[2]
+    const payload = body?.data || {}
+    const target = achievementFieldDefsData.find((item) => item.documentId === documentId)
+    if (!target) return fail(404, '未找到字段定义')
+
+    target.field_code = payload.field_code ?? target.field_code
+    target.field_name = payload.field_name ?? target.field_name
+    target.field_type = payload.field_type ? payload.field_type.toString().toUpperCase() : target.field_type
+    target.is_required = payload.is_required ?? target.is_required
+    target.is_delete = payload.is_delete ?? target.is_delete
+    target.achievement_type_id = payload.achievement_type_id || payload.achievement_type || target.achievement_type_id
+    target.description = payload.description ?? target.description
+    target.updatedAt = now()
+
+    return { data: target, meta: {} }
   }
 
   if (method === 'get' && url.startsWith('/result-types/')) {
@@ -105,28 +258,39 @@ export function handleMockRequest(config = {}) {
   }
 
   // 创建/草稿
-  if (method === 'post' && url === '/results') {
-    if (!currentUser) return fail(401, '未登录')
-    const typeId = body.typeId || body.type
-    const projectFields = mergeProjectInfo(body)
-    const newResult = {
-      ...body,
-      type: typeId,
-      typeId,
-      id: nextId(),
-      status: body.status || 'pending',
-      createdBy: currentUser.name,
-      createdAt: now(),
-      updatedAt: now(),
-      reviewHistory: [],
-      ...projectFields
+  if (method === 'post' && (url === '/results' || url === '/results/')) {
+    try {
+      if (!currentUser) return fail(401, '未登录')
+      const typeId = body.typeId || body.type
+      const projectFields = mergeProjectInfo(body)
+      const source = body.source || 'manual_upload'
+      const isProcess = source === 'process_system'
+      const baseStatus = isProcess ? 'pending' : (body.status || 'pending')
+      const newResult = {
+        ...body,
+        type: typeId,
+        typeId,
+        id: nextId(),
+        source,
+        status: baseStatus,
+        assignedReviewers: isProcess ? [] : body.assignedReviewers || [],
+        createdBy: isProcess ? '过程管理系统' : currentUser.name,
+        createdAt: now(),
+        updatedAt: now(),
+        reviewHistory: [],
+        ...projectFields
+      }
+      results.unshift(newResult)
+      return success(newResult, '创建成功')
+    } catch (e: any) {
+      console.error('Mock create result error:', e)
+      return fail(500, 'Mock创建失败: ' + e.message)
     }
-    results.unshift(newResult)
-    return success(newResult, '创建成功')
   }
 
   if (method === 'post' && url === '/results/draft') {
     if (!currentUser) return fail(401, '未登录')
+    if (body.source === 'process_system') return fail(400, '过程管理系统成果不支持草稿')
     const typeId = body.typeId || body.type
     const projectFields = mergeProjectInfo(body)
     const draft = {
@@ -170,9 +334,22 @@ export function handleMockRequest(config = {}) {
     const id = url.split('/')[2]
     const item = results.find((r) => r.id === id)
     if (!item) return fail(404, '未找到成果')
+    if (item.source === 'process_system') return fail(400, '过程管理系统成果无需提交，需分配审核')
     item.status = 'reviewing'
     item.updatedAt = now()
     return success(true, '已提交审核')
+  }
+
+  // 分配审核人
+  if (method === 'post' && /^\/results\/[^/]+\/assign-reviewers$/.test(url)) {
+    const id = url.split('/')[2]
+    const item = results.find((r) => r.id === id)
+    if (!item) return fail(404, '未找到成果')
+    const reviewers = Array.isArray(body.reviewers) ? body.reviewers : (body.reviewers ? String(body.reviewers).split(',').map((r) => r.trim()).filter(Boolean) : [])
+    item.assignedReviewers = reviewers
+    item.status = 'reviewing'
+    item.updatedAt = now()
+    return success(item, '已分配审核人')
   }
 
   // 审核
@@ -194,6 +371,43 @@ export function handleMockRequest(config = {}) {
       createdAt: now()
     })
     return success(true, '审核完成')
+  }
+
+  // 退回修改
+  if (method === 'post' && /^\/results\/[^/]+\/request-changes$/.test(url)) {
+    const id = url.split('/')[2]
+    const item = results.find((r) => r.id === id)
+    if (!item) return fail(404, '未找到成果')
+    item.status = 'revision'
+    item.updatedAt = now()
+    item.reviewHistory = item.reviewHistory || []
+    item.reviewHistory.push({
+      id: nextId('rev'),
+      reviewerId: currentUser?.id || '2',
+      reviewerName: currentUser?.name || '审核专家',
+      action: 'request_changes',
+      comment: body.comment || '请按要求修改后重新提交',
+      createdAt: now()
+    })
+    return success(true, '已退回修改')
+  }
+
+  // 待审核/审核中看板
+  if (method === 'get' && url === '/results/review-backlog') {
+    const pending = results.filter((r) => r.status === 'pending')
+    const reviewing = results.filter((r) => r.status === 'reviewing')
+    const processPending = pending.filter((r) => r.source === 'process_system')
+    const manualPending = pending.filter((r) => r.source === 'manual_upload')
+    return success({
+      pending,
+      reviewing,
+      summary: {
+        pending: pending.length,
+        reviewing: reviewing.length,
+        processPending: processPending.length,
+        manualPending: manualPending.length
+      }
+    })
   }
 
   // 智能补全
@@ -242,6 +456,80 @@ export function handleMockRequest(config = {}) {
     return success(item, '已重新匹配')
   }
 
+  // 爬虫数据源列表
+  if (method === 'get' && url === '/system/crawler-sources') {
+    return success({
+      list: crawlerSources,
+      total: crawlerSources.length
+    })
+  }
+
+  // 新建数据源
+  if (method === 'post' && url === '/system/crawler-sources') {
+    const newSource = {
+      ...body,
+      id: nextId('cs'),
+      lastRunAt: body.lastRunAt || '-',
+      lastSuccessAt: body.lastSuccessAt || '-',
+      status: body.status || 'idle'
+    }
+    crawlerSources.unshift(newSource)
+    return success(newSource, '数据源已创建')
+  }
+
+  // 更新数据源
+  const updateSourceMatch = url.match(/^\/system\/crawler-sources\/([^/]+)$/)
+  if (method === 'put' && updateSourceMatch) {
+    const id = updateSourceMatch[1]
+    const index = crawlerSources.findIndex((item) => item.id === id)
+    if (index === -1) return fail(404, '未找到数据源')
+    crawlerSources[index] = {
+      ...crawlerSources[index],
+      ...body
+    }
+    return success(crawlerSources[index], '数据源已更新')
+  }
+
+  // 删除数据源
+  const deleteSourceMatch = url.match(/^\/system\/crawler-sources\/([^/]+)$/)
+  if (method === 'delete' && deleteSourceMatch) {
+    const id = deleteSourceMatch[1]
+    const index = crawlerSources.findIndex((item) => item.id === id)
+    if (index === -1) return fail(404, '未找到数据源')
+    crawlerSources.splice(index, 1)
+    return success(true, '数据源已删除')
+  }
+
+  // 测试数据源
+  const testSourceMatch = url.match(/^\/system\/crawler-sources\/([^/]+)\/test$/)
+  if (method === 'post' && testSourceMatch) {
+    const id = testSourceMatch[1]
+    const target = crawlerSources.find((item) => item.id === id)
+    if (!target) return fail(404, '未找到数据源')
+    const pass = Math.random() > 0.2
+    target.lastRunAt = now()
+    if (pass) {
+      target.status = 'healthy'
+      target.lastSuccessAt = now()
+      target.failureReason = ''
+      return success(target, '连接成功')
+    } else {
+      target.status = 'error'
+      target.failureReason = '模拟连接失败，请检查配置'
+      return fail(500, '连接失败')
+    }
+  }
+
+  // 系统设置
+  if (method === 'get' && url === '/system/crawler-settings') {
+    return success(crawlerSettings)
+  }
+
+  if (method === 'put' && url === '/system/crawler-settings') {
+    Object.assign(crawlerSettings, body)
+    return success(crawlerSettings, '设置已保存')
+  }
+
   // 上传
   if (method === 'post' && url === '/upload') {
     const file = body?.get ? body.get('file') : null
@@ -254,7 +542,68 @@ export function handleMockRequest(config = {}) {
     return success(uploadResult, '上传成功')
   }
 
-  return null
+  console.warn('Mock request not handled:', method, url)
+  return fail(404, `Mock接口不存在: ${method} ${url}`)
+}
+
+function initializeAchievementTypes() {
+  return resultTypes.map((t, index) => ({
+    id: index + 1,
+    documentId: t.id,
+    type_name: t.name,
+    type_code: t.code,
+    description: t.description,
+    is_delete: t.enabled ? 0 : 1,
+    createdAt: now(),
+    updatedAt: now(),
+    publishedAt: now()
+  }))
+}
+
+function initializeAchievementFieldDefs() {
+  const list: any[] = []
+
+  resultTypes.forEach((type) => {
+    ;(type.fields || []).forEach((field, index) => {
+      list.push({
+        id: list.length + 1,
+        documentId: `${type.id}-field-${field.id || index + 1}`,
+        achievement_type_id: type.id,
+        field_code: field.name,
+        field_name: field.label,
+        field_type: (field.type || 'text').toString().toUpperCase(),
+        is_required: field.required ? 1 : 0,
+        description: field.description || '',
+        is_delete: 0,
+        createdAt: now(),
+        updatedAt: now(),
+        publishedAt: now()
+      })
+    })
+  })
+
+  return list
+}
+
+function strapiListResponse(list: any[], params: Record<string, any> = {}) {
+  const page = Number(params['pagination[page]']) || 1
+  const pageSize = Number(params['pagination[pageSize]']) || list.length || 10
+  const start = (page - 1) * pageSize
+  const end = start + pageSize
+  const total = list.length
+  const data = list.slice(start, end)
+
+  return {
+    data,
+    meta: {
+      pagination: {
+        page,
+        pageSize,
+        pageCount: Math.max(Math.ceil(total / pageSize), 1),
+        total
+      }
+    }
+  }
 }
 
 function parseBody(raw) {
@@ -294,17 +643,19 @@ function fail(code = 400, message = '请求失败') {
   return { code, message, data: null }
 }
 
-function pageResults(source, params) {
+function pageResults(sourceList, params) {
   const keyword = params.keyword || params.keywords || ''
   const status = params.status || ''
   const type = params.type || params.typeId || ''
   const author = params.author || ''
   const projectId = params.projectId || params.project || ''
+  const sourceFilter = params.source || ''
+  const projectPhase = params.projectPhase || params.phase || ''
   const yearRange = params.yearRange || params.years || []
   const page = Number(params.page) || 1
   const pageSize = Number(params.pageSize) || 10
 
-  let list = [...source]
+  let list = [...sourceList]
 
   if (keyword) {
     list = list.filter(
@@ -326,6 +677,14 @@ function pageResults(source, params) {
 
   if (author) {
     list = list.filter((item) => item.authors?.some((a) => a.includes(author)))
+  }
+
+  if (sourceFilter) {
+    list = list.filter((item) => item.source === sourceFilter)
+  }
+
+  if (projectPhase) {
+    list = list.filter((item) => item.projectPhase === projectPhase)
   }
 
   if (projectId) {
@@ -352,6 +711,25 @@ function pageResults(source, params) {
   }
 }
 
+function sliceTrendByRange(trend: any = {}, range = '5y') {
+  const timeline = Array.isArray(trend.timeline) ? [...trend.timeline] : []
+  const stacks = Array.isArray(trend.stacks)
+    ? trend.stacks.map((item) => ({ ...item, data: Array.isArray(item.data) ? [...item.data] : [] }))
+    : []
+  const citations = Array.isArray(trend.citations) ? [...trend.citations] : []
+
+  if (range === '3y' && timeline.length > 3) {
+    const start = timeline.length - 3
+    return {
+      timeline: timeline.slice(start),
+      stacks: stacks.map((item) => ({ ...item, data: item.data.slice(start) })),
+      citations: citations.slice(start)
+    }
+  }
+
+  return { timeline, stacks, citations }
+}
+
 function buildStatistics(source) {
   const totalResults = source.length
   const paperCount = source.filter((item) => item.type === 'paper').length
@@ -363,8 +741,15 @@ function buildStatistics(source) {
     const key = item.type || item.typeId
     typeMap[key] = (typeMap[key] || 0) + 1
   })
-  const typeDistribution = Object.entries(typeMap).map(([name, value]) => ({
-    name: name === 'paper' ? '论文' : name === 'patent' ? '专利' : name,
+  
+  const typeNameMap = {
+    paper: '学术论文',
+    patent: '发明专利',
+    software: '软件著作权'
+  }
+
+  const typeDistribution = Object.entries(typeMap).map(([key, value]) => ({
+    name: typeNameMap[key] || key,
     value
   }))
 
@@ -386,7 +771,7 @@ function buildStatistics(source) {
   }
 }
 
-function mergeProjectInfo(body = {}, fallback = {}) {
+function mergeProjectInfo(body: Record<string, any> = {}, fallback: Record<string, any> = {}) {
   const projectId = body.projectId || fallback.projectId || ''
   const project = findProject(projectId)
   return {

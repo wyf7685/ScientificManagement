@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { type AxiosRequestConfig } from 'axios'
 import { ElMessage } from 'element-plus'
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/stores/user'
@@ -33,8 +33,10 @@ service.interceptors.request.use(
   const userStore = useUserStore()
   const { token } = storeToRefs(userStore)
   if (token.value) {
-   config.headers = config.headers || {}
-   config.headers.Authorization = `Bearer ${token.value}`
+    config.headers = {
+     ...(config.headers as any),
+     Authorization: `Bearer ${token.value}`
+    } as any
   }
   return config
  },
@@ -83,45 +85,67 @@ service.interceptors.response.use(
 
 // 【修改 2】：接收完整的 response 对象
 function handleBusinessResponse(response: any) {
-  const isStrapiRequest = response.config.skipAuth === true;
-  const res = response.data; // 提取实际响应体
+  const skipAuth = response.config?.skipAuth === true
+  const res = response.data
 
-  // 【新增逻辑】：如果是 Strapi 请求，跳过 code: 200 检查
-  if (isStrapiRequest) {
-    // 成功（HTTP 状态码 200）且是 Strapi 接口，直接返回数据
-    // Strapi 接口通常没有 code 字段
-    return res;
+  const hasBusinessCode = res && res.code !== undefined && res.code !== null
+
+  // 兼容返回体没有 code 字段的接口（如 Strapi/Mock 的 { data, meta } 响应）
+  // 此类接口依赖 HTTP 状态码表达成功/失败
+  if (!hasBusinessCode) {
+    return res
   }
 
-  // --- 以下是针对你自己的后端逻辑（需要 code: 200 检查） ---
+  if (res?.code !== 200) {
+    const error = ErrorHandler.handleBusinessError(
+      res?.code,
+      res?.message || '请求失败',
+      res
+    )
 
- if (res?.code !== 200) {
-  const error = ErrorHandler.handleBusinessError(
-   res?.code,
-   res?.message || '请求失败',
-   res
-  )
+    // 401：只有在“需要鉴权”的请求里才触发全局登出/跳转
+    // 否则（比如登录失败/游客接口），仅提示错误并交给页面自行处理
+    if (res?.code === 401 && !skipAuth) {
+      const userStore = useUserStore()
+      userStore.logout()
+      ErrorHandler.handlePermissionError(error)
+    } else {
+      ErrorHandler.showError(error)
+    }
 
-  if (res?.code === 401) {
-   const userStore = useUserStore()
-   userStore.logout()
-   ErrorHandler.handlePermissionError(error)
-  } else {
-   ErrorHandler.showError(error)
+    return Promise.reject(error)
   }
 
-  return Promise.reject(error)
- }
-
- return res
+  return res
 }
 
-export default async function request(config: axios.AxiosRequestConfig) {
- const finalConfig = config
+export default async function request(config: AxiosRequestConfig) {
+  const finalConfig = { ...config }
 
- if (isMockEnabled) {
-  const mockRes = handleMockRequest(finalConfig)
-  if (mockRes) return handleBusinessResponse(mockRes)
- }
- return service(finalConfig)
+  if (isMockEnabled) {
+    // 模拟请求拦截器的 Token 注入逻辑，确保 Mock 接口能拿到 Token
+    if (!finalConfig.skipAuth) {
+      const userStore = useUserStore()
+      const token = userStore.token
+      if (token) {
+        finalConfig.headers = {
+          ...(finalConfig.headers || {}),
+          Authorization: `Bearer ${token}`
+        }
+      }
+    }
+
+    const mockRes = handleMockRequest(finalConfig)
+    if (mockRes) {
+      return handleBusinessResponse({
+        data: mockRes,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: finalConfig,
+        request: {}
+      })
+    }
+  }
+  return service(finalConfig)
 }

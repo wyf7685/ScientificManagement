@@ -62,7 +62,6 @@
             size="large"
             :prefix-icon="Lock"
             show-password
-            @keyup.enter="handleLogin"
           />
         </el-form-item>
         <div class="form-extra">
@@ -74,7 +73,7 @@
           size="large"
           :loading="loading"
           class="login-button"
-          @click="handleLogin"
+          native-type="submit"
         >
           登录
         </el-button>
@@ -84,41 +83,63 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
 import { login } from '@/api/auth'
 import { useFormSubmit } from '@/composables/useErrorHandler'
 import { AppError, ErrorType } from '@/utils/errorHandler'
+import { UserRole } from '@/types'
+
+type LoginForm = {
+  username: string
+  password: string
+  remember: boolean
+}
+
+type LoginResponse = {
+  token: string
+  user: Record<string, any>
+}
+
+type QuickAccount = {
+  label: string
+  username: string
+  password: string
+}
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
-const loginFormRef = ref()
-const quickAccounts = [
+const loginFormRef = ref<FormInstance | null>(null)
+const quickAccounts: QuickAccount[] = [
   { label: '管理员', username: 'admin', password: 'admin123' },
   { label: '专家', username: 'expert', password: 'expert123' },
   { label: '科研用户', username: 'researcher', password: 'researcher123' }
 ]
 
-const loginForm = reactive({
+const loginForm = reactive<LoginForm>({
   username: '',
   password: '',
   remember: false
 })
 
-const rules = {
+const rules: FormRules<LoginForm> = {
   username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
 }
 
 // 使用 useFormSubmit Hook 处理表单提交
-const { submitting: loading, submit } = useFormSubmit(
-  async (formData) => {
-    const res = await login(formData)
+const { submitting: loading, submit } = useFormSubmit<LoginResponse>(
+  async (formData: LoginForm) => {
+    const res = await login({
+      username: formData.username.trim(),
+      password: formData.password
+    })
     const { data } = res || {}
 
     if (!data?.token || !data?.user) {
@@ -136,42 +157,68 @@ const { submitting: loading, submit } = useFormSubmit(
       if (!loginFormRef.value) return false
       return await loginFormRef.value.validate()
     },
-    onSuccess: (data) => {
-      // 先保存登录信息
-      userStore.login(data.token, data.user)
+    onSuccess: async (data) => {
+      // 先保存登录信息（保存失败则不跳转）
+      const ok = userStore.login(data.token, data.user, loginForm.remember)
+      if (!ok) return
+
       ElMessage.success('登录成功')
 
-      // 使用 data.user.role 而不是 userStore.userRole,避免响应式延迟
-      const redirect = typeof route.query.redirect === 'string' && route.query.redirect
-        ? route.query.redirect
-        : getDefaultRouteByRole(data.user.role)
-      
-      // 使用 nextTick 确保状态更新完成后再跳转
-      setTimeout(() => {
-        router.push(redirect)
-      }, 100)
+      const role = data.user?.role || UserRole.RESEARCHER
+      const redirect = resolveRedirect(route.query.redirect, role)
+
+      // 等待状态更新完成后再跳转
+      await nextTick()
+      router.replace(redirect)
     },
     successMessage: undefined // 已经在 onSuccess 中处理
   }
 )
 
 async function handleLogin() {
-  await submit(loginForm)
+  if (loading.value) return
+  await submit({ ...loginForm })
 }
 
 // 根据角色获取默认路由 - 使用传入的 role 参数,避免响应式延迟
 function getDefaultRouteByRole(role: string) {
-  if (role === 'admin' || role === 'manager') {
+  if (role === UserRole.ADMIN || role === UserRole.MANAGER) {
     return '/admin/dashboard'
-  } else if (role === 'expert') {
+  } else if (role === UserRole.EXPERT) {
     return '/expert/reviews'
   }
   return '/dashboard'
 }
 
-function fillAccount(acc) {
+function resolveRedirect(rawRedirect: unknown, role: string) {
+  const fallback = getDefaultRouteByRole(role)
+  if (typeof rawRedirect !== 'string' || rawRedirect === '/' || rawRedirect === '/login') {
+    return fallback
+  }
+
+  const resolved = router.resolve(rawRedirect)
+  if (!resolved.matched.length) {
+    return fallback
+  }
+
+  const requiredRoles = (resolved.meta.roles ||
+    resolved.matched[resolved.matched.length - 1]?.meta.roles) as string[] | undefined
+
+  if (Array.isArray(requiredRoles) && requiredRoles.length > 0 && !requiredRoles.includes(role)) {
+    return fallback
+  }
+
+  return resolved.fullPath
+}
+
+function fillAccount(acc: QuickAccount) {
   loginForm.username = acc.username
   loginForm.password = acc.password
+
+  // 清理上一次的校验提示
+  nextTick(() => {
+    loginFormRef.value?.clearValidate()
+  })
 }
 </script>
 

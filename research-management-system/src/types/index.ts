@@ -13,12 +13,32 @@ export const ResultStatus = {
   DRAFT: 'draft',
   PENDING: 'pending',
   REVIEWING: 'reviewing',
+  REVISION: 'revision',
   REJECTED: 'rejected',
   PUBLISHED: 'published',
   REVOKED: 'revoked'
 } as const
 
 export type ResultStatus = typeof ResultStatus[keyof typeof ResultStatus]
+
+export const ResultSource = {
+  MANUAL_UPLOAD: 'manual_upload',
+  PROCESS_SYSTEM: 'process_system'
+} as const
+
+export type ResultSource = typeof ResultSource[keyof typeof ResultSource]
+
+export const ProjectPhase = {
+  INITIATION: 'initiation',
+  DESIGN: 'design',
+  DEVELOPMENT: 'development',
+  EXPERIMENT: 'experiment',
+  UAT: 'uat',
+  DELIVERY: 'delivery',
+  OPERATION: 'operation'
+} as const
+
+export type ProjectPhase = typeof ProjectPhase[keyof typeof ProjectPhase]
 
 export const ResultVisibility = {
   PRIVATE: 'private',
@@ -120,6 +140,12 @@ export interface ResearchResult {
   projectName?: string
   projectCode?: string
   status?: ResultStatus
+  source?: ResultSource
+  sourceStage?: string
+  projectPhase?: ProjectPhase | string
+  sourceRef?: string
+  syncTime?: string
+  assignedReviewers?: string[]
   createdAt?: string
   updatedAt?: string
   permissionStatus?: AccessPermissionStatus

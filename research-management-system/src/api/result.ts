@@ -8,6 +8,33 @@ export function getStatistics() {
  })
 }
 
+// 高级分布数据 (mock demo)
+export function getAdvancedDistribution(params: any) {
+  return request({
+    url: '/results/advanced-distribution',
+    method: 'get',
+    params
+  })
+}
+
+// 堆叠趋势 + 引用折线 (mock demo)
+export function getStackedTrend(params: any) {
+  return request({
+    url: '/results/stacked-trend',
+    method: 'get',
+    params
+  })
+}
+
+// 热点关键词图谱 (mock demo)
+export function getKeywordCloud(params: any) {
+  return request({
+    url: '/results/keywords',
+    method: 'get',
+    params
+  })
+}
+
 // 获取个人统计 (保持不变)
 export function getMyStatistics() {
  return request({
@@ -103,6 +130,33 @@ export function reviewResult(id: string, data: any) {
  })
 }
 
+// 分配审核人 (mock demo)
+export function assignReviewers(id: string, data: any) {
+  return request({
+    url: `/results/${id}/assign-reviewers`,
+    method: 'post',
+    data
+  })
+}
+
+// 退回修改 (mock demo)
+export function requestChanges(id: string, data: any) {
+  return request({
+    url: `/results/${id}/request-changes`,
+    method: 'post',
+    data
+  })
+}
+
+// 审核待办/统计 (mock demo)
+export function getReviewBacklog(params: any = {}) {
+  return request({
+    url: '/results/review-backlog',
+    method: 'get',
+    params
+  })
+}
+
 // 智能补全（通过 DOI 等） (保持不变)
 export function autoFillMetadata(params: any) {
  return request({
@@ -156,7 +210,7 @@ export interface AchievementFieldDef {
 
 export function getResultTypes() {
  return request({
-  url: '/api/achievement-types',
+  url: '/achievement-types',
   skipAuth: true,
   method: 'get',
   params: {
@@ -168,7 +222,7 @@ export function getResultTypes() {
 
 export function createResultType(data: Partial<AchievementType>) {
  return request({
-  url: '/api/achievement-types',
+  url: '/achievement-types',
   skipAuth: true,
   method: 'post',
   data: { data }
@@ -177,7 +231,7 @@ export function createResultType(data: Partial<AchievementType>) {
 
 export function updateResultType(documentId: string, data: Partial<AchievementType>) {
  return request({
-  url: `/api/achievement-types/${documentId}`,
+  url: `/achievement-types/${documentId}`,
   skipAuth: true,
   method: 'put',
   data: { data }
@@ -194,7 +248,7 @@ export function deleteResultType(documentId: string) {
 // 获取某类型下的所有字段
 export function getFieldDefsByType(typeDocumentId: string) {
  return request({
-  url: '/api/achievement-field-defs',
+  url: '/achievement-field-defs',
   skipAuth: true,
   method: 'get',
   params: {
@@ -216,7 +270,7 @@ export function createFieldDef(data: AchievementFieldDef) {
   } as Partial<AchievementFieldDef>
     
  return request({
-  url: '/api/achievement-field-defs',
+  url: '/achievement-field-defs',
   skipAuth: true,
   method: 'post',
   data: { data: payload }
@@ -233,7 +287,7 @@ export function updateFieldDef(documentId: string, data: Partial<AchievementFiel
   } as Partial<AchievementFieldDef>
     
  return request({
-  url: `/api/achievement-field-defs/${documentId}`,
+  url: `/achievement-field-defs/${documentId}`,
   skipAuth: true,
   method: 'put',
   data: { data: payload }

@@ -4,74 +4,84 @@ import { ElMessage } from 'element-plus'
 import { UserRole } from '@/types'
 import { errorLogger, AppError, ErrorType } from '@/utils/errorHandler'
 
+const TOKEN_KEY = 'token'
+const USER_INFO_KEY = 'userInfo'
+const AVAILABLE_STORAGES = () => {
+  if (typeof window === 'undefined') return []
+  return [window.sessionStorage, window.localStorage]
+}
+
 export const useUserStore = defineStore('user', () => {
-  const token = ref<string>(localStorage.getItem('token') || '')
+  const token = ref<string>(getStoredToken())
   const userInfo = ref<Record<string, any> | null>(null)
 
   const isLoggedIn = computed(() => !!token.value)
   const userRole = computed(() => userInfo.value?.role)
 
   // 登录
-  function login(newToken: string, user: Record<string, any>) {
+  function login(newToken: string, user: Record<string, any>, remember = false) {
     // 先更新内存中的数据 (同步操作,立即生效)
     token.value = newToken
     userInfo.value = user
-    
-    // 再保存到 localStorage
-    const success = safeSetItem('token', newToken) && 
-                    safeSetItem('userInfo', JSON.stringify(user))
-    
+
+    const targetStorage = remember ? localStorage : sessionStorage
+    const staleStorage = remember ? sessionStorage : localStorage
+
+    // 再保存到存储
+    const success =
+      safeSetItem(targetStorage, TOKEN_KEY, newToken) &&
+      safeSetItem(targetStorage, USER_INFO_KEY, JSON.stringify(user))
+
+    // 清理另一份存储，避免旧状态干扰
+    safeRemoveItem(staleStorage, TOKEN_KEY)
+    safeRemoveItem(staleStorage, USER_INFO_KEY)
+
     if (!success) {
       // 如果存储失败,清空内存中的数据
       token.value = ''
       userInfo.value = null
-      throw new AppError(
-        '登录信息保存失败',
-        ErrorType.RUNTIME,
-        'LOGIN_SAVE_ERROR'
-      )
+      return false
     }
-    
+
     // 添加日志,帮助调试
-    console.log('✅ 登录成功:', {
-      username: user?.name,
-      role: user?.role,
-      token: newToken?.substring(0, 20) + '...'
-    })
+    if (import.meta.env.DEV) {
+      console.log('✅ 登录成功:', {
+        username: user?.name,
+        role: user?.role
+      })
+    }
+
+    return true
   }
 
   // 登出
   function logout() {
     token.value = ''
     userInfo.value = null
-    safeRemoveItem('token')
-    safeRemoveItem('userInfo')
+    AVAILABLE_STORAGES().forEach((storage) => {
+      safeRemoveItem(storage, TOKEN_KEY)
+      safeRemoveItem(storage, USER_INFO_KEY)
+    })
   }
 
   // 初始化用户信息
   function initUserInfo() {
-    const storedUserInfo = localStorage.getItem('userInfo')
-    if (storedUserInfo) {
-      try {
-        userInfo.value = JSON.parse(storedUserInfo)
-      } catch (e) {
-        const error = new AppError(
-          '用户信息已损坏，请重新登录',
-          ErrorType.VALIDATION,
-          'USER_INFO_PARSE_ERROR',
-          e
-        )
-        errorLogger.log(error)
-        ElMessage.warning('用户信息已过期，请重新登录')
-        logout()
-      }
+    const { data, error } = getStoredUserInfo()
+    if (data) {
+      userInfo.value = data
+      return
+    }
+
+    if (error && token.value) {
+      ElMessage.warning('用户信息已过期，请重新登录')
+      logout()
     }
   }
 
   // 安全的 localStorage 操作
-  function safeSetItem(key: string, value: string) {
+  function safeSetItem(storage: Storage, key: string, value: string) {
     try {
-      localStorage.setItem(key, value)
+      storage.setItem(key, value)
       return true
     } catch (e) {
       const error = new AppError(
@@ -86,11 +96,61 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  function safeRemoveItem(key: string) {
+  function safeRemoveItem(storage: Storage, key: string) {
     try {
-      localStorage.removeItem(key)
+      storage.removeItem(key)
     } catch (e) {
       console.error('删除存储失败:', e)
+    }
+  }
+
+  function getStoredUserInfo(): {
+    data: Record<string, any> | null
+    error: AppError | null
+  } {
+    let parseError: AppError | null = null
+
+    for (const storage of AVAILABLE_STORAGES()) {
+      const stored = safeGetItem(storage, USER_INFO_KEY)
+      if (!stored) continue
+
+      try {
+        return {
+          data: JSON.parse(stored),
+          error: null
+        }
+      } catch (e) {
+        parseError = new AppError(
+          '用户信息已损坏，请重新登录',
+          ErrorType.VALIDATION,
+          'USER_INFO_PARSE_ERROR',
+          e
+        )
+        errorLogger.log(parseError)
+        safeRemoveItem(storage, USER_INFO_KEY)
+      }
+    }
+
+    return {
+      data: null,
+      error: parseError
+    }
+  }
+
+  function getStoredToken() {
+    for (const storage of AVAILABLE_STORAGES()) {
+      const stored = safeGetItem(storage, TOKEN_KEY)
+      if (stored) return stored
+    }
+    return ''
+  }
+
+  function safeGetItem(storage: Storage, key: string) {
+    try {
+      return storage.getItem(key)
+    } catch (e) {
+      console.error('读取存储失败:', e)
+      return null
     }
   }
 

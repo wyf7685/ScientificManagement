@@ -94,7 +94,11 @@
         </el-menu>
 
         <div class="sidebar-footer">
-          <div class="footer-card">
+          <div
+            v-if="showSystemSettingsCard"
+            class="footer-card"
+            @click="goSystemSettings"
+          >
             <div class="footer-title">系统设置</div>
             <div class="footer-desc">通知、偏好、主题</div>
           </div>
@@ -175,6 +179,7 @@ const keyword = ref('')
 
 const currentRoute = computed(() => route)
 const activeMenu = computed(() => route.path)
+const showSystemSettingsCard = computed(() => userStore.isAdmin || userStore.isManager)
 
 // 消息相关
 const messageDrawer = ref(false)
@@ -183,7 +188,13 @@ const messages = ref([])
 
 // 菜单配置
 const menuItems = computed(() => {
-  const items = [
+  const items: Array<{
+    path: string
+    title: string
+    icon?: any
+    roles?: string[]
+    children?: Array<{ path: string; title: string }>
+  }> = [
     {
       path: '/dashboard',
       title: '个人概览',
@@ -236,7 +247,8 @@ const menuItems = computed(() => {
       children: [
         { path: '/admin/dashboard', title: '科研看台' },
         { path: '/admin/results', title: '成果管理' },
-        { path: '/admin/review-assign', title: '审核分配' }
+        { path: '/admin/review-assign', title: '审核分配' },
+        { path: '/admin/system-settings', title: '系统设置' }
       ]
     })
   }
@@ -266,6 +278,10 @@ function showMessages() {
 function handleMessageClick(msg) {
   // TODO: 跳转到相关页面
   console.log('Message clicked:', msg)
+}
+
+function goSystemSettings() {
+  router.push('/admin/system-settings')
 }
 
 // 处理用户菜单命令

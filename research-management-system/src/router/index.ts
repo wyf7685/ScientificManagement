@@ -15,7 +15,7 @@ const router = createRouter({
     {
       path: '/',
       component: () => import('@/layouts/MainLayout.vue'),
-      redirect: '/login',
+      redirect: '/dashboard',
       meta: { requiresAuth: true },
       children: [
         // 普通用户路由
@@ -92,6 +92,12 @@ const router = createRouter({
           name: 'ResultTypes',
           component: () => import('@/views/admin/ResultTypes.vue'),
           meta: { title: '成果类型配置', roles: [UserRole.ADMIN] }
+        },
+        {
+          path: '/admin/system-settings',
+          name: 'SystemSettings',
+          component: () => import('@/views/admin/SystemSettings.vue'),
+          meta: { title: '系统设置', roles: [UserRole.ADMIN, UserRole.MANAGER] }
         }
       ]
     },

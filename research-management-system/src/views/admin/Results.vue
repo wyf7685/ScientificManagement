@@ -7,8 +7,17 @@
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="searchForm.status" placeholder="全部" clearable>
-            <el-option label="已发布" value="published" />
+            <el-option label="待审核" value="pending" />
             <el-option label="审核中" value="reviewing" />
+            <el-option label="退回修改" value="revision" />
+            <el-option label="已发布" value="published" />
+            <el-option label="已驳回" value="rejected" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="来源">
+          <el-select v-model="searchForm.source" placeholder="全部" clearable>
+            <el-option label="手工上传" value="manual_upload" />
+            <el-option label="过程管理系统" value="process_system" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -17,18 +26,55 @@
       </el-form>
 
       <el-table :data="tableData" v-loading="loading">
-        <el-table-column prop="title" label="成果名称" min-width="200" />
-        <el-table-column prop="type" label="类型" width="120" />
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="title" label="成果名称" min-width="220">
           <template #default="{ row }">
-            <el-tag>{{ row.status }}</el-tag>
+            <div class="title-cell">
+              <div class="title">{{ row.title }}</div>
+              <div class="meta">
+                <el-tag size="small" effect="plain">{{ row.type }}</el-tag>
+                <el-tag v-if="row.projectPhase" size="small" type="info" effect="plain">
+                  {{ phaseMap[row.projectPhase] || row.projectPhase }}
+                </el-tag>
+              </div>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="180" />
-        <el-table-column label="操作" width="200">
+        <el-table-column prop="source" label="来源" width="130">
+          <template #default="{ row }">
+            <el-tag :type="row.source === 'process_system' ? 'warning' : 'success'" size="small">
+              {{ sourceText(row.source) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="status" label="状态" width="120">
+          <template #default="{ row }">
+            <el-tag :type="statusType(row.status)" effect="plain">
+              {{ statusText(row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createdAt" label="创建时间" width="170" />
+        <el-table-column label="操作" width="240">
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="viewResult(row)">查看</el-button>
-            <el-button type="primary" link size="small" @click="editResult(row)">编辑</el-button>
+            <el-button
+              v-if="canAssign(row)"
+              type="primary"
+              link
+              size="small"
+              @click="openAssign(row)"
+            >
+              分配审核
+            </el-button>
+            <el-button
+              type="primary"
+              link
+              size="small"
+              :disabled="row.source === 'process_system'"
+              @click="editResult(row)"
+            >
+              编辑
+            </el-button>
             <el-button type="danger" link size="small" @click="removeResult(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -44,6 +90,21 @@
         />
       </div>
     </el-card>
+
+    <el-dialog v-model="assignDialogVisible" title="分配审核人" width="420px">
+      <el-form label-width="88px">
+        <el-form-item label="审核人" required>
+          <el-input
+            v-model="assignForm.reviewers"
+            placeholder="输入审核人，支持逗号分隔多个"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="assignDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="assigning" @click="handleAssign">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -51,15 +112,23 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getResults, deleteResult } from '@/api/result'
+import { getResults, deleteResult, assignReviewers } from '@/api/result'
+import { ResultStatus } from '@/types'
 
 const router = useRouter()
 const loading = ref(false)
 const tableData = ref([])
+const assignDialogVisible = ref(false)
+const assigning = ref(false)
+const currentAssignId = ref('')
+const assignForm = reactive({
+  reviewers: ''
+})
 
 const searchForm = reactive({
   keyword: '',
-  status: ''
+  status: '',
+  source: ''
 })
 
 const pagination = reactive({
@@ -94,6 +163,31 @@ function editResult(row) {
   router.push(`/results/${row.id}/edit`)
 }
 
+function canAssign(row: any) {
+  return row?.source === 'process_system' && row?.status === ResultStatus.PENDING
+}
+
+function openAssign(row: any) {
+  currentAssignId.value = row.id
+  assignForm.reviewers = (row.assignedReviewers || []).join(', ')
+  assignDialogVisible.value = true
+}
+
+async function handleAssign() {
+  if (!currentAssignId.value) return
+  assigning.value = true
+  try {
+    await assignReviewers(currentAssignId.value, { reviewers: assignForm.reviewers })
+    ElMessage.success('已分配审核人')
+    assignDialogVisible.value = false
+    handleSearch()
+  } catch (e) {
+    ElMessage.error('分配失败')
+  } finally {
+    assigning.value = false
+  }
+}
+
 async function removeResult(row) {
   if (!row?.id) return
   try {
@@ -110,6 +204,48 @@ async function removeResult(row) {
       ElMessage.error('删除失败')
     }
   }
+}
+
+function statusType(status: string) {
+  const map: Record<string, string> = {
+    [ResultStatus.DRAFT]: 'info',
+    [ResultStatus.PENDING]: 'warning',
+    [ResultStatus.REVIEWING]: 'primary',
+    [ResultStatus.REVISION]: 'warning',
+    [ResultStatus.REJECTED]: 'danger',
+    [ResultStatus.PUBLISHED]: 'success',
+    [ResultStatus.REVOKED]: 'info'
+  }
+  return map[status] || 'info'
+}
+
+function statusText(status: string) {
+  const map: Record<string, string> = {
+    [ResultStatus.DRAFT]: '草稿',
+    [ResultStatus.PENDING]: '待审核',
+    [ResultStatus.REVIEWING]: '审核中',
+    [ResultStatus.REVISION]: '退回修改',
+    [ResultStatus.REJECTED]: '已驳回',
+    [ResultStatus.PUBLISHED]: '已发布',
+    [ResultStatus.REVOKED]: '已撤销'
+  }
+  return map[status] || status
+}
+
+const phaseMap: Record<string, string> = {
+  initiation: '立项',
+  design: '设计',
+  development: '研发',
+  experiment: '实验/测试',
+  uat: '验收',
+  delivery: '交付',
+  operation: '运营/维护'
+}
+
+function sourceText(source: string) {
+  if (source === 'process_system') return '过程管理系统'
+  if (source === 'manual_upload') return '手工上传'
+  return source || '未知'
 }
 </script>
 

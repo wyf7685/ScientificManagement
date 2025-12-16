@@ -110,6 +110,7 @@ const STATUS_TYPE_MAP = {
   [ResultStatus.DRAFT]: 'info',
   [ResultStatus.PENDING]: 'warning',
   [ResultStatus.REVIEWING]: 'primary',
+  [ResultStatus.REVISION]: 'warning',
   [ResultStatus.REJECTED]: 'danger',
   [ResultStatus.PUBLISHED]: 'success',
   [ResultStatus.REVOKED]: 'info'
@@ -119,6 +120,7 @@ const STATUS_TEXT_MAP = {
   [ResultStatus.DRAFT]: '草稿',
   [ResultStatus.PENDING]: '待审核',
   [ResultStatus.REVIEWING]: '审核中',
+  [ResultStatus.REVISION]: '退回修改',
   [ResultStatus.REJECTED]: '已驳回',
   [ResultStatus.PUBLISHED]: '已发布',
   [ResultStatus.REVOKED]: '已撤销'

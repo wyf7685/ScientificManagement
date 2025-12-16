@@ -334,7 +334,16 @@ async function loadResultTypes() {
   try {
     const res = await getResultTypes()
     const { data } = res || {}
-    resultTypes.value = (data || []).filter(t => t.enabled)
+    // 映射 Strapi 返回的字段到前端模型
+    resultTypes.value = (data || [])
+      .map((t: any) => ({
+        ...t,
+        id: t.documentId || t.id,
+        name: t.type_name || t.name,
+        code: t.type_code || t.code,
+        enabled: t.is_delete === 0 || t.enabled === true
+      }))
+      .filter((t: any) => t.enabled)
   } catch (error) {
     ElMessage.error('加载成果类型失败')
   }

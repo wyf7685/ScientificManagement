@@ -11,18 +11,21 @@
     <el-card v-loading="loading">
       <template #header>
         <div class="card-header">
-          <div class="card-title-wrap">
-            <h2>{{ result?.title }}</h2>
-            <div class="card-actions">
-              <el-tag :type="getStatusType(result?.status)">
-                {{ getStatusText(result?.status) }}
-              </el-tag>
-              <el-button
-                text
-                size="small"
-                :loading="loading"
-                @click="loadDetail"
-              >
+        <div class="card-title-wrap">
+          <h2>{{ result?.title }}</h2>
+          <div class="card-actions">
+            <el-tag :type="getStatusType(result?.status)">
+              {{ getStatusText(result?.status) }}
+            </el-tag>
+            <el-tag v-if="result?.source" effect="plain" size="small" :type="sourceTagType(result?.source)">
+              {{ sourceText(result?.source) }}
+            </el-tag>
+            <el-button
+              text
+              size="small"
+              :loading="loading"
+              @click="loadDetail"
+            >
                 <el-icon><Refresh /></el-icon>
                 刷新状态
               </el-button>
@@ -63,8 +66,17 @@
         <el-descriptions-item label="成果类型">
           {{ result.type }}
         </el-descriptions-item>
+        <el-descriptions-item label="来源">
+          <el-tag :type="sourceTagType(result.source)" size="small">
+            {{ sourceText(result.source) }}
+          </el-tag>
+          <span v-if="result.sourceStage" class="inline-text">· 来源阶段：{{ stageText(result.sourceStage) }}</span>
+        </el-descriptions-item>
         <el-descriptions-item label="年份">
           {{ result.year }}
+        </el-descriptions-item>
+        <el-descriptions-item label="项目阶段">
+          {{ phaseText(result.projectPhase) || '—' }}
         </el-descriptions-item>
         <el-descriptions-item label="所属项目" :span="2">
           <template v-if="result.projectName">
@@ -85,6 +97,9 @@
         </el-descriptions-item>
         <el-descriptions-item label="摘要" :span="2">
           {{ result.abstract }}
+        </el-descriptions-item>
+        <el-descriptions-item label="同步时间">
+          {{ result.syncTime || result.updatedAt || '—' }}
         </el-descriptions-item>
         <el-descriptions-item label="可见范围">
           {{ getVisibilityText(result.visibility) }}
@@ -198,6 +213,7 @@ const STATUS_TYPE_MAP = {
   [ResultStatus.DRAFT]: 'info',
   [ResultStatus.PENDING]: 'warning',
   [ResultStatus.REVIEWING]: 'primary',
+  [ResultStatus.REVISION]: 'warning',
   [ResultStatus.REJECTED]: 'danger',
   [ResultStatus.PUBLISHED]: 'success',
   [ResultStatus.REVOKED]: 'info'
@@ -207,9 +223,29 @@ const STATUS_TEXT_MAP = {
   [ResultStatus.DRAFT]: '草稿',
   [ResultStatus.PENDING]: '待审核',
   [ResultStatus.REVIEWING]: '审核中',
+  [ResultStatus.REVISION]: '退回修改',
   [ResultStatus.REJECTED]: '已驳回',
   [ResultStatus.PUBLISHED]: '已发布',
   [ResultStatus.REVOKED]: '已撤销'
+}
+
+const phaseMap: Record<string, string> = {
+  initiation: '立项',
+  design: '设计',
+  development: '研发',
+  experiment: '实验/测试',
+  uat: '验收',
+  delivery: '交付',
+  operation: '运营/维护'
+}
+
+const stageMap: Record<string, string> = {
+  design: '设计',
+  experiment: '实验/测试',
+  data_collection: '数据采集',
+  delivery: '交付',
+  uat: '验收',
+  operation: '运维'
 }
 
 const VISIBILITY_TEXT_MAP = {
@@ -298,6 +334,26 @@ function getStatusType(status) {
 function getStatusText(status) {
   if (!status) return ''
   return STATUS_TEXT_MAP[status] || status
+}
+
+function sourceTagType(source) {
+  if (source === 'process_system') return 'warning'
+  if (source === 'manual_upload') return 'success'
+  return 'info'
+}
+
+function sourceText(source) {
+  if (source === 'process_system') return '过程管理系统'
+  if (source === 'manual_upload') return '手工上传'
+  return source || '未知'
+}
+
+function phaseText(phase) {
+  return phase ? phaseMap[phase] || phase : ''
+}
+
+function stageText(stage) {
+  return stage ? stageMap[stage] || stage : ''
 }
 
 function getVisibilityText(visibility) {
