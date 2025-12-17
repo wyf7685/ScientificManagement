@@ -252,12 +252,15 @@ const VISIBILITY_TEXT_MAP = {
   [ResultVisibility.PRIVATE]: '私有',
   [ResultVisibility.INTERNAL_ABSTRACT]: '机构内摘要',
   [ResultVisibility.INTERNAL_FULL]: '机构内全文',
-  [ResultVisibility.PUBLIC_ABSTRACT]: '公开摘要'
+  [ResultVisibility.PUBLIC_ABSTRACT]: '公开摘要',
+  [ResultVisibility.PUBLIC_FULL]: '公开全文'
 }
 
 const hasFullAccess = computed(() => {
   const current = result.value
   if (!current) return false
+  // 管理员和科研管理角色默认可查看全部内容
+  if (userStore.isAdmin) return true
 
   // 兼容历史数据：未返回权限字段时视为有权限
   const noAccessFields = !current.permissionStatus && !current.accessRequestStatus

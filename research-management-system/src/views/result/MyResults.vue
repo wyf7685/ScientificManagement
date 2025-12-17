@@ -178,7 +178,8 @@ const VISIBILITY_TEXT_MAP = {
   [ResultVisibility.PRIVATE]: '私有',
   [ResultVisibility.INTERNAL_ABSTRACT]: '机构内摘要',
   [ResultVisibility.INTERNAL_FULL]: '机构内全文',
-  [ResultVisibility.PUBLIC_ABSTRACT]: '公开摘要'
+  [ResultVisibility.PUBLIC_ABSTRACT]: '公开摘要',
+  [ResultVisibility.PUBLIC_FULL]: '公开全文'
 }
 
 const searchForm = reactive({

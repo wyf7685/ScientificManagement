@@ -153,6 +153,10 @@ export const results = [
     formatNote: '',
     status: 'published',
     visibility: 'public_full',
+    permissionStatus: 'full',
+    accessRequestStatus: 'approved',
+    canRequestAccess: false,
+    lastRequestAt: '2024-03-08 10:00',
     attachments: [
       { id: 'att-1', name: 'Paper_Full_Text.pdf', size: 1024 * 2500, type: 'pdf', url: '/mock/paper1.pdf', uploadedAt: '2024-03-15' }
     ],
@@ -187,6 +191,10 @@ export const results = [
     status: 'reviewing',
     assignedReviewers: ['张教授'],
     visibility: 'internal_full',
+    permissionStatus: 'summary',
+    accessRequestStatus: 'pending',
+    canRequestAccess: false,
+    lastRequestAt: '2025-01-08 14:30',
     attachments: [
       { id: 'att-2', name: '专利受理通知书.pdf', size: 1024 * 500, type: 'pdf', url: '/mock/patent_notice.pdf', uploadedAt: '2024-05-20' }
     ],
@@ -218,6 +226,9 @@ export const results = [
     formatNote: '',
     status: 'published',
     visibility: 'internal_abstract',
+    permissionStatus: 'summary',
+    accessRequestStatus: 'none',
+    canRequestAccess: true,
     attachments: [],
     metadata: { regNo: '2023SR0123456', devDate: '2023-11-30', pubDate: '2023-12-15', owner: 'XX大学' },
     createdBy: '李研究员',
@@ -250,6 +261,10 @@ export const results = [
     status: 'pending',
     assignedReviewers: [],
     visibility: 'internal_full',
+    permissionStatus: 'summary',
+    accessRequestStatus: 'approved',
+    canRequestAccess: false,
+    lastRequestAt: '2024-12-28 16:20',
     attachments: [],
     metadata: { journal: '内部数据产出', doi: '', impact: null, publishDate: '' },
     createdBy: '系统同步',
@@ -280,6 +295,11 @@ export const results = [
     status: 'revision',
     assignedReviewers: ['王博士'],
     visibility: 'internal_abstract',
+    permissionStatus: 'summary',
+    accessRequestStatus: 'rejected',
+    canRequestAccess: true,
+    rejectedReason: '申请理由过于宽泛，请说明使用场景与保护措施。',
+    lastRequestAt: '2025-01-02 09:10',
     attachments: [],
     metadata: { journal: '内部评审稿', doi: '', impact: null, publishDate: '' },
     createdBy: '李研究员',
@@ -306,6 +326,9 @@ export const results = [
     projectPhase: 'experiment',
     status: 'rejected',
     visibility: 'private',
+    permissionStatus: 'denied',
+    accessRequestStatus: 'none',
+    canRequestAccess: true,
     attachments: [],
     metadata: { journal: '内部呈阅件', doi: '', impact: null, publishDate: '2024-07-01' },
     createdBy: '李研究员',
@@ -314,6 +337,171 @@ export const results = [
     reviewHistory: [
       { id: 'rev-4', reviewerId: '2', reviewerName: '张教授', action: 'reject', comment: '数据分析部分存在逻辑漏洞,建议补充最新的监测数据后重新提交。', createdAt: '2024-07-08' }
     ]
+  },
+  {
+    id: 'r-007',
+    title: 'Attention Is All You Need: 基于自注意力机制的Transformer架构',
+    type: 'paper',
+    typeId: 'paper',
+    authors: ['Ashish Vaswani', 'Noam Shazeer', 'Niki Parmar', '张教授', '李研究员'],
+    year: 2017,
+    abstract: '本文提出了一种革命性的神经网络架构Transformer,完全摒弃了传统的循环神经网络(RNN)和卷积神经网络(CNN)结构,仅依赖自注意力机制(Self-Attention Mechanism)来建模序列之间的全局依赖关系。',
+    content: `【摘要】本文提出了一种革命性的神经网络架构Transformer,完全摒弃了传统的循环神经网络(RNN)和卷积神经网络(CNN)结构,仅依赖自注意力机制(Self-Attention Mechanism)来建模序列之间的全局依赖关系。
+
+【背景与动机】传统的序列转换模型主要基于复杂的循环或卷积神经网络,通常包含编码器和解码器。表现最优的模型还通过注意力机制连接编码器和解码器。然而,这些模型存在固有的顺序计算特性,限制了训练时的并行化能力,在处理长序列时尤为明显。虽然有研究通过因子分解技巧和条件计算来提升计算效率,但顺序计算的根本限制依然存在。注意力机制已成为序列建模的重要组成部分,但此前主要与循环网络配合使用。
+
+【核心架构】Transformer架构由编码器(Encoder)和解码器(Decoder)两部分组成,每部分均由6层相同的层堆叠而成。编码器的每一层包含两个子层:第一个是多头自注意力机制,第二个是简单的位置全连接前馈网络。解码器在这两个子层之间插入了第三个子层,对编码器栈的输出执行多头注意力。所有子层周围都采用残差连接(Residual Connection),随后进行层归一化(Layer Normalization)。
+
+【注意力机制详解】本文定义的注意力函数将查询(Query)和一组键值对(Key-Value Pairs)映射到输出,其中查询、键、值和输出都是向量。输出是值的加权和,其中分配给每个值的权重由查询与相应键的相似度函数计算得出。我们称这种特定的注意力为"Scaled Dot-Product Attention"。输入包括维度为dk的查询和键,以及维度为dv的值。我们计算查询与所有键的点积,除以√dk,然后应用softmax函数来获得值的权重。
+
+【多头注意力】多头注意力机制允许模型同时关注来自不同位置的不同表示子空间的信息。具体而言,我们将查询、键和值分别通过h个不同的学习线性投影到dk、dk和dv维度。然后在每个投影版本的查询、键和值上并行执行注意力函数,产生dv维输出值。这些值被连接并再次投影,得到最终值。本文采用h=8个并行注意力层或头。对于每一个,我们使用dk=dv=dmodel/h=64。由于每个头的维度减小,总计算成本与完整维度的单头注意力相似。
+
+【位置编码】由于模型不包含循环和卷积,为了让模型利用序列的顺序信息,必须注入序列中标记的相对或绝对位置信息。为此,我们在编码器和解码器栈底部的输入嵌入中添加"位置编码"。位置编码具有与嵌入相同的维度dmodel,因此两者可以相加。本文使用不同频率的正弦和余弦函数作为位置编码,这使得模型可以轻松学习关注相对位置。
+
+【实验结果】在机器翻译任务上,我们在WMT 2014英语到德语翻译任务上训练了模型,该任务包含约450万个句子对。我们的big transformer模型在测试集上达到了28.4的BLEU分数,超越了所有之前报告的单模型,建立了新的最先进水平,同时训练成本仅为之前最佳模型的一小部分。在WMT 2014英语到法语翻译任务上,我们的big模型达到了41.8的BLEU分数,超越了所有之前发布的单模型,训练成本不到之前最先进模型的1/4。
+
+我们还在8个P100 GPU上训练了base模型,每个训练步骤约需0.4秒。我们训练base模型共100,000步或12小时。对于big模型,步骤时间为1.0秒。Big模型训练了300,000步(3.5天)。为了评估Transformer不同组件的重要性,我们以不同方式改变了base模型,测量了开发集newstest2013上英德翻译性能的变化。消融实验表明,多头注意力对性能至关重要,减少注意力头的数量会降低性能。
+
+【模型变体分析】我们通过改变注意力头数量和注意力键与值的维度进行了实验,保持计算量恒定。单头注意力比最佳设置差0.9 BLEU,头太多也会降低质量。减小注意力键的大小dk会损害模型质量,这表明确定兼容性并不容易,可能比点积更复杂的兼容性函数是有益的。
+
+【泛化能力验证】为了评估Transformer是否能泛化到其他任务,我们对英语成分句法分析进行了实验。这项任务存在特定挑战:输出受到强结构约束且显著长于输入。此外,RNN序列到序列模型在小数据环境下无法取得最先进结果。在WSJ仅训练40K句子的情况下,我们的模型在WSJ第23节测试集上达到了91.3的F1分数,超越了除循环神经网络语法之外的所有先前报告模型。
+
+【训练细节】我们使用Adam优化器,β1=0.9,β2=0.98,ε=10^-9。我们根据公式改变学习率:lrate = d^(-0.5)_model · min(step_num^(-0.5), step_num · warmup_steps^(-1.5))。这对应于在第一个warmup_steps训练步骤中线性增加学习率,之后与步数的平方根成反比地减少。我们使用warmup_steps=4000。在训练期间,我们采用了三种类型的正则化:残差Dropout、标签平滑等技术。
+
+【结论与展望】在本工作中,我们提出了Transformer,这是第一个完全基于注意力的序列转换模型,用多头自注意力取代了编码器-解码器架构中最常用的循环层。对于翻译任务,Transformer的训练速度显著快于基于循环或卷积层的架构。在WMT 2014英德和英法翻译任务上,我们达到了新的最先进水平。前者我们的最佳模型甚至超越了所有先前报告的集成模型。我们对基于注意力的模型的未来感到兴奋,并计划将它们应用于其他任务。我们计划将Transformer扩展到涉及文本以外的输入和输出模态的问题,并研究局部受限注意力机制,以有效处理图像、音频和视频等大型输入和输出。使生成更少顺序化是我们的另一个研究目标。
+
+【影响与贡献】Transformer架构的提出标志着深度学习领域的重要里程碑。它不仅在机器翻译任务上取得了突破性成果,更重要的是为后续的BERT、GPT、T5等大规模预训练语言模型奠定了理论基础。自注意力机制的并行化特性使得模型能够有效处理超长序列,捕捉全局依赖关系,这在传统RNN架构中难以实现。多头注意力机制使模型能够从不同表示子空间学习信息,增强了模型的表达能力。位置编码的引入巧妙地解决了无序模型中的序列信息保留问题。Transformer的成功证明了注意力机制作为独立建模工具的强大能力,开启了"注意力即一切"的新时代。
+
+本研究的代码和预训练模型已在GitHub上开源(tensor2tensor),极大地推动了学术界和工业界对Transformer的研究与应用。截至目前,该论文已被引用超过95,000次,成为深度学习领域被引用最多的论文之一,其影响力持续扩展到计算机视觉(Vision Transformer)、语音识别、蛋白质结构预测(AlphaFold)等多个领域。`,
+    keywords: ['Transformer', '自注意力机制', '机器翻译', '深度学习', '序列建模', 'NLP', 'Multi-Head Attention', '神经网络架构'],
+    projectId: 'p-001',
+    projectName: '面向大规模预训练模型的参数高效微调方法研究',
+    projectCode: '62306124',
+    source: 'manual_upload',
+    sourceStage: 'design',
+    projectPhase: 'development',
+    sourceRef: 'internal-upload:r-007',
+    syncTime: '2017-12-06 10:00',
+    formatChecked: true,
+    formatStatus: 'passed',
+    formatNote: '论文格式规范,数据完整,实验充分',
+    status: 'published',
+    visibility: 'public_full',
+    attachments: [
+      { 
+        id: 'att-7-1', 
+        name: 'Attention_Is_All_You_Need_Full_Paper.pdf', 
+        size: 1024 * 2048, 
+        type: 'pdf', 
+        url: '/mock/attention_paper.pdf', 
+        uploadedAt: '2017-12-06',
+        description: '论文完整版PDF,包含详细的模型架构图、实验结果和分析'
+      },
+      { 
+        id: 'att-7-2', 
+        name: 'Transformer_Architecture_Diagram.png', 
+        size: 1024 * 512, 
+        type: 'image', 
+        url: '/mock/transformer_arch.png', 
+        uploadedAt: '2017-12-06',
+        description: 'Transformer完整架构示意图,展示编码器-解码器结构'
+      },
+      { 
+        id: 'att-7-3', 
+        name: 'Multi_Head_Attention_Illustration.png', 
+        size: 1024 * 384, 
+        type: 'image', 
+        url: '/mock/multi_head_attention.png', 
+        uploadedAt: '2017-12-06',
+        description: '多头注意力机制的详细图示'
+      },
+      { 
+        id: 'att-7-4', 
+        name: 'WMT_Translation_Results.xlsx', 
+        size: 1024 * 128, 
+        type: 'excel', 
+        url: '/mock/wmt_results.xlsx', 
+        uploadedAt: '2017-12-06',
+        description: 'WMT 2014英德、英法翻译任务的完整实验数据'
+      },
+      { 
+        id: 'att-7-5', 
+        name: 'Model_Hyperparameters.json', 
+        size: 1024 * 8, 
+        type: 'json', 
+        url: '/mock/model_config.json', 
+        uploadedAt: '2017-12-06',
+        description: '模型超参数配置文件,包含层数、注意力头数、隐藏层维度等'
+      },
+      { 
+        id: 'att-7-6', 
+        name: 'Training_Curves.pdf', 
+        size: 1024 * 256, 
+        type: 'pdf', 
+        url: '/mock/training_curves.pdf', 
+        uploadedAt: '2017-12-06',
+        description: '训练过程的损失曲线和BLEU分数变化趋势'
+      },
+      { 
+        id: 'att-7-7', 
+        name: 'Attention_Visualization_Examples.zip', 
+        size: 1024 * 3072, 
+        type: 'zip', 
+        url: '/mock/attention_viz.zip', 
+        uploadedAt: '2017-12-06',
+        description: '注意力权重可视化示例,展示模型如何关注输入序列的不同部分'
+      },
+      { 
+        id: 'att-7-8', 
+        name: 'Supplementary_Materials.pdf', 
+        size: 1024 * 512, 
+        type: 'pdf', 
+        url: '/mock/supplementary.pdf', 
+        uploadedAt: '2017-12-06',
+        description: '补充材料,包含额外的消融实验、模型变体对比和错误分析'
+      }
+    ],
+    metadata: { 
+      journal: 'NeurIPS 2017 (Conference on Neural Information Processing Systems)', 
+      doi: '10.5555/3295222.3295349', 
+      impact: 12.8, 
+      publishDate: '2017-12-06',
+      citations: 95000,
+      conference: 'NeurIPS 2017',
+      acceptanceRate: '20.9%',
+      presentationType: 'Oral Presentation',
+      awards: ['NeurIPS 2017 Best Paper Award', 'Most Influential Paper 2017-2022']
+    },
+    createdBy: '张教授',
+    createdAt: '2017-06-12',
+    updatedAt: '2017-12-10',
+    reviewHistory: [
+      { 
+        id: 'rev-7-1', 
+        reviewerId: '2', 
+        reviewerName: '张教授', 
+        action: 'approve', 
+        comment: '这是一项开创性的工作,Transformer架构彻底改变了序列建模的范式。论文逻辑严密,实验充分,理论分析深入。多头注意力机制和位置编码的设计极具创新性。强烈建议发表。', 
+        createdAt: '2017-09-15' 
+      },
+      { 
+        id: 'rev-7-2', 
+        reviewerId: '1', 
+        reviewerName: '管理员', 
+        action: 'approve', 
+        comment: '实验结果令人印象深刻,在WMT翻译任务上超越了所有现有基准。论文撰写清晰,架构图示直观。这将成为里程碑式的工作。', 
+        createdAt: '2017-09-20' 
+      }
+    ],
+    impactMetrics: {
+      citations: 95000,
+      h_index_contribution: 156,
+      altmetric_score: 4856,
+      downloads: 1250000,
+      github_stars: 45000,
+      implementations: 'TensorFlow, PyTorch, JAX等主流框架均有官方实现',
+      industryAdoption: 'Google Translate, DeepL, ChatGPT等产品核心技术'
+    }
   }
 ]
 
@@ -420,6 +608,30 @@ export const dashboardAnalytics = {
 }
 
 export const uploads = []
+
+export const resultAccessRequests = [
+  {
+    id: 'req-001',
+    resultId: 'r-005',
+    userId: '3',
+    userName: '李研究员',
+    status: 'rejected',
+    reason: '需要参考全文补充实验设计',
+    createdAt: '2025-01-01 15:30',
+    reviewedAt: '2025-01-02 10:00',
+    reviewer: '张教授',
+    comment: '请阐明数据保密措施后重新申请'
+  },
+  {
+    id: 'req-002',
+    resultId: 'r-002',
+    userId: '3',
+    userName: '李研究员',
+    status: 'pending',
+    reason: '准备撰写企业转化方案，需要查看专利全文',
+    createdAt: '2025-01-08 14:30'
+  }
+]
 
 export const demands = [
   {

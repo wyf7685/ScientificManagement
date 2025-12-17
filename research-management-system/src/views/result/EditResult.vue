@@ -540,7 +540,8 @@ const VISIBILITY_TEXT = {
   [ResultVisibility.PRIVATE]: '私有（仅自己）',
   [ResultVisibility.INTERNAL_ABSTRACT]: '机构内摘要可见',
   [ResultVisibility.INTERNAL_FULL]: '机构内全文可见',
-  [ResultVisibility.PUBLIC_ABSTRACT]: '公开摘要'
+  [ResultVisibility.PUBLIC_ABSTRACT]: '公开摘要',
+  [ResultVisibility.PUBLIC_FULL]: '公开全文'
 }
 
 function getVisibilityText(visibility) {

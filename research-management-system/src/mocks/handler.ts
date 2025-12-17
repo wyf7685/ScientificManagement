@@ -1,6 +1,7 @@
-import { users, results, resultTypes, projects, uploads, nextId, demands, dashboardAnalytics, crawlerSources, crawlerSettings } from './data'
+import { users, results, resultTypes, projects, uploads, nextId, demands, dashboardAnalytics, crawlerSources, crawlerSettings, resultAccessRequests } from './data'
 
 const now = () => new Date().toISOString().slice(0, 10)
+const nowWithTime = () => new Date().toISOString().replace('T', ' ').slice(0, 19)
 
 // Strapi 风格的成果类型/字段定义数据，支持增删改查
 const achievementTypesData = initializeAchievementTypes()
@@ -255,6 +256,42 @@ export function handleMockRequest(config: Record<string, any> = {}) {
     const detail = results.find((item) => item.id === id)
     if (!detail) return fail(404, '未找到成果')
     return success(detail)
+  }
+
+  if (method === 'post' && /^\/results\/[^/]+\/access-requests$/.test(url)) {
+    if (!currentUser) return fail(401, '未登录')
+    const id = url.split('/')[2]
+    const detail = results.find((item) => item.id === id)
+    if (!detail) return fail(404, '未找到成果')
+    const reason = (body?.reason || '').toString().trim()
+    if (!reason) return fail(400, '请填写申请理由')
+    if (detail.permissionStatus === 'full' || detail.accessRequestStatus === 'approved') {
+      return fail(400, '已拥有全文权限，无需申请')
+    }
+    if (detail.accessRequestStatus === 'pending') {
+      return fail(400, '申请已提交，等待审核')
+    }
+    if (detail.canRequestAccess === false && detail.accessRequestStatus !== 'rejected') {
+      return fail(400, '当前状态不可申请')
+    }
+
+    const createdAt = nowWithTime()
+    const record = {
+      id: nextId('req'),
+      resultId: id,
+      userId: currentUser.id,
+      userName: currentUser.name,
+      reason,
+      status: 'pending',
+      createdAt
+    }
+    resultAccessRequests.unshift(record)
+    detail.accessRequestStatus = 'pending'
+    detail.permissionStatus = detail.permissionStatus || 'summary'
+    detail.lastRequestAt = createdAt
+    detail.rejectedReason = ''
+    detail.canRequestAccess = false
+    return success(record, '申请已提交，等待管理员审核')
   }
 
   // 创建/草稿
@@ -600,7 +637,7 @@ function initializeAchievementFieldDefs() {
         field_name: field.label,
         field_type: (field.type || 'text').toString().toUpperCase(),
         is_required: field.required ? 1 : 0,
-        description: field.description || '',
+        description: 'description' in field ? (field as { description?: string }).description || '' : '',
         is_delete: 0,
         createdAt: now(),
         updatedAt: now(),

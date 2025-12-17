@@ -44,7 +44,8 @@ export const ResultVisibility = {
   PRIVATE: 'private',
   INTERNAL_ABSTRACT: 'internal_abstract',
   INTERNAL_FULL: 'internal_full',
-  PUBLIC_ABSTRACT: 'public_abstract'
+  PUBLIC_ABSTRACT: 'public_abstract',
+  PUBLIC_FULL: 'public_full'
 } as const
 
 export type ResultVisibility = typeof ResultVisibility[keyof typeof ResultVisibility]
