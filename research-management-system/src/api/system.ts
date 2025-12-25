@@ -1,4 +1,5 @@
 import request from '@/utils/request'
+import type { ApiResponse, QueryParams } from './types'
 
 export type CrawlerStatus = 'healthy' | 'warning' | 'error' | 'idle'
 export type CrawlerType = 'rss' | 'html' | 'api' | 'file'
@@ -34,7 +35,7 @@ export interface CrawlerSettings {
   notifyWebhook?: string
 }
 
-export function getCrawlerSources(params?: Record<string, any>) {
+export function getCrawlerSources(params?: QueryParams): Promise<ApiResponse<CrawlerDataSource[]>> {
   return request({
     url: '/system/crawler-sources',
     method: 'get',
@@ -42,7 +43,7 @@ export function getCrawlerSources(params?: Record<string, any>) {
   })
 }
 
-export function createCrawlerSource(data: CrawlerDataSource) {
+export function createCrawlerSource(data: CrawlerDataSource): Promise<ApiResponse<CrawlerDataSource>> {
   return request({
     url: '/system/crawler-sources',
     method: 'post',
@@ -50,7 +51,7 @@ export function createCrawlerSource(data: CrawlerDataSource) {
   })
 }
 
-export function updateCrawlerSource(id: string, data: Partial<CrawlerDataSource>) {
+export function updateCrawlerSource(id: string, data: Partial<CrawlerDataSource>): Promise<ApiResponse<CrawlerDataSource>> {
   return request({
     url: `/system/crawler-sources/${id}`,
     method: 'put',
@@ -58,28 +59,28 @@ export function updateCrawlerSource(id: string, data: Partial<CrawlerDataSource>
   })
 }
 
-export function deleteCrawlerSource(id: string) {
+export function deleteCrawlerSource(id: string): Promise<ApiResponse<any>> {
   return request({
     url: `/system/crawler-sources/${id}`,
     method: 'delete'
   })
 }
 
-export function testCrawlerSource(id: string) {
+export function testCrawlerSource(id: string): Promise<ApiResponse<any>> {
   return request({
     url: `/system/crawler-sources/${id}/test`,
     method: 'post'
   })
 }
 
-export function getCrawlerSettings() {
+export function getCrawlerSettings(): Promise<ApiResponse<CrawlerSettings>> {
   return request({
     url: '/system/crawler-settings',
     method: 'get'
   })
 }
 
-export function updateCrawlerSettings(data: Partial<CrawlerSettings>) {
+export function updateCrawlerSettings(data: Partial<CrawlerSettings>): Promise<ApiResponse<CrawlerSettings>> {
   return request({
     url: '/system/crawler-settings',
     method: 'put',

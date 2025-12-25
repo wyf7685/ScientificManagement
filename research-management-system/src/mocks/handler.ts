@@ -1,4 +1,4 @@
-import { users, results, resultTypes, projects, uploads, nextId, demands, dashboardAnalytics, crawlerSources, crawlerSettings, resultAccessRequests } from './data'
+import { users, results, resultTypes, projects, uploads, nextId, demands, dashboardAnalytics, crawlerSources, crawlerSettings, resultAccessRequests, interimResults } from './data'
 
 const now = () => new Date().toISOString().slice(0, 10)
 const nowWithTime = () => new Date().toISOString().replace('T', ' ').slice(0, 19)
@@ -685,6 +685,48 @@ export function handleMockRequest(config: Record<string, any> = {}) {
     return success(uploadResult, '上传成功')
   }
 
+  // ==================== 中期成果物接口 ====================
+  
+  // 获取中期成果物统计
+  if (method === 'get' && url === '/interim-results/stats') {
+    const stats = buildInterimStats(interimResults)
+    return success(stats)
+  }
+
+  // 获取中期成果物列表
+  if (method === 'get' && url === '/interim-results') {
+    return success(pageInterimResults(interimResults, params))
+  }
+
+  // 获取中期成果物详情
+  if (method === 'get' && /^\/interim-results\/[^/]+$/.test(url)) {
+    const id = url.split('/')[2]
+    const item = interimResults.find((r) => r.id === id)
+    if (!item) return fail(404, '未找到中期成果物')
+    return success(item)
+  }
+
+  // 手动同步中期成果物
+  if (method === 'post' && url === '/interim-results/sync') {
+    const projectId = body?.projectId
+    return success({
+      syncCount: projectId ? 2 : interimResults.length,
+      syncTime: nowWithTime()
+    }, '同步完成')
+  }
+
+  // 批量下载
+  if (method === 'post' && url === '/interim-results/batch-download') {
+    // 模拟返回blob
+    return success({ message: '批量下载功能需要后端支持' })
+  }
+
+  // 导出列表
+  if (method === 'get' && url === '/interim-results/export') {
+    // 模拟返回blob
+    return success({ message: '导出功能需要后端支持' })
+  }
+
   console.warn('Mock request not handled:', method, url)
   return fail(404, `Mock接口不存在: ${method} ${url}`)
 }
@@ -965,6 +1007,83 @@ function pageDemands(source, params) {
 
   if (status) {
     list = list.filter((item) => item.status === status)
+  }
+
+  const total = list.length
+  const start = (page - 1) * pageSize
+  const end = start + pageSize
+
+  return {
+    list: list.slice(start, end),
+    total,
+    page,
+    pageSize
+  }
+}
+
+// ==================== 中期成果物辅助函数 ====================
+
+function buildInterimStats(source) {
+  const totalProjects = new Set(source.map((item) => item.projectId)).size
+  const totalResults = source.length
+  
+  const byType = {}
+  source.forEach((item) => {
+    const key = item.typeLabel || item.type
+    byType[key] = (byType[key] || 0) + 1
+  })
+  
+  const byYear = {}
+  source.forEach((item) => {
+    const year = (item.submittedAt || '').slice(0, 4)
+    if (year) {
+      byYear[year] = (byYear[year] || 0) + 1
+    }
+  })
+  
+  const recentSyncTime = source.length > 0 
+    ? source.sort((a, b) => (b.syncedAt || '').localeCompare(a.syncedAt || ''))[0]?.syncedAt
+    : undefined
+  
+  return {
+    totalProjects,
+    totalResults,
+    byType,
+    byYear,
+    recentSyncTime
+  }
+}
+
+function pageInterimResults(source, params) {
+  const projectId = params.projectId || ''
+  const type = params.type || ''
+  const year = params.year || ''
+  const keyword = params.keyword || ''
+  const page = Number(params.page) || 1
+  const pageSize = Number(params.pageSize) || 10
+
+  let list = [...source]
+
+  if (projectId) {
+    list = list.filter((item) => item.projectId === projectId)
+  }
+
+  if (type) {
+    list = list.filter((item) => item.type === type)
+  }
+
+  if (year) {
+    list = list.filter((item) => (item.submittedAt || '').startsWith(year))
+  }
+
+  if (keyword) {
+    list = list.filter(
+      (item) =>
+        item.name.includes(keyword) ||
+        item.projectName?.includes(keyword) ||
+        item.description?.includes(keyword) ||
+        item.submitter?.includes(keyword)
+    )
   }
 
   const total = list.length

@@ -169,7 +169,9 @@ import {
   Checked,
   DataAnalysis,
   Setting,
-  User
+  User,
+  List,
+  FolderOpened
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -214,6 +216,12 @@ const menuItems = computed(() => {
       roles: ['researcher', 'expert', 'admin', 'manager']
     },
     {
+      path: '/results/list',
+      title: '成果列表',
+      icon: List,
+      roles: ['researcher', 'expert', 'admin', 'manager']
+    },
+    {
       path: '/results/search',
       title: '成果检索',
       icon: Search,
@@ -226,6 +234,16 @@ const menuItems = computed(() => {
       roles: ['researcher', 'expert', 'admin', 'manager']
     }
   ]
+
+  // 中期成果物菜单（管理员可见）
+  if (userStore.isManager) {
+    items.push({
+      path: '/admin/interim-results',
+      title: '中期成果物',
+      icon: FolderOpened,
+      roles: ['admin', 'manager']
+    })
+  }
 
   // 专家菜单
   if (userStore.isExpert) {
@@ -249,6 +267,7 @@ const menuItems = computed(() => {
         { path: '/admin/results', title: '成果管理' },
         { path: '/admin/access-requests', title: '权限审核' },
         { path: '/admin/review-assign', title: '审核分配' },
+        { path: '/admin/research-insights', title: '研究洞察' },
         { path: '/admin/system-settings', title: '系统设置' }
       ]
     })

@@ -1,24 +1,28 @@
 import request from '@/utils/request'
+import { normalizeStrapiCollection, normalizeStrapiSingle } from '@/utils/strapi'
+import type { ApiResponse, StrapiCollectionResponse, StrapiSingleResponse, QueryParams } from './types'
 
 // 获取项目列表
-export function getProjects(params?: any) {
-  return request({
+export async function getProjects(params?: QueryParams): Promise<StrapiCollectionResponse<any>> {
+  const res = await request({
     url: '/projects',
     method: 'get',
     params
   })
+  return normalizeStrapiCollection(res)
 }
 
 // 获取项目详情
-export function getProject(id: string) {
-  return request({
+export async function getProject(id: string): Promise<StrapiSingleResponse<any>> {
+  const res = await request({
     url: `/projects/${id}`,
     method: 'get'
   })
+  return normalizeStrapiSingle(res)
 }
 
 // 创建项目
-export function createProject(data: { name: string; code: string }) {
+export function createProject(data: { name: string; code: string }): Promise<ApiResponse<any>> {
   return request({
     url: '/projects',
     method: 'post',

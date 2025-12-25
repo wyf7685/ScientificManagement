@@ -176,3 +176,111 @@ export interface ResultAccessRequest {
   reviewer?: string
   comment?: string
 }
+
+// ==================== 中期成果物类型定义 ====================
+
+/**
+ * 中期成果物类型枚举
+ */
+export const InterimResultType = {
+  CONTRACT: 'contract',                    // 合同
+  APPLICATION: 'application',              // 申报书
+  FEASIBILITY_REPORT: 'feasibility_report', // 可行性报告
+  REQUIREMENT_DOC: 'requirement_doc',      // 需求文档
+  DESIGN_DOC: 'design_doc',                // 设计文档
+  PROGRESS_REPORT: 'progress_report',      // 进展报告
+  TEST_REPORT: 'test_report',              // 测试报告
+  OTHER: 'other'                           // 其他
+} as const
+
+export type InterimResultType = typeof InterimResultType[keyof typeof InterimResultType]
+
+/**
+ * 中期成果物类型映射（中文）
+ */
+export const INTERIM_RESULT_TYPE_MAP: Record<InterimResultType, string> = {
+  [InterimResultType.CONTRACT]: '合同',
+  [InterimResultType.APPLICATION]: '申报书',
+  [InterimResultType.FEASIBILITY_REPORT]: '可行性报告',
+  [InterimResultType.REQUIREMENT_DOC]: '需求文档',
+  [InterimResultType.DESIGN_DOC]: '设计文档',
+  [InterimResultType.PROGRESS_REPORT]: '进展报告',
+  [InterimResultType.TEST_REPORT]: '测试报告',
+  [InterimResultType.OTHER]: '其他'
+}
+
+/**
+ * 附件信息
+ */
+export interface Attachment {
+  id: string
+  name: string
+  url: string
+  size: number
+  ext?: string
+  uploadedAt?: string
+}
+
+/**
+ * 中期成果物接口
+ */
+export interface InterimResult {
+  id: string
+  
+  // 项目信息
+  projectId: string
+  projectName: string
+  projectCode?: string
+  projectPhase: string
+  
+  // 成果物信息
+  name: string
+  type: InterimResultType
+  typeLabel: string
+  description?: string
+  
+  // 附件
+  attachments: Attachment[]
+  
+  // 人员信息
+  submitter?: string
+  submitterDept?: string
+  
+  // 时间信息
+  submittedAt: string
+  syncedAt: string
+  
+  // 来源标识
+  source: 'process_system'
+  sourceRef: string
+  sourceUrl?: string
+  
+  // 业务标识
+  tags?: string[]
+  status?: string
+}
+
+/**
+ * 项目树节点
+ */
+export interface ProjectTreeNode {
+  id: string
+  label: string
+  type: 'year' | 'project' | 'category'
+  count: number
+  children?: ProjectTreeNode[]
+  projectId?: string
+  year?: string
+  categoryType?: InterimResultType
+}
+
+/**
+ * 中期成果物统计数据
+ */
+export interface InterimResultStats {
+  totalProjects: number
+  totalResults: number
+  byType: Record<string, number>
+  byYear: Record<string, number>
+  recentSyncTime?: string
+}

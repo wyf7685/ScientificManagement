@@ -111,7 +111,7 @@
               />
             </el-form-item>
             
-            <!-- 动态字段 -->
+            <!-- 动态字段 - 使用组件映射模型 -->
             <template v-if="selectedType">
               <el-form-item
                 v-for="field in selectedType.fields"
@@ -120,41 +120,10 @@
                 :prop="`metadata.${field.name}`"
                 :required="field.required"
               >
-                <el-input
-                  v-if="field.type === 'text'"
+                <DynamicFieldRenderer
+                  :field="field"
                   v-model="formData.metadata[field.name]"
-                  :placeholder="field.helpText"
                 />
-                <el-input
-                  v-else-if="field.type === 'textarea'"
-                  v-model="formData.metadata[field.name]"
-                  type="textarea"
-                  :rows="3"
-                  :placeholder="field.helpText"
-                />
-                <el-input-number
-                  v-else-if="field.type === 'number'"
-                  v-model="formData.metadata[field.name]"
-                  :placeholder="field.helpText"
-                />
-                <el-date-picker
-                  v-else-if="field.type === 'date'"
-                  v-model="formData.metadata[field.name]"
-                  type="date"
-                  :placeholder="field.helpText"
-                />
-                <el-select
-                  v-else-if="field.type === 'select'"
-                  v-model="formData.metadata[field.name]"
-                  :placeholder="field.helpText"
-                >
-                  <el-option
-                    v-for="opt in field.options"
-                    :key="opt"
-                    :label="opt"
-                    :value="opt"
-                  />
-                </el-select>
               </el-form-item>
             </template>
           </el-form>
@@ -279,6 +248,7 @@ import { UploadFilled } from '@element-plus/icons-vue'
 import { getResultTypes, getResult, updateResult, autoFillMetadata, uploadAttachment } from '@/api/result'
 import { getProjects, createProject } from '@/api/project'
 import { ResultVisibility } from '@/types'
+import DynamicFieldRenderer from '@/components/DynamicFieldRenderer.vue'
 
 const router = useRouter()
 const route = useRoute()

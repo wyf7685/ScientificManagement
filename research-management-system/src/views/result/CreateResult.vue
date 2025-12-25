@@ -112,7 +112,7 @@
               />
             </el-form-item>
             
-            <!-- 动态字段 -->
+            <!-- 动态字段 - 使用组件映射模型 -->
             <template v-if="selectedType">
               <el-form-item
                 v-for="field in selectedType.fields"
@@ -121,41 +121,10 @@
                 :prop="`metadata.${field.name}`"
                 :required="field.required"
               >
-                <el-input
-                  v-if="field.type === 'text'"
+                <DynamicFieldRenderer
+                  :field="field"
                   v-model="formData.metadata[field.name]"
-                  :placeholder="field.helpText"
                 />
-                <el-input
-                  v-else-if="field.type === 'textarea'"
-                  v-model="formData.metadata[field.name]"
-                  type="textarea"
-                  :rows="3"
-                  :placeholder="field.helpText"
-                />
-                <el-input-number
-                  v-else-if="field.type === 'number'"
-                  v-model="formData.metadata[field.name]"
-                  :placeholder="field.helpText"
-                />
-                <el-date-picker
-                  v-else-if="field.type === 'date'"
-                  v-model="formData.metadata[field.name]"
-                  type="date"
-                  :placeholder="field.helpText"
-                />
-                <el-select
-                  v-else-if="field.type === 'select'"
-                  v-model="formData.metadata[field.name]"
-                  :placeholder="field.helpText"
-                >
-                  <el-option
-                    v-for="opt in field.options"
-                    :key="opt"
-                    :label="opt"
-                    :value="opt"
-                  />
-                </el-select>
               </el-form-item>
             </template>
           </el-form>
@@ -281,6 +250,8 @@ import { UploadFilled } from '@element-plus/icons-vue'
 import { getResultTypes, getFieldDefsByType, createResult, saveDraft, autoFillMetadata, uploadAttachment } from '@/api/result'
 import { getProjects, createProject } from '@/api/project'
 import { ResultVisibility } from '@/types'
+import DynamicFieldRenderer from '@/components/DynamicFieldRenderer.vue'
+import { mapFieldType } from '@/config/dynamicFields'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -362,30 +333,16 @@ async function loadProjects() {
   }
 }
 
-// 字段类型映射：后端 -> 前端
-function mapFieldType(backendType: string): string {
-  const typeMap: Record<string, string> = {
-    'TEXT': 'text',
-    'RICHTEXT': 'textarea',
-    'NUMBER': 'number',
-    'DATE': 'date',
-    'EMAIL': 'text',
-    'BOOLEAN': 'checkbox',
-    'JSON': 'textarea',
-    'MEDIA': 'text'
-  }
-  return typeMap[backendType] || 'text'
-}
-
 // 将后端字段定义转换为前端表单字段格式
 function transformFieldDef(field: any) {
   return {
     id: field.field_code,
     name: field.field_code,
     label: field.field_name,
-    type: mapFieldType(field.field_type),
+    type: mapFieldType(field.field_type), // 使用配置文件中的映射函数
     required: field.is_required === 1,
     helpText: field.description || `请输入${field.field_name}`,
+    options: field.options || [], // 支持选项字段
     order: field.order || 0
   }
 }

@@ -38,6 +38,12 @@ const router = createRouter({
           meta: { title: '个人成果物', roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN, UserRole.MANAGER] }
         },
         {
+          path: '/results/list',
+          name: 'ResultsList',
+          component: () => import('@/views/result/ResultsList.vue'),
+          meta: { title: '成果列表', roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN, UserRole.MANAGER] }
+        },
+        {
           path: '/results/search',
           name: 'SearchResults',
           component: () => import('@/views/result/SearchResults.vue'),
@@ -104,6 +110,18 @@ const router = createRouter({
           name: 'SystemSettings',
           component: () => import('@/views/admin/SystemSettings.vue'),
           meta: { title: '系统设置', roles: [UserRole.ADMIN, UserRole.MANAGER] }
+        },
+        {
+          path: '/admin/research-insights',
+          name: 'ResearchInsights',
+          component: () => import('@/views/admin/ResearchInsights.vue'),
+          meta: { title: '研究洞察', roles: [UserRole.ADMIN, UserRole.MANAGER] }
+        },
+        {
+          path: '/admin/interim-results',
+          name: 'InterimResults',
+          component: () => import('@/views/admin/InterimResults.vue'),
+          meta: { title: '中期成果物', roles: [UserRole.ADMIN, UserRole.MANAGER] }
         }
       ]
     },

@@ -58,27 +58,22 @@
     </el-row>
 
     <el-row :gutter="20" class="chart-section">
-      <el-col :xs="24" :md="16">
-        <el-card class="chart-card">
+      <el-col :span="24">
+        <el-card class="recent-results">
           <template #header>
             <div class="card-header">
-              <span>研究热点词云 / 关联图谱</span>
-              <el-radio-group v-model="keywordRange" size="small">
-                <el-radio-button label="1y">近1年</el-radio-button>
-                <el-radio-button label="all">全部</el-radio-button>
-              </el-radio-group>
+              <span>最新入库成果</span>
+              <el-button type="primary" size="small" link @click="$router.push('/admin/results')">
+                查看全部
+              </el-button>
             </div>
           </template>
-          <div ref="keywordChartRef" class="chart-container keyword"></div>
-        </el-card>
-      </el-col>
-      <el-col :xs="24" :md="8">
-        <el-card class="recent-results">
-          <template #header>最新入库成果</template>
-          <el-table :data="recentResults" v-loading="loading" size="small" height="360">
-            <el-table-column prop="title" label="成果名称" min-width="180" />
-            <el-table-column prop="type" label="类型" width="110" />
-            <el-table-column prop="createdAt" label="入库时间" width="140" />
+          <el-table :data="recentResults" v-loading="loading" size="default">
+            <el-table-column prop="title" label="成果名称" min-width="240" show-overflow-tooltip />
+            <el-table-column prop="type" label="类型" width="120" />
+            <el-table-column prop="author" label="作者" width="140" show-overflow-tooltip />
+            <el-table-column prop="department" label="所属部门" width="160" show-overflow-tooltip />
+            <el-table-column prop="createdAt" label="入库时间" width="160" />
           </el-table>
         </el-card>
       </el-col>
@@ -89,7 +84,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { Document, Tickets, TrophyBase, TrendCharts } from '@element-plus/icons-vue'
-import { getStatistics, getResults, getAdvancedDistribution, getStackedTrend, getKeywordCloud } from '@/api/result'
+import { getStatistics, getResults, getAdvancedDistribution, getStackedTrend } from '@/api/result'
 import * as echarts from 'echarts'
 
 const loading = ref(false)
@@ -99,21 +94,17 @@ const recentResults = ref([])
 const distributionDimension = ref('type')
 const trendDimension = ref('type')
 const trendRange = ref('5y')
-const keywordRange = ref('1y')
 
 const distributionData = ref<any[]>([])
 const indexLevelDistribution = ref<any[]>([])
 const stackedTimeline = ref<string[]>([])
 const stackedSeries = ref<any[]>([])
 const citationSeries = ref<number[]>([])
-const keywordGraph = ref<{ nodes: any[]; links: any[] }>({ nodes: [], links: [] })
 
 const distributionChartRef = ref(null)
 const stackedChartRef = ref(null)
-const keywordChartRef = ref(null)
 const distributionChartInstance = ref<echarts.ECharts | null>(null)
 const stackedChartInstance = ref<echarts.ECharts | null>(null)
-const keywordChartInstance = ref<echarts.ECharts | null>(null)
 
 const colorPalette = ['#1d5bff', '#4c7eff', '#00c892', '#ff9d3c', '#7c3aed', '#0ea5e9', '#f97316']
 
@@ -152,8 +143,7 @@ onMounted(async () => {
   await Promise.all([
     loadSummary(),
     loadDistribution(),
-    loadStackedTrend(),
-    loadKeywordCloud()
+    loadStackedTrend()
   ])
   await nextTick()
   window.addEventListener('resize', handleResize)
@@ -166,7 +156,6 @@ onBeforeUnmount(() => {
 
 watch(distributionDimension, () => loadDistribution())
 watch([trendDimension, trendRange], () => loadStackedTrend())
-watch(keywordRange, () => loadKeywordCloud())
 
 async function loadSummary() {
   loading.value = true
@@ -215,16 +204,6 @@ async function loadStackedTrend() {
     renderStackedChart()
   } catch (error) {
     console.error('加载趋势数据失败:', error)
-  }
-}
-
-async function loadKeywordCloud() {
-  try {
-    const res = await getKeywordCloud({ range: keywordRange.value })
-    keywordGraph.value = res?.data || { nodes: [], links: [] }
-    renderKeywordChart()
-  } catch (error) {
-    console.error('加载关键词数据失败:', error)
   }
 }
 
@@ -301,60 +280,16 @@ function renderStackedChart() {
   )
 }
 
-function renderKeywordChart() {
-  if (!keywordChartRef.value) return
-  if (!keywordChartInstance.value) {
-    keywordChartInstance.value = echarts.init(keywordChartRef.value)
-  }
-
-  const nodes = (keywordGraph.value.nodes || []).map((item, index) => ({
-    ...item,
-    symbolSize: Math.max(14, Math.min(42, item.value)),
-    itemStyle: { color: colorPalette[index % colorPalette.length] }
-  }))
-
-  const categories = Array.from(new Set(nodes.map((item) => item.category).filter(Boolean))).map(
-    (name) => ({ name })
-  )
-
-  keywordChartInstance.value.setOption(
-    {
-      tooltip: {
-        formatter: (params: any) => `${params.data.name}<br/>热度: ${params.data.value}`
-      },
-      legend: { data: categories.map((item) => item.name), top: 6 },
-      series: [
-        {
-          type: 'graph',
-          layout: 'force',
-          roam: true,
-          force: { repulsion: 90, edgeLength: [50, 140] },
-          data: nodes,
-          links: keywordGraph.value.links || [],
-          categories,
-          label: { show: true, formatter: '{b}', color: '#0f172a' },
-          lineStyle: { color: '#cbd5e1', opacity: 0.6 },
-          emphasis: { focus: 'adjacency' }
-        }
-      ]
-    },
-    true
-  )
-}
-
 function handleResize() {
   distributionChartInstance.value?.resize()
   stackedChartInstance.value?.resize()
-  keywordChartInstance.value?.resize()
 }
 
 function disposeCharts() {
   distributionChartInstance.value?.dispose()
   stackedChartInstance.value?.dispose()
-  keywordChartInstance.value?.dispose()
   distributionChartInstance.value = null
   stackedChartInstance.value = null
-  keywordChartInstance.value = null
 }
 </script>
 
@@ -405,10 +340,6 @@ function disposeCharts() {
   height: 340px;
 }
 
-.chart-container.keyword {
-  height: 360px;
-}
-
 .chart-card {
   min-height: 360px;
 }
@@ -433,6 +364,6 @@ function disposeCharts() {
 }
 
 .recent-results {
-  height: 420px;
+  min-height: 400px;
 }
 </style>
