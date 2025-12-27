@@ -1,7 +1,10 @@
 package com.achievement.service;
 
 import com.achievement.domain.dto.AchListDTO;
+import com.achievement.domain.dto.AchListDTO2;
 import com.achievement.domain.po.AchievementMains;
+import com.achievement.domain.vo.AchDetailVO;
+import com.achievement.domain.vo.AchList2VO;
 import com.achievement.domain.vo.AchListVO;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -31,4 +34,8 @@ public interface IAchievementMainsService extends IService<AchievementMains> {
     Long countMonthNew();
 
     Page<AchListVO> pageList4User(AchListDTO achListDTO);
+
+    AchDetailVO selectDetail(String achDocId);
+
+    Page<AchListVO> pageList4Visibility(AchListDTO2 achListDTO);
 }

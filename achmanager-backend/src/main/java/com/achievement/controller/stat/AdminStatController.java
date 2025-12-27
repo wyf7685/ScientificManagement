@@ -1,15 +1,16 @@
 package com.achievement.controller.stat;
 
+import com.achievement.domain.vo.TypeCountVO;
 import com.achievement.result.Result;
+import com.achievement.service.AchievementStatService;
 import com.achievement.service.IAchievementMainsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -19,18 +20,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminStatController {
 
     private final IAchievementMainsService mainsService;
-
-        //统计某用户的成果物数量
+    private final AchievementStatService statService;
+        //统计成果物数量
         @Operation(description = "统计所有用户的成果物数量")
-        @PostMapping("/AchCount")
+        @GetMapping("/AchCount")
         public Result<Long> AchStat(){
             Long count = mainsService.countAch();
             return Result.success(count);
 
         }
-        //统计某用户的某类别成果物数量
+        //统计某类别成果物数量
         @Operation(description = "统计创建的某类别成果物数量")
-        @PostMapping("/TypeAchCount")
+        @GetMapping("/TypeAchCount")
         public Result<Long> TypeAchStat(@RequestParam Long typeId){
 
             Long count = mainsService.countByTypeId(typeId);
@@ -38,10 +39,21 @@ public class AdminStatController {
 
         }
         @Operation(description = "统计系统本月新增成果物数量")
-        //统计某用户的本月新增成果物数量
-        @PostMapping("/MonthNewAchCount")
+        //统计本月新增成果物数量
+        @GetMapping("/MonthNewAchCount")
         public Result<Long> MonthNewAchStat(){
             Long count = mainsService.countMonthNew();
             return Result.success(count);
         }
-    }
+
+        /**
+            * 饼图：各成果物类型数量
+            * creatorId 不传 = 全量（管理员口径）
+            * creatorId 传值 = 指定用户
+        */
+        @Operation(description = "饼图：各成果物类型数量")
+        @GetMapping("/typePie")
+        public Result<List<TypeCountVO>> typePie(@RequestParam(required = false) Long creatorId) {
+        return Result.success(statService.typePie(creatorId));
+        }
+}

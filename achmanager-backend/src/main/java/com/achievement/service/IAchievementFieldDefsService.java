@@ -4,8 +4,6 @@ import com.achievement.domain.po.AchievementFieldDefs;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import java.util.Map;
-
 /**
  * <p>
  *  服务类
@@ -16,7 +14,14 @@ import java.util.Map;
  */
 public interface IAchievementFieldDefsService extends IService<AchievementFieldDefs> {
 
-    JsonNode createFieldDef(Map<String, Object> req);
+    JsonNode createFieldDef(JsonNode req);
 
-    JsonNode updateFieldDef(String fieldDefDocId, Map<String, Object> req);
+    JsonNode updateFieldDef(String fieldDefDocId, JsonNode req);
+
+    JsonNode updateFieldDefs(JsonNode req);
+
+    /**
+     * 软删除字段定义（is_delete=1）。
+     */
+    JsonNode deleteFieldDef(String fieldDefDocId);
 }

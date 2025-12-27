@@ -1,18 +1,22 @@
 package com.achievement.controller;
 
 import com.achievement.domain.dto.AchListDTO;
+import com.achievement.domain.dto.AchListDTO2;
+import com.achievement.domain.vo.AchDetailVO;
+import com.achievement.domain.vo.AchList2VO;
 import com.achievement.domain.vo.AchListVO;
 import com.achievement.result.Result;
+import com.achievement.service.IAchievementAdminService;
 import com.achievement.service.IAchievementMainsService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 //12.17 目前开发成果物有关的查询功能
 @Slf4j
@@ -22,13 +26,48 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name="用户成果物管理相关接口")
 public class AchievementUserController {
     private final IAchievementMainsService achievementMainsService;
+    private final IAchievementAdminService achievementAdminService;
 
     /* 用户分页查询个人成果物列表
     *
     * */
-    @Operation(description = "用户分页查询成果物列表接口")
+    @Operation(description = "用户分页查询自己成果物列表接口")
     @PostMapping("/pageList")
     public Result<Page<AchListVO>> pageList(@RequestBody AchListDTO achListDTO){
         return Result.success(achievementMainsService.pageList4User(achListDTO));
+    }
+    /*
+     *TODO 用户分页查询所有 可见范围内 所有成果物
+     * */
+    @Operation(description = "用户分页查询所有可见成果物列表接口")
+    @PostMapping("/pageListAllVisible")
+    public Result<Page<AchListVO>> pageListAllVisible(@RequestBody AchListDTO2 achListDTO){
+        return Result.success(achievementMainsService.pageList4Visibility(achListDTO));
+    }
+
+    @Operation(description = "用户新增成果物（主信息+多个字段值）")
+    @PostMapping("/create")
+    public Result<JsonNode> create(@RequestBody Map<String, Object> req) {
+        return Result.success(achievementAdminService.createAchievement(req));
+    }
+
+    @Operation(description = "用户修改成果物（主信息+多个字段值，仅处理前端传回的改动项）")
+    @PutMapping("/update/{achievementDocId}")
+    public Result<JsonNode> update(@PathVariable String achievementDocId, @RequestBody Map<String, Object> req) {
+        return Result.success(achievementAdminService.updateAchievement(achievementDocId, req));
+    }
+
+    @Operation(description = "用户修改成果物可见范围（仅更新 visibility_range，不触发状态强制变更）")
+    @PutMapping("/updateVisibilityRange")
+    public Result<JsonNode> updateVisibilityRange(@RequestBody Map<String, Object> req) {
+        return Result.success(achievementAdminService.updateVisibilityRange(req));
+    }
+
+
+    //TODO 用户查询成果物详情 ，与管理员查询成果物详情类似
+    @Operation(description = "用户成果物详情接口")
+    @GetMapping("/detail")
+    public Result <AchDetailVO> detail(@RequestParam String achDocId){
+        return Result.success(achievementMainsService.selectDetail(achDocId));
     }
 }

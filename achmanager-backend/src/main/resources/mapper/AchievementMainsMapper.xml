@@ -6,56 +6,202 @@
 
 <!-- 其他自动生成的 CRUD 在这里... -->
 <!-- 分页查询成果物列表 -->
-<select id="pageList"
-        resultType="com.achievement.domain.vo.AchListVO">
-    SELECT
-    m.document_id        AS documentId,
-    m.title              AS title,
-    t.type_name          AS typeName,
-    m.achievement_status AS auditStatus,
-    au.username          AS creatorName,
-    NULL                 AS authorName,     -- 先占位，后续有字段再填
-    NULL                 AS projectName,    -- 先占位，后续 join 项目表
-    m.summary            AS summary,
-    m.created_at         AS createdAt,
-    NULL/*m.visible_scope  */    AS visibleScope   -- 假设你后面会加这个字段
-    FROM achievement_mains m
-    LEFT JOIN achievement_mains_achievement_type_id_lnk mt
-    ON mt.achievement_main_id = m.id
-    LEFT JOIN achievement_types t
-    ON t.id = mt.achievement_type_id
-    LEFT JOIN admin_users au
-    ON au.id = m.created_by_id
-    WHERE m.is_delete = 0
-    AND m.published_at IS NOT NULL
+    <select id="pageList" resultType="com.achievement.domain.vo.AchListVO">
+        SELECT
+        m.id                 AS documentId,
+        m.title              AS title,
+        t.type_name          AS typeName,
+        m.achievement_status AS auditStatus,
+       /* au.username          AS creatorName,
+        p.project_name       AS projectName,*/
+        m.summary            AS summary,
+        m.created_at         AS createdAt,
+        m.visibility_range      AS visibilityRange
+        FROM achievement_mains m
+
+        LEFT JOIN achievement_mains_achievement_type_id_lnk mt
+        ON mt.achievement_main_id = m.id
+        LEFT JOIN achievement_types t
+        ON t.id = mt.achievement_type_id
+        <!--目前还少这两张表先注释掉-->
+        <!--LEFT JOIN admin_users au
+        ON au.id = m.created_by_id*/
 
 
-    <if test="dto.title != null and dto.title != ''">
-        AND m.title LIKE CONCAT('%', #{dto.title}, '%')
-    </if>
+        LEFT JOIN projects p
+        ON p.id = m.project_id -->
 
-    <if test="dto.status != null and dto.status != ''">
-        AND m.achievement_status = #{dto.status}
-    </if>
+        <!-- 方式B：如果是 Strapi 多对多/多对一 link 表（按你实际表名改）
+        LEFT JOIN achievement_mains_project_id_lnk mp
+            ON mp.achievement_main_id = m.id
+        LEFT JOIN projects p
+            ON p.id = mp.project_id
+        -->
 
-    <if test="dto.typeId != null">
-        AND mt.achievement_type_id = #{dto.typeId}
-    </if>
-    <if test="dto.creatorId != null ">
-    AND m.created_by_id = #{dto.creatorId}
-    </if>
-    <if test="dto.creatorName != null and dto.creatorName != ''">
-        AND au.username LIKE CONCAT('%', #{dto.creatorName}, '%')
-    </if>
+        WHERE m.is_delete = 0
+        AND m.published_at IS NOT NULL
 
-    <!-- 项目名、可见范围的条件，等你有相关字段/表后再加 -->
-    <!--
-    <if test="dto.projectName != null and dto.projectName != ''">
-        AND p.project_name LIKE CONCAT('%', #{dto.projectName}, '%')
-    </if>
-    -->
-    ORDER BY m.created_at DESC
-</select>
+        <!-- 个人成果物：强制按创建者过滤
+        AND m.created_by_id = #{dto.creatorId}-->
+
+        <if test="dto.mainTitle != null and dto.mainTitle != ''">
+            AND m.title LIKE CONCAT('%', #{dto.mainTitle}, '%')
+        </if>
+
+        <if test="dto.status != null and dto.status != ''">
+            AND m.achievement_status = #{dto.status}
+        </if>
+
+        <if test="dto.typeId != null">
+            AND mt.achievement_type_id = #{dto.typeId}
+        </if>
+
+        <if test="dto.projectId != null">
+            <!-- 方式A：m.project_id -->
+            AND m.project_id = #{dto.projectId}
+            <!-- 方式B：link 表的话改成 mp.project_id = #{projectId} -->
+        </if>
+
+        <if test="dto.visibilityRange != null and dto.visibilityRange != ''">
+            AND m.visibility_range = #{dto.visibilityRange}
+        </if>
+
+        ORDER BY m.created_at DESC
+    </select>
+
+    <select id="countByType" resultType="com.achievement.domain.vo.TypeCountVO">
+        SELECT
+        t.type_name AS typeName,
+        t.type_code AS typeCode,
+        COUNT(DISTINCT m.id) AS count
+        FROM achievement_types t
+        LEFT JOIN achievement_mains_achievement_type_id_lnk mt
+        ON mt.achievement_type_id = t.id
+        LEFT JOIN achievement_mains m
+        ON m.id = mt.achievement_main_id
+        AND m.is_delete = 0
+        AND m.published_at IS NOT NULL
+        AND m.achievement_status = 'APPROVED'
+        WHERE t.is_delete = 0
+        <if test="creatorId != null">
+            AND m.created_by_id = #{creatorId}
+        </if>
+        GROUP BY t.id, t.type_name, t.type_code
+        ORDER BY count DESC
+
+    </select>
+    <select id="selectMainBaseByDocId" resultType="com.achievement.domain.dto.AchMainBaseRow">
+        SELECT
+            m.id            AS mainId,
+            m.document_id   AS documentId,
+            m.title         AS title,
+            m.summary       AS summary,
+            m.achievement_status AS auditStatus,
+            m.created_at    AS createdAt,
+            m.updated_at    AS updatedAt,
+            m.published_at  AS publishedAt,
+            au.username     AS creatorName,
+
+            t.id            AS typeId,
+            t.document_id   AS typeDocId,
+            t.type_name     AS typeName,
+            t.type_code     AS typeCode
+        FROM achievement_mains m
+                 LEFT JOIN admin_users au
+                           ON au.id = m.created_by_id
+                 LEFT JOIN achievement_mains_achievement_type_id_lnk mt
+                           ON mt.achievement_main_id = m.id
+                 LEFT JOIN achievement_types t
+                           ON t.id = mt.achievement_type_id
+        WHERE m.is_delete = 0
+          AND m.document_id = #{docId}
+        ORDER BY (m.published_at IS NOT NULL) DESC, m.updated_at DESC
+        LIMIT 1
+    </select>
+    <select id="selectFieldRows" resultType="com.achievement.domain.dto.AchFieldRow">
+        SELECT
+            d.id            AS fieldId,
+            d.document_id   AS documentId,
+            d.field_code    AS fieldCode,
+            d.field_name    AS fieldName,
+            d.field_type    AS fieldType,
+            d.is_required   AS isRequired,
+
+            v.text_value    AS textValue,
+            v.boolean_value AS booleanValue,
+            v.number_value  AS numberValue,
+            v.date_value    AS dateValue,
+            v.email_value   AS emailValue
+        FROM achievement_field_values_achievement_id_lnk avl
+                 JOIN achievement_field_values v
+                      ON v.id = avl.achievement_field_value_id
+                 JOIN achievement_field_defs_achievement_field_value_id_lnk dvl
+                      ON dvl.achievement_field_value_id = v.id
+                 JOIN achievement_field_defs d
+                      ON d.id = dvl.achievement_field_def_id
+                 JOIN achievement_field_defs_achievement_type_id_lnk dtl
+                      ON dtl.achievement_field_def_id = d.id
+                          AND dtl.achievement_type_id = #{typeId}
+        WHERE avl.achievement_main_id = #{mainId}
+          AND (v.is_delete IS NULL OR v.is_delete = 0)
+          AND (d.is_delete IS NULL OR d.is_delete = 0)
+        ORDER BY dtl.achievement_field_def_ord ASC
+    </select>
+    <select id="pageList2" resultType="com.achievement.domain.vo.AchListVO">
+        SELECT
+        m.id                 AS documentId,
+        m.title              AS title,
+        t.type_name          AS typeName,
+        m.achievement_status AS auditStatus,
+        /*au.username          AS creatorName,
+        p.project_name       AS projectName,*/
+        m.summary            AS summary,
+        m.created_at         AS createdAt,
+        m.visibility_range      AS visibilityRange
+        FROM achievement_mains m
+
+        LEFT JOIN achievement_mains_achievement_type_id_lnk mt
+        ON mt.achievement_main_id = m.id
+        LEFT JOIN achievement_types t
+        ON t.id = mt.achievement_type_id
+
+        /*LEFT JOIN admin_users au
+        ON au.id = m.created_by_id
+
+        LEFT JOIN projects p
+        ON p.id = m.project_id*/
+
+        WHERE m.is_delete = 0
+        AND m.published_at IS NOT NULL
+
+        <!-- 只查 ALL 可见 -->
+        AND m.visibility_range = 'ALL'
+        <!-- 个人成果物：强制按创建者过滤-->
+        AND m.created_by_id = #{dto.creatorId}
+        <!-- 成果物类型筛选 -->
+        <if test="dto.typeId != null">
+            AND mt.achievement_type_id = #{dto.typeId}
+        </if>
+
+        <!-- 成果物年份范围：一年/三年/五年/全部 -->
+        <choose>
+            <when test="dto.recentRange != null and dto.recentRange != '' and (dto.recentRange == '一年' or dto.recentRange == '1年')">
+                AND m.created_at <![CDATA[ >= ]]> DATE_SUB(NOW(), INTERVAL 1 YEAR)
+            </when>
+            <when test="dto.recentRange != null and dto.recentRange != '' and (dto.recentRange == '三年' or dto.recentRange == '3年')">
+                AND m.created_at <![CDATA[ >= ]]> DATE_SUB(NOW(), INTERVAL 3 YEAR)
+            </when>
+            <when test="dto.recentRange != null and dto.recentRange != '' and (dto,recentRange == '五年' or dto.recentRange == '5年')">
+                AND m.created_at <![CDATA[ >= ]]> DATE_SUB(NOW(), INTERVAL 5 YEAR)
+            </when>
+            <!-- 全部：不加时间条件 -->
+            <otherwise>
+            </otherwise>
+        </choose>
+
+        ORDER BY m.created_at DESC
+    </select>
+
 
 </mapper>
 

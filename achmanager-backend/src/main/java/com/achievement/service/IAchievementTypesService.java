@@ -26,4 +26,6 @@ public interface IAchievementTypesService extends IService<AchievementTypes> {
     JsonNode createType(Map<String, Object> req);
 
     JsonNode updateType(String typeDocId, Map<String, Object> req);
+
+    JsonNode deleteType(String typeDocId);
 }

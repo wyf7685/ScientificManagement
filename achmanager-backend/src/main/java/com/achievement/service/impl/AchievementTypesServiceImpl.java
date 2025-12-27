@@ -40,6 +40,7 @@ public class AchievementTypesServiceImpl extends ServiceImpl<AchievementTypesMap
     private final AchievementFieldDefsMapper fieldDefsMapper;
     private final AchievementFieldDefsAchievementTypeIdLnkMapper fieldDefsTypeLnkMapper;
     private final StrapiClient strapiClient;
+    private final ObjectMapper objectMapper; // ✅ 注入统一的 ObjectMapper
 
     //缓存key
     @Override
@@ -180,12 +181,33 @@ public class AchievementTypesServiceImpl extends ServiceImpl<AchievementTypesMap
     public JsonNode updateType(String typeDocId, Map<String, Object> req) {
 
         String raw = strapiClient.update("achievement-types", typeDocId, req);
+        //清楚缓存，重新加载
         evictTypeListCache();
 
         try {
-            return new ObjectMapper().readTree(raw);
+            return objectMapper.readTree(raw);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public JsonNode deleteType(String typeDocId) {
+        // 1) 逻辑删除 patch
+        Map<String, Object> patch = new HashMap<>();
+        patch.put("is_delete", 1);
+
+        // 2) 调 Strapi 更新
+        String raw = strapiClient.update("achievement-types", typeDocId, patch);
+
+        // 3) 删除成功后清缓存（非常重要）
+        evictTypeListCache();
+
+        // 4) 返回 Strapi 原始结果
+        try {
+            return objectMapper.readTree(raw);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("解析 Strapi 响应失败", e);
         }
     }
 

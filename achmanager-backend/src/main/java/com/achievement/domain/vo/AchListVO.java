@@ -15,6 +15,6 @@ public class AchListVO {
     private String projectName;    // 所属项目名称
     private String summary;        // 成果物概要
     private LocalDateTime createdAt; //创建时间
-    private String visibleScope;   // 可见范围
+    private String visibilityRange;   // 可见范围
 }
 

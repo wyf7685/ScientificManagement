@@ -40,12 +40,11 @@ public class AchievementTypeController {
      * */
     @PostMapping("/types")
     @Operation(description = "新增成果物类型")
-    public JsonNode createType(@RequestBody Map<String, Object> req) {
+    public JsonNode  createType(@RequestBody Map<String, Object> req) {
         log.info("新增成果物");
         // req 就是前端 JSON 反序列化后的 Map
         return typesService.createType(req);
     }
-
     /*
      * TODO 管理员更新成果物类型
      * */
@@ -55,13 +54,15 @@ public class AchievementTypeController {
         log.info("更新成果物类型, typeDocId={}", typeDocId);
         return typesService.updateType(typeDocId, req);
     }
-
-
-
-
-
-
-
+    /**
+     * * TODO 管理员删除成果物类型
+     */
+    @PutMapping("/types/{typeDocId}/delete")
+    @Operation(description = "删除成果物类型")
+    public JsonNode deleteType(@PathVariable String typeDocId) {
+        log.info("删除成果物类型, typeDocId={}", typeDocId);
+        return typesService.deleteType(typeDocId);
+    }
 
 }
 
