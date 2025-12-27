@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "achievement_files",
+  "info": {
+    "singularName": "achievement-file",
+    "pluralName": "achievement-files",
+    "displayName": "achievement_files"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "files": {
+      "type": "media",
+      "multiple": true,
+      "required": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "is_delete": {
+      "type": "integer",
+      "required": true,
+      "default": 0
+    },
+    "achievement_main_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::achievement-main.achievement-main",
+      "inversedBy": "achievement_files_id"
+    }
+  }
+}

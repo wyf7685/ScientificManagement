@@ -1,0 +1,47 @@
+{
+  "kind": "collectionType",
+  "collectionName": "achievement_types",
+  "info": {
+    "singularName": "achievement-type",
+    "pluralName": "achievement-types",
+    "displayName": "achievement_type"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "type_code": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "type_name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "is_delete": {
+      "type": "integer",
+      "required": true,
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    "achievement_field_defs_id": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::achievement-field-def.achievement-field-def",
+      "mappedBy": "achievement_type_id"
+    },
+    "achievement_mains_id": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::achievement-main.achievement-main",
+      "mappedBy": "achievement_type_id"
+    }
+  }
+}

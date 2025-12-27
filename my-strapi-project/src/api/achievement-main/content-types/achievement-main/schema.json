@@ -1,0 +1,65 @@
+{
+  "kind": "collectionType",
+  "collectionName": "achievement_mains",
+  "info": {
+    "singularName": "achievement-main",
+    "pluralName": "achievement-mains",
+    "displayName": "achievement_main"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "maxLength": 255,
+      "required": true
+    },
+    "achievement_status": {
+      "type": "enumeration",
+      "required": true,
+      "default": "PENDING",
+      "enum": [
+        "PENDING",
+        "REVIEWING",
+        "APPROVED",
+        "REJECTED",
+        "NEED_MODIFY"
+      ]
+    },
+    "summary": {
+      "type": "text"
+    },
+    "is_delete": {
+      "type": "integer",
+      "required": true,
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    "achievement_field_value_id": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::achievement-field-value.achievement-field-value",
+      "mappedBy": "achievement_id"
+    },
+    "achievement_type_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::achievement-type.achievement-type",
+      "inversedBy": "achievement_mains_id"
+    },
+    "visibility_range": {
+      "type": "string",
+      "default": "ALL",
+      "required": true
+    },
+    "achievement_files_id": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::achievement-file.achievement-file",
+      "mappedBy": "achievement_main_id"
+    }
+  }
+}

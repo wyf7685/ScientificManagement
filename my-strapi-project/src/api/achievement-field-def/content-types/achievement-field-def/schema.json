@@ -1,0 +1,56 @@
+{
+  "kind": "collectionType",
+  "collectionName": "achievement_field_defs",
+  "info": {
+    "singularName": "achievement-field-def",
+    "pluralName": "achievement-field-defs",
+    "displayName": "achievement_field_def"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "field_code": {
+      "type": "string",
+      "required": true
+    },
+    "field_name": {
+      "type": "string",
+      "required": true
+    },
+    "field_type": {
+      "type": "string",
+      "required": true
+    },
+    "is_required": {
+      "type": "integer",
+      "required": true,
+      "default": 1,
+      "min": 0,
+      "max": 1
+    },
+    "description": {
+      "type": "text"
+    },
+    "is_delete": {
+      "type": "integer",
+      "required": true,
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    "achievement_field_value_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::achievement-field-value.achievement-field-value",
+      "inversedBy": "achievement_field_def_id"
+    },
+    "achievement_type_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::achievement-type.achievement-type",
+      "inversedBy": "achievement_field_defs_id"
+    }
+  }
+}

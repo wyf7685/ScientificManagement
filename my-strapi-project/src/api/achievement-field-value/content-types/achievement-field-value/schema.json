@@ -1,0 +1,59 @@
+{
+  "kind": "collectionType",
+  "collectionName": "achievement_field_values",
+  "info": {
+    "singularName": "achievement-field-value",
+    "pluralName": "achievement-field-values",
+    "displayName": "achievement_field_value"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "text_value": {
+      "type": "string"
+    },
+    "boolean_value": {
+      "type": "boolean"
+    },
+    "number_value": {
+      "type": "decimal"
+    },
+    "date_value": {
+      "type": "date"
+    },
+    "media_value": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "email_value": {
+      "type": "email"
+    },
+    "is_delete": {
+      "type": "integer",
+      "required": true,
+      "default": 0,
+      "min": 0,
+      "max": 1
+    },
+    "achievement_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::achievement-main.achievement-main",
+      "inversedBy": "achievement_field_value_id"
+    },
+    "achievement_field_def_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::achievement-field-def.achievement-field-def",
+      "mappedBy": "achievement_field_value_id"
+    }
+  }
+}
