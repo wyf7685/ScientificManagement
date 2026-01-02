@@ -1,19 +1,116 @@
 import request from '@/utils/request'
-import { normalizeStrapiList, normalizeStrapiSingle, normalizeStrapiMedia } from '@/utils/strapi'
-import type { 
-  ApiResponse, 
-  StrapiPaginatedResponse, 
+import type {
+  ApiResponse,
+  StrapiPaginatedResponse,
   StrapiSingleResponse,
   QueryParams,
   StatisticsData,
   KeywordCloudData
 } from './types'
 
+function normalizePageResult(res: any, mapper?: (item: any) => any): StrapiPaginatedResponse<any> {
+  const page = (res && res.data) || {}
+  const list = Array.isArray(page.records) ? page.records : []
+  const mapped = mapper ? list.map(mapper) : list
+  return {
+    data: {
+      list: mapped,
+      total: page.total ?? mapped.length,
+      page: page.current ?? 1,
+      pageSize: page.size ?? mapped.length
+    }
+  }
+}
+
+function mapStatus(status?: string) {
+  if (!status) return status
+  const normalized = status.toString().toUpperCase()
+  const map: Record<string, string> = {
+    PENDING: 'pending',
+    UNDER_REVIEW: 'reviewing',
+    APPROVED: 'published',
+    REJECTED: 'rejected',
+    NEEDS_MODIFICATION: 'revision'
+  }
+  return map[normalized] || status
+}
+
+function mapStatusToBackend(status?: string) {
+  if (!status) return status
+  const normalized = status.toString().toLowerCase()
+  const map: Record<string, string> = {
+    pending: 'PENDING',
+    reviewing: 'UNDER_REVIEW',
+    published: 'APPROVED',
+    rejected: 'REJECTED',
+    revision: 'NEEDS_MODIFICATION'
+  }
+  return map[normalized] || status.toString().toUpperCase()
+}
+
+function mapListItem(item: any) {
+  return {
+    ...item,
+    id: item.documentId || item.id,
+    status: mapStatus(item.auditStatus || item.status),
+    type: item.typeName || item.type,
+    authors: item.authorName ? [item.authorName] : item.creatorName ? [item.creatorName] : [],
+    visibility: item.visibilityRange || item.visibility
+  }
+}
+
+function mapDetailItem(item: any) {
+  const fields = Array.isArray(item?.fields) ? item.fields : []
+  const metadata: Record<string, any> = {}
+  fields.forEach((field) => {
+    if (field?.fieldCode) {
+      metadata[field.fieldCode] = field.value
+    }
+  })
+  return {
+    ...item,
+    id: item.documentId || item.id,
+    status: mapStatus(item.auditStatus || item.status),
+    type: item.typeName || item.type,
+    typeId: item.typeDocId || item.typeId,
+    typeName: item.typeName,
+    typeCode: item.typeCode,
+    abstract: item.summary || item.abstract,
+    authors: item.authorName ? [item.authorName] : item.creatorName ? [item.creatorName] : [],
+    metadata,
+    attachments: [],
+    visibility: item.visibilityRange || item.visibility || 'internal_abstract'
+  }
+}
+
+function buildAchListPayload(params?: QueryParams) {
+  const rawStatus = Array.isArray(params?.status) ? params?.status?.[0] : params?.status
+  const status = mapStatusToBackend(rawStatus)
+  return {
+    pageNum: params?.page,
+    pageSize: params?.pageSize,
+    mainTitle: params?.keyword,
+    typeId: params?.typeId ?? params?.type,
+    status,
+    projectId: params?.projectId
+  }
+}
+
 // 获取统计数据
 export function getStatistics(): Promise<ApiResponse<StatisticsData>> {
   return request({
     url: '/results/statistics',
     method: 'get'
+  })
+}
+
+// 成果分布（类型饼图 - 后端实现）
+export function getTypePie(creatorId?: number): Promise<ApiResponse<any>> {
+  return request({
+    url: '/admin/stat/typePie',
+    method: 'get',
+    params: creatorId ? { creatorId } : undefined,
+    mock: false
   })
 }
 
@@ -52,21 +149,34 @@ export function getMyStatistics(): Promise<ApiResponse<StatisticsData>> {
   })
 }
 
-// 获取成果列表
+// 获取成果列表（管理员口径）
 export async function getResults(params?: QueryParams): Promise<StrapiPaginatedResponse<any>> {
   const res = await request({
-    url: '/results',
-    method: 'get',
-    params
+    url: '/admin/achievement/pageList',
+    method: 'post',
+    data: buildAchListPayload(params),
+    mock: false
   })
-  return normalizeStrapiList(res, mapResultEntity, {
-    page: params?.page,
-    pageSize: params?.pageSize
+  return normalizePageResult(res, mapListItem)
+}
+
+// 获取成果列表（用户可见范围）
+export async function getVisibleResults(params?: QueryParams): Promise<StrapiPaginatedResponse<any>> {
+  const res = await request({
+    url: '/user/achievement/pageListAllVisible',
+    method: 'post',
+    data: buildAchListPayload(params),
+    mock: false
   })
+  return normalizePageResult(res, mapListItem)
 }
 
 // 导出成果列表
 export function exportResults(params?: QueryParams): Promise<Blob> {
+  if (import.meta.env.VITE_USE_MOCK === 'true') {
+    const content = 'Mock export is not implemented yet.\n'
+    return Promise.resolve(new Blob([content], { type: 'text/plain;charset=utf-8' }))
+  }
   return request({
     url: '/results/export',
     method: 'get',
@@ -78,23 +188,23 @@ export function exportResults(params?: QueryParams): Promise<Blob> {
 // 获取我的成果列表
 export async function getMyResults(params?: QueryParams): Promise<StrapiPaginatedResponse<any>> {
   const res = await request({
-    url: '/results/my',
-    method: 'get',
-    params
+    url: '/user/achievement/pageList',
+    method: 'post',
+    data: buildAchListPayload(params),
+    mock: false
   })
-  return normalizeStrapiList(res, mapResultEntity, {
-    page: params?.page,
-    pageSize: params?.pageSize
-  })
+  return normalizePageResult(res, mapListItem)
 }
 
 // 获取成果详情
 export async function getResult(id: string): Promise<StrapiSingleResponse<any>> {
   const res = await request({
-    url: `/results/${id}`,
-    method: 'get'
+    url: '/user/achievement/detail',
+    method: 'get',
+    params: { achDocId: id },
+    mock: false
   })
-  return normalizeStrapiSingle(res, mapResultEntity)
+  return { data: mapDetailItem(res?.data || {}) }
 }
 
 // 申请查看成果全文
@@ -113,10 +223,14 @@ export async function getResultAccessRequests(params?: QueryParams): Promise<Str
     method: 'get',
     params
   })
-  return normalizeStrapiList(res, undefined, {
-    page: params?.page,
-    pageSize: params?.pageSize
-  })
+  return {
+    data: {
+      list: res?.data?.list || [],
+      total: res?.data?.total || 0,
+      page: res?.data?.page || params?.page || 1,
+      pageSize: res?.data?.pageSize || params?.pageSize || 10
+    }
+  }
 }
 
 // 审核成果访问申请
@@ -134,26 +248,29 @@ export function reviewResultAccessRequest(
 // 创建成果
 export function createResult(data: Record<string, any>): Promise<ApiResponse<any>> {
   return request({
-    url: '/results',
+    url: '/user/achievement/create',
     method: 'post',
-    data
+    data,
+    mock: false
   })
 }
 
 // 更新成果
 export function updateResult(id: string, data: Record<string, any>): Promise<ApiResponse<any>> {
   return request({
-    url: `/results/${id}`,
+    url: `/user/achievement/update/${id}`,
     method: 'put',
-    data
+    data,
+    mock: false
   })
 }
 
 // 删除成果
 export function deleteResult(id: string): Promise<ApiResponse<any>> {
   return request({
-    url: `/results/${id}`,
-    method: 'delete'
+    url: `/admin/achievement/delete/${id}`,
+    method: 'put',
+    mock: false
   })
 }
 
@@ -229,10 +346,12 @@ export function getReviewBacklog(params?: QueryParams): Promise<ApiResponse<any>
 
 // 智能补全元数据（通过DOI等）
 export function autoFillMetadata(params?: QueryParams): Promise<ApiResponse<any>> {
+  const isJournalRank = params?.type === 'journalRank'
   return request({
     url: '/results/auto-fill',
     method: 'get',
-    params
+    params,
+    mock: !isJournalRank
   })
 }
 
@@ -280,24 +399,27 @@ export interface AchievementFieldDef {
 // 获取成果类型列表
 export function getResultTypes(): Promise<any> {
   return request({
-    url: '/achievement-types',
-    skipAuth: true,
-    mock: false,
-    method: 'get',
-    params: {
-      'filters[is_delete][$ne]': 1,
-      'pagination[pageSize]': 100
-    }
+    url: '/achievementType/list',
+    method: 'post',
+    mock: false
+  }).then((res: any) => {
+    const list = Array.isArray(res?.data) ? res.data : []
+    const normalized = list.map((item: any) => ({
+      ...item,
+      type_name: item.type_name ?? item.typeName,
+      type_code: item.type_code ?? item.typeCode,
+      is_delete: item.is_delete ?? item.isDelete ?? 0
+    }))
+    return { data: normalized }
   })
 }
 
 // 创建成果类型
 export function createResultType(data: Partial<AchievementType>): Promise<any> {
   return request({
-    url: '/achievement-types',
-    skipAuth: true,
-    mock: false,
+    url: '/achievementType/types',
     method: 'post',
+    mock: false,
     data: { data }
   })
 }
@@ -305,17 +427,20 @@ export function createResultType(data: Partial<AchievementType>): Promise<any> {
 // 更新成果类型
 export function updateResultType(documentId: string, data: Partial<AchievementType>): Promise<any> {
   return request({
-    url: `/achievement-types/${documentId}`,
-    skipAuth: true,
-    mock: false,
+    url: `/achievementType/types/${documentId}`,
     method: 'put',
+    mock: false,
     data: { data }
   })
 }
 
 // 删除成果类型（逻辑删除）
 export function deleteResultType(documentId: string): Promise<any> {
-  return updateResultType(documentId, { is_delete: 1 })
+  return request({
+    url: `/achievementType/types/${documentId}/delete`,
+    method: 'put',
+    mock: false
+  })
 }
 
 // ==================== 动态字段API ====================
@@ -323,15 +448,21 @@ export function deleteResultType(documentId: string): Promise<any> {
 // 获取指定成果类型的所有字段定义
 export function getFieldDefsByType(typeDocumentId: string): Promise<any> {
   return request({
-    url: '/achievement-field-defs',
-    skipAuth: true,
-    mock: false,
+    url: '/achievementType/detail',
     method: 'get',
-    params: {
-      'filters[achievement_type_id][documentId][$eq]': typeDocumentId, 
-      'filters[is_delete][$ne]': 1,
-      'pagination[pageSize]': 100
-    }
+    params: { typeDocId: typeDocumentId },
+    mock: false
+  }).then((res: any) => {
+    const fields = res?.data?.fieldDefinitions || []
+    const normalized = fields.map((field: any) => ({
+      documentId: field.documentId,
+      field_code: field.fieldCode,
+      field_name: field.fieldName,
+      field_type: field.fieldType,
+      description: field.description,
+      is_required: field.isRequired ?? 0
+    }))
+    return { data: normalized }
   })
 }
 
@@ -344,10 +475,9 @@ export function createFieldDef(data: AchievementFieldDef): Promise<any> {
   } as Partial<AchievementFieldDef>
     
   return request({
-    url: '/achievement-field-defs',
-    skipAuth: true,
-    mock: false,
+    url: '/achievementFieldDef/create',
     method: 'post',
+    mock: false,
     data: { data: payload }
   })
 }
@@ -361,44 +491,18 @@ export function updateFieldDef(documentId: string, data: Partial<AchievementFiel
   } as Partial<AchievementFieldDef>
     
   return request({
-    url: `/achievement-field-defs/${documentId}`,
-    skipAuth: true,
-    mock: false,
+    url: `/achievementFieldDef/defs/${documentId}`,
     method: 'put',
+    mock: false,
     data: { data: payload }
   })
 }
 
 // 删除字段定义（逻辑删除）
 export function deleteFieldDef(documentId: string): Promise<any> {
-  return updateFieldDef(documentId, { is_delete: 1 })
-}
-
-// ==================== 辅助方法 ====================
-
-// 映射成果实体数据
-function mapResultEntity(entity: any) {
-  const projectData = entity.project?.data || entity.project
-  const projectAttrs = projectData?.attributes || projectData
-
-  return {
-    ...entity,
-    authors: normalizeToArray(entity.authors),
-    keywords: normalizeToArray(entity.keywords || entity.tags),
-    projectId: entity.projectId || projectData?.id,
-    projectName: entity.projectName || projectAttrs?.name,
-    projectCode: entity.projectCode || projectAttrs?.code,
-    attachments: normalizeStrapiMedia(entity.attachments)
-  }
-}
-
-function normalizeToArray(value: any) {
-  if (Array.isArray(value)) return value
-  if (typeof value === 'string') {
-    return value
-      .split(/[,;；、\s]+/)
-      .map((item) => item.trim())
-      .filter(Boolean)
-  }
-  return []
+  return request({
+    url: `/achievementFieldDef/delete/${documentId}`,
+    method: 'put',
+    mock: false
+  })
 }

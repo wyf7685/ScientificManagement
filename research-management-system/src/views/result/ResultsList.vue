@@ -94,7 +94,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { getResults } from '@/api/result'
+import { getVisibleResults } from '@/api/result'
 import ResultCard from './components/ResultCard.vue'
 
 const router = useRouter()
@@ -122,7 +122,7 @@ onMounted(() => {
 async function loadResults() {
   loading.value = true
   try {
-    const res = await getResults({
+    const res = await getVisibleResults({
       ...buildQueryParams(),
       page: pagination.page,
       pageSize: pagination.pageSize
@@ -248,4 +248,3 @@ function resolveYearRange(flag: string) {
   padding: 20px 0;
 }
 </style>
-

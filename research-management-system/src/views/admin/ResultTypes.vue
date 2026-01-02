@@ -101,33 +101,21 @@ async function loadTypes() {
  loading.value = true
  try {
   const response = await getResultTypes()
-    
-    // 【关键修改 1】：从 Strapi 响应中获取实际的数据数组
-    // 你的 request.ts 修改后返回的是 Strapi 响应体 {data: [..], meta:{..}}
-  const strapiData = response?.data || [] 
+  const list = response?.data || []
 
-    // 检查是否是有效的 Strapi 数据数组
-    if (Array.isArray(strapiData)) {
-        // 【关键修改 2】：数据映射（将 Strapi 字段映射到前端表格期望的字段）
-        types.value = strapiData.map((item: any) => ({
-            // 前端字段名 name 对应 Strapi 字段名 type_name
-            name: item.type_name, 
-            // 前端字段名 code 对应 Strapi 字段名 type_code
-            code: item.type_code, 
-            // Strapi 字段名直接对应
-            description: item.description,
-            // documentId 是配置字段的关键参数
-            documentId: item.documentId, 
-            // 假设 item.is_delete === 0 意味着 enabled: true
-            enabled: item.is_delete === 0, 
-            // 保持原始ID和documentId以备编辑/删除使用
-            id: item.id, 
-        }))
-    } else {
-        // 如果数据格式不对，可以打日志或设置为空数组
-        console.error('Strapi 接口返回的数据格式错误:', response);
-        types.value = [];
-    }
+  if (Array.isArray(list)) {
+    types.value = list.map((item: any) => ({
+      name: item.type_name || item.typeName || item.name,
+      code: item.type_code || item.typeCode || item.code,
+      description: item.description,
+      documentId: item.documentId,
+      enabled: item.is_delete === 0 || item.enabled === true,
+      id: item.id
+    }))
+  } else {
+    console.error('成果类型数据格式错误:', response)
+    types.value = []
+  }
 
  } catch (error) {
   ElMessage.error('加载成果类型失败')

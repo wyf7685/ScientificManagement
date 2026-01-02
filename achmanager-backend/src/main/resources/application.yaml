@@ -1,8 +1,10 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   datasource:
     url: jdbc:mysql://localhost:3306/strapi?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
-    password: 1234
+    password: Wjh0921@
     driver-class-name: com.mysql.cj.jdbc.Driver
   servlet:
     multipart:
@@ -25,5 +27,8 @@ mybatis:
     map-underscore-to-camel-case: true
 strapi:
   base-url: http://[::1]:1337
-  api-token: 225192546813fdc1689d095b282f8d82d231f84d95878c10e419b3dd50fdd92ac601f3362bb75f7aa5ce96f69526bd57acbfb432429ff78dd6f58fa2d11cd288dc59ac14ebf0c7856655a4405b50c1b69700eb9627f396f2da606e9746d7753f5781f9053b1bec856710d55c8d65e759cdde5683a940e04b572f275c4f62fd75
+  api-token: cd76e7283413e17d3d9f7b2f6d0ce687c41d1b58e713f79f622831fd7b66f61f391d5c90499f3a204d5893cc1b9322b3d8eae39b4d444f0f221853abc7f15326b03303777a791c62cb1171de26d5fc6b9a6155836f3d623ef08fea2da6939a9748f35d6966505891c73e9cb68ac93f3bab1cc57e590f30c4e249f6212570b823
 
+easyscholar:
+  base-url: https://www.easyscholar.cc/open/getPublicationRank
+  secret-key: ${EASYSCHOLAR_SECRET_KEY:}

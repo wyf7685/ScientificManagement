@@ -136,7 +136,7 @@ import { ElMessage } from 'element-plus'
 import dayjs from 'dayjs'
 import { InfoFilled, Search as SearchIcon, RefreshRight as RefreshIcon, Download as DownloadIcon } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
-import { getResults, exportResults } from '@/api/result'
+import { getVisibleResults, exportResults } from '@/api/result'
 import { getProjects } from '@/api/project'
 
 const router = useRouter()
@@ -171,7 +171,7 @@ onMounted(() => {
 async function handleSearch() {
   loading.value = true
   try {
-    const res = await getResults({
+    const res = await getVisibleResults({
       ...getSearchParams(),
       page: pagination.page,
       pageSize: pagination.pageSize

@@ -97,10 +97,13 @@ function handleBusinessResponse(response: any) {
     return res
   }
 
-  if (res?.code !== 200) {
+  const successCodes = new Set([200, 1, 0, '200', '1', '0'])
+  const isSuccess = successCodes.has(res?.code)
+
+  if (!isSuccess) {
     const error = ErrorHandler.handleBusinessError(
       res?.code,
-      res?.message || '请求失败',
+      res?.message || res?.msg || '请求失败',
       res
     )
 

@@ -453,3 +453,20 @@ Base Path：`/user/stat`
 - Response：`Result<Long>`
 - `GET /user/stat/userMonthNewAchCount`：当前用户本月新增成果物数量（无参）
 - Response：`Result<Long>`
+
+## 7) 智能补全（AutoFillController）
+
+Base Path：`/results`
+
+### 7.1 期刊等级查询（后端代理 EasyScholar）
+
+- Method：`GET`
+- Path：`/results/auto-fill`
+- Query：
+  - `type`：固定值 `journalRank`
+  - `value`：期刊名称（publicationName）
+- Response：`Result<JsonNode>`（`data` 为 EasyScholar 的 `data` 节点）
+- 说明：
+  - 通过 `EASYSCHOLAR_SECRET_KEY`（读取 `.env`）进行鉴权
+  - `code != 200` 会返回 `Result.error(msg)`
+  - 请求速率限制：最多 2 次/秒

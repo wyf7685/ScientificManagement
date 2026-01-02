@@ -138,6 +138,7 @@
                 <el-radio label="doi">DOI</el-radio>
                 <el-radio label="arxiv">arXiv ID</el-radio>
                 <el-radio label="wanfang">万方标题</el-radio>
+                <el-radio label="journalRank">期刊等级</el-radio>
               </el-radio-group>
             </el-form-item>
             <el-form-item :label="getAutoFillLabel()">
@@ -155,6 +156,21 @@
                 </template>
               </el-input>
             </el-form-item>
+            <el-alert
+              v-if="journalRankItems.length"
+              title="期刊等级结果"
+              type="success"
+              :closable="false"
+              class="rank-alert"
+            >
+              <template #default>
+                <div class="rank-result">
+                  <div v-for="(item, index) in journalRankItems" :key="index">
+                    {{ item }}
+                  </div>
+                </div>
+              </template>
+            </el-alert>
           </el-form>
           <el-alert
             title="提示：智能补全会从外部数据库获取元数据，您可以选择性地覆盖当前表单内容"
@@ -245,10 +261,11 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { UploadFilled } from '@element-plus/icons-vue'
-import { getResultTypes, getResult, updateResult, autoFillMetadata, uploadAttachment } from '@/api/result'
+import { getResultTypes, getFieldDefsByType, getResult, saveDraft, updateResult, autoFillMetadata, uploadAttachment } from '@/api/result'
 import { getProjects, createProject } from '@/api/project'
 import { ResultVisibility } from '@/types'
 import DynamicFieldRenderer from '@/components/DynamicFieldRenderer.vue'
+import { mapFieldType } from '@/config/dynamicFields'
 
 const router = useRouter()
 const route = useRoute()
@@ -286,6 +303,8 @@ const fileList = ref([])
 const autoFillType = ref('doi')
 const autoFillValue = ref('')
 const autoFilling = ref(false)
+const journalRankItems = ref<string[]>([])
+const lastJournalRankAt = ref(0)
 const submitting = ref(false)
 const saving = ref(false)
 const MAX_FILE_SIZE = 20 * 1024 * 1024
@@ -305,9 +324,50 @@ async function loadResultTypes() {
   try {
     const res = await getResultTypes()
     const { data } = res || {}
-    resultTypes.value = (data || []).filter((t) => t.enabled)
+    resultTypes.value = (data || [])
+      .map((t: any) => ({
+        ...t,
+        id: t.documentId || t.id,
+        name: t.type_name || t.typeName || t.name,
+        code: t.type_code || t.typeCode || t.code,
+        enabled: t.is_delete === 0 || t.enabled === true
+      }))
+      .filter((t: any) => t.enabled)
   } catch (error) {
     ElMessage.error('加载成果类型失败')
+  }
+}
+
+function transformFieldDef(field: any) {
+  return {
+    id: field.field_code,
+    name: field.field_code,
+    label: field.field_name,
+    type: mapFieldType(field.field_type),
+    documentId: field.documentId,
+    backendType: field.field_type,
+    required: field.is_required === 1,
+    helpText: field.description || `请输入${field.field_name}`,
+    options: field.options || [],
+    order: field.order || 0
+  }
+}
+
+async function loadFieldDefs(typeDocId: string) {
+  if (!typeDocId) return
+  const currentType = resultTypes.value.find((t: any) => t.id === typeDocId)
+  if (!currentType) return
+  if (currentType.fields && currentType.fields.length > 0) return
+
+  try {
+    const res = await getFieldDefsByType(typeDocId)
+    const rawFields = res?.data || []
+    currentType.fields = rawFields
+      .map(transformFieldDef)
+      .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('加载字段失败')
   }
 }
 
@@ -326,6 +386,7 @@ async function loadDetail() {
       return
     }
     formData.typeId = detail.typeId || detail.type || ''
+    await loadFieldDefs(formData.typeId)
     formData.title = detail.title || ''
     formData.authors = detail.authors || []
     formData.projectId = detail.projectId || ''
@@ -360,6 +421,9 @@ async function loadProjects() {
 
 function handleTypeChange() {
   formData.metadata = {}
+  if (formData.typeId) {
+    loadFieldDefs(formData.typeId)
+  }
 }
 
 function getProjectLabel(project) {
@@ -439,12 +503,30 @@ async function handleAutoFill() {
     return
   }
 
+  if (autoFillType.value === 'journalRank' && !canRequestJournalRank()) {
+    return
+  }
+
   autoFilling.value = true
   try {
+    if (autoFillType.value !== 'journalRank') {
+      journalRankItems.value = []
+    }
     const res = await autoFillMetadata({
       type: autoFillType.value,
       value: autoFillValue.value
     })
+
+    if (autoFillType.value === 'journalRank') {
+      journalRankItems.value = formatJournalRank(res?.data)
+      if (journalRankItems.value.length === 0) {
+        ElMessage.warning('未查询到期刊等级')
+        return
+      }
+      formData.metadata.journalRank = journalRankItems.value.join('；')
+      ElMessage.success('期刊等级查询完成')
+      return
+    }
 
     await ElMessageBox.confirm('找到匹配记录，是否覆盖当前表单内容？', '提示', {
       confirmButtonText: '覆盖',
@@ -492,7 +574,8 @@ function getAutoFillLabel() {
   const map = {
     doi: 'DOI',
     arxiv: 'arXiv ID',
-    wanfang: '万方标题'
+    wanfang: '万方标题',
+    journalRank: '期刊名称'
   }
   return map[autoFillType.value]
 }
@@ -501,9 +584,59 @@ function getAutoFillPlaceholder() {
   const map = {
     doi: '例如: 10.1000/xyz123',
     arxiv: '例如: 2301.00001',
-    wanfang: '请输入论文标题'
+    wanfang: '请输入论文标题',
+    journalRank: '请输入期刊名称'
   }
   return map[autoFillType.value]
+}
+
+function formatJournalRank(data: any) {
+  if (!data) return []
+  const lines: string[] = []
+
+  const official = data.officialRank?.select || data.officialRank?.all
+  if (official && typeof official === 'object') {
+    const entries = Object.entries(official)
+      .map(([key, value]) => `${key.toUpperCase()}: ${value}`)
+      .join('，')
+    if (entries) lines.push(`官方数据集：${entries}`)
+  }
+
+  const rankInfo = Array.isArray(data.customRank?.rankInfo) ? data.customRank.rankInfo : []
+  const rankList = Array.isArray(data.customRank?.rank) ? data.customRank.rank : []
+  const rankKeyMap: Record<string, string> = {
+    '1': 'oneRankText',
+    '2': 'twoRankText',
+    '3': 'threeRankText',
+    '4': 'fourRankText',
+    '5': 'fiveRankText'
+  }
+  const customLabels: string[] = []
+  rankList.forEach((entry: string) => {
+    const [uuid, rank] = entry.split('&&&')
+    if (!uuid || !rank) return
+    const info = rankInfo.find((item: any) => item.uuid === uuid)
+    const key = rankKeyMap[rank]
+    const label = info?.[key] || rank
+    const name = info?.abbName || '自定义'
+    customLabels.push(`${name} ${label}`)
+  })
+  if (customLabels.length) {
+    lines.push(`自定义数据集：${customLabels.join('，')}`)
+  }
+
+  return lines
+}
+
+function canRequestJournalRank() {
+  const now = Date.now()
+  const minInterval = 500
+  if (now - lastJournalRankAt.value < minInterval) {
+    ElMessage.warning('请求过于频繁，请稍后重试')
+    return false
+  }
+  lastJournalRankAt.value = now
+  return true
 }
 
 const VISIBILITY_TEXT = {
@@ -523,9 +656,9 @@ async function handleSaveDraft() {
   saving.value = true
   try {
     const attachments = await uploadPendingFiles()
-    const payload = { ...buildPayload(attachments), status: 'draft' }
-    await updateResult(resultId.value, payload)
-    ElMessage.success('草稿已保存')
+    const payload = { ...buildDraftPayload(attachments), status: 'draft' }
+    await saveDraft(payload)
+    ElMessage.success('草稿已保存（Mock）')
   } catch (error) {
     ElMessage.error('保存草稿失败')
   } finally {
@@ -549,7 +682,34 @@ async function handleSubmit() {
   }
 }
 
-function buildPayload(attachments) {
+function buildFieldValues() {
+  const fields = selectedType.value?.fields || []
+  return fields
+    .map((field: any) => {
+      if (!field.documentId) return null
+      const value = formData.metadata[field.name]
+      if (value === undefined || value === null || value === '') return null
+
+      const payload: Record<string, any> = {
+        achievement_field_def_id: field.documentId
+      }
+
+      if (field.type === 'number') {
+        payload.numberValue = Number(value)
+      } else if (field.type === 'checkbox' || field.type === 'switch') {
+        payload.booleanValue = Boolean(value)
+      } else if (field.type === 'date') {
+        payload.dateValue = value
+      } else {
+        payload.textValue = value
+      }
+
+      return payload
+    })
+    .filter(Boolean)
+}
+
+function buildDraftPayload(attachments) {
   const project = projects.value.find((p) => p.id === formData.projectId)
   return {
     ...formData,
@@ -557,6 +717,18 @@ function buildPayload(attachments) {
     projectCode: project?.code || formData.projectCode || '',
     metadata: { ...formData.metadata },
     attachments
+  }
+}
+
+function buildPayload(attachments) {
+  return {
+    data: {
+      title: formData.title,
+      summary: formData.abstract,
+      typeDocId: formData.typeId,
+      fields: buildFieldValues(),
+      attachments: attachments || []
+    }
   }
 }
 </script>
@@ -600,6 +772,14 @@ function buildPayload(attachments) {
 
 .type-info {
   margin-top: 20px;
+}
+
+.rank-alert {
+  margin-top: 12px;
+}
+
+.rank-result {
+  line-height: 1.6;
 }
 
 .step-actions {

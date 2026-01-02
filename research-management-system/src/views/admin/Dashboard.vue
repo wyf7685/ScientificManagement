@@ -84,7 +84,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { Document, Tickets, TrophyBase, TrendCharts } from '@element-plus/icons-vue'
-import { getStatistics, getResults, getAdvancedDistribution, getStackedTrend } from '@/api/result'
+import { getStatistics, getResults, getAdvancedDistribution, getStackedTrend, getTypePie } from '@/api/result'
 import * as echarts from 'echarts'
 
 const loading = ref(false)
@@ -97,6 +97,7 @@ const trendRange = ref('5y')
 
 const distributionData = ref<any[]>([])
 const indexLevelDistribution = ref<any[]>([])
+const distributionEmpty = ref(false)
 const stackedTimeline = ref<string[]>([])
 const stackedSeries = ref<any[]>([])
 const citationSeries = ref<number[]>([])
@@ -183,12 +184,41 @@ async function loadSummary() {
 
 async function loadDistribution() {
   try {
-    const res = await getAdvancedDistribution({ dimension: distributionDimension.value })
-    distributionData.value = res?.data?.items || []
-    indexLevelDistribution.value = res?.data?.indexLevelItems || []
+    if (distributionDimension.value === 'type') {
+      const res = await getTypePie()
+      const list = res?.data || []
+      const aggregated = new Map<string, { name: string; value: number }>()
+      list.forEach((item: any) => {
+        const rawCode = item.typeCode ? item.typeCode.toString().trim() : ''
+        const rawName = item.typeName ? item.typeName.toString().trim() : ''
+        const key = (rawCode || rawName || '未命名').replace(/\s+/g, ' ').toUpperCase()
+        const displayName = rawName || rawCode || '未命名'
+        const value = Number(item.count || 0)
+        if (!key || !Number.isFinite(value) || value <= 0) return
+
+        if (!aggregated.has(key)) {
+          aggregated.set(key, { name: displayName, value })
+          return
+        }
+        const current = aggregated.get(key)!
+        current.value += value
+        if (!current.name && displayName) {
+          current.name = displayName
+        }
+      })
+      distributionData.value = Array.from(aggregated.values())
+      distributionEmpty.value = distributionData.value.length === 0
+      indexLevelDistribution.value = []
+    } else {
+      const res = await getAdvancedDistribution({ dimension: distributionDimension.value })
+      distributionData.value = res?.data?.items || []
+      indexLevelDistribution.value = res?.data?.indexLevelItems || []
+      distributionEmpty.value = distributionData.value.length === 0
+    }
     renderDistributionChart()
   } catch (error) {
     console.error('加载分布数据失败:', error)
+    distributionEmpty.value = true
   }
 }
 
@@ -212,24 +242,42 @@ function renderDistributionChart() {
   if (!distributionChartInstance.value) {
     distributionChartInstance.value = echarts.init(distributionChartRef.value)
   }
+  distributionChartInstance.value.clear()
 
+  const hasData = !distributionEmpty.value && distributionData.value.length > 0
   distributionChartInstance.value.setOption(
     {
       color: colorPalette,
       tooltip: { trigger: 'item' },
-      legend: { bottom: 10 },
-      series: [
-        {
-          type: 'pie',
-          radius: ['46%', '74%'],
-          label: { show: false },
-          itemStyle: { borderColor: '#fff', borderWidth: 2 },
-          emphasis: {
-            label: { show: true, fontWeight: 'bold', fontSize: 14 }
-          },
-          data: distributionData.value
-        }
-      ]
+      legend: { bottom: 10, show: hasData },
+      graphic: hasData
+        ? []
+        : [
+            {
+              type: 'text',
+              left: 'center',
+              top: 'middle',
+              style: {
+                text: '暂无数据',
+                fill: '#94a3b8',
+                fontSize: 14
+              }
+            }
+          ],
+      series: hasData
+        ? [
+            {
+              type: 'pie',
+              radius: ['46%', '74%'],
+              label: { show: false },
+              itemStyle: { borderColor: '#fff', borderWidth: 2 },
+              emphasis: {
+                label: { show: true, fontWeight: 'bold', fontSize: 14 }
+              },
+              data: distributionData.value
+            }
+          ]
+        : []
     },
     true
   )
