@@ -41,7 +41,7 @@ const router = createRouter({
           path: '/results/list',
           name: 'ResultsList',
           component: () => import('@/views/result/ResultsList.vue'),
-          meta: { title: '成果列表', roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN, UserRole.MANAGER] }
+          meta: { title: '科研成果', roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN, UserRole.MANAGER] }
         },
         {
           path: '/results/search',
@@ -121,7 +121,7 @@ const router = createRouter({
           path: '/admin/interim-results',
           name: 'InterimResults',
           component: () => import('@/views/admin/InterimResults.vue'),
-          meta: { title: '中期成果物', roles: [UserRole.ADMIN, UserRole.MANAGER] }
+          meta: { title: '过程成果', roles: [UserRole.ADMIN, UserRole.MANAGER] }
         }
       ]
     },

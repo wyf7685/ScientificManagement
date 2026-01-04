@@ -4,7 +4,7 @@
     <el-card class="operation-bar">
       <div class="bar-content">
         <div class="left">
-          <h2>中期成果物管理</h2>
+          <h2>过程成果管理</h2>
           <el-tag type="info">{{ stats.totalResults }} 个成果物 / {{ stats.totalProjects }} 个项目</el-tag>
         </div>
         <div class="right">

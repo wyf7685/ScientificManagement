@@ -3,7 +3,7 @@
     <!-- 页面头部 -->
     <div class="page-header">
       <div>
-        <h2>成果列表 · Results Gallery</h2>
+        <h2>科研成果 · Research Achievements</h2>
         <p class="subtitle">浏览机构内的科研成果，发现感兴趣的研究方向</p>
       </div>
     </div>

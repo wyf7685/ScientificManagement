@@ -196,88 +196,150 @@ const menuItems = computed(() => {
     icon?: any
     roles?: string[]
     children?: Array<{ path: string; title: string }>
-  }> = [
-    {
-      path: '/dashboard',
-      title: '个人概览',
-      icon: House,
-      roles: ['researcher', 'expert', 'admin', 'manager']
-    },
-    {
+  }> = []
+
+  // 管理员菜单结构（优先级最高）
+  if (userStore.isManager) {
+    // 顶部：创建成果物
+    items.push({
+      path: '/results/create',
+      title: '创建成果物',
+      icon: Plus,
+      roles: ['admin', 'manager']
+    })
+
+    // 顶部：科研看台
+    items.push({
+      path: '/admin/dashboard',
+      title: '科研看台',
+      icon: DataAnalysis,
+      roles: ['admin', 'manager']
+    })
+
+    // 1. 成果物
+    items.push({
+      path: '/results',
+      title: '成果物',
+      icon: Document,
+      roles: ['admin', 'manager'],
+      children: [
+        { path: '/results/list', title: '科研成果' },
+        { path: '/admin/interim-results', title: '过程成果' }
+      ]
+    })
+
+    // 2. 审核与权限（流程类）
+    items.push({
+      path: '/review',
+      title: '审核与权限',
+      icon: Checked,
+      roles: ['admin', 'manager'],
+      children: [
+        { path: '/expert/reviews', title: '成果审核' },
+        { path: '/admin/access-requests', title: '权限审核' },
+        { path: '/admin/review-assign', title: '审核分配' }
+      ]
+    })
+
+    // 3. 科技助手
+    items.push({
+      path: '/insights',
+      title: '科技助手',
+      icon: DataAnalysis,
+      roles: ['admin', 'manager'],
+      children: [
+        { path: '/insights/demands', title: '需求洞察' },
+        { path: '/admin/research-insights', title: '研究洞察' }
+      ]
+    })
+
+    // 5. 系统配置（低频维护）
+    const systemConfigChildren = [
+      { path: '/admin/system-settings', title: '系统设置' }
+    ]
+    
+    // 只有管理员可以访问成果类型配置
+    if (userStore.isAdmin) {
+      systemConfigChildren.push({ path: '/admin/result-types', title: '成果类型配置' })
+    }
+
+    items.push({
+      path: '/system',
+      title: '系统配置',
+      icon: Setting,
+      roles: ['admin', 'manager'],
+      children: systemConfigChildren
+    })
+  } else if (userStore.isExpert) {
+    // 专家菜单结构
+    items.push({
       path: '/results/create',
       title: '创建成果物',
       icon: Plus,
       roles: ['researcher', 'expert', 'admin', 'manager']
-    },
-    {
-      path: '/results/my',
-      title: '个人成果物',
-      icon: Document,
-      roles: ['researcher', 'expert', 'admin', 'manager']
-    },
-    {
+    })
+    items.push({
       path: '/results/list',
-      title: '成果列表',
+      title: '科研成果',
       icon: List,
       roles: ['researcher', 'expert', 'admin', 'manager']
-    },
-    {
+    })
+    items.push({
       path: '/results/search',
       title: '成果检索',
       icon: Search,
       roles: ['researcher', 'expert', 'admin', 'manager']
-    },
-    {
+    })
+    items.push({
       path: '/insights/demands',
       title: '需求洞察',
       icon: DataAnalysis,
       roles: ['researcher', 'expert', 'admin', 'manager']
-    }
-  ]
-
-  // 中期成果物菜单（管理员可见）
-  if (userStore.isManager) {
-    items.push({
-      path: '/admin/interim-results',
-      title: '中期成果物',
-      icon: FolderOpened,
-      roles: ['admin', 'manager']
     })
-  }
-
-  // 专家菜单
-  if (userStore.isExpert) {
     items.push({
       path: '/expert/reviews',
       title: '成果审核',
       icon: Checked,
       roles: ['expert', 'admin']
     })
-  }
-
-  // 管理员菜单
-  if (userStore.isManager) {
+  } else {
+    // 普通用户菜单结构
     items.push({
-      path: '/admin',
-      title: '系统管理',
-      icon: Setting,
-      roles: ['admin', 'manager'],
-      children: [
-        { path: '/admin/dashboard', title: '科研看台' },
-        { path: '/admin/results', title: '成果管理' },
-        { path: '/admin/access-requests', title: '权限审核' },
-        { path: '/admin/review-assign', title: '审核分配' },
-        { path: '/admin/research-insights', title: '研究洞察' },
-        { path: '/admin/system-settings', title: '系统设置' }
-      ]
+      path: '/dashboard',
+      title: '个人概览',
+      icon: House,
+      roles: ['researcher', 'expert', 'admin', 'manager']
     })
-  }
-
-  if (userStore.isAdmin) {
-    const adminMenu = items.find(item => item.path === '/admin')
-    if (adminMenu && adminMenu.children) {
-      adminMenu.children.push({ path: '/admin/result-types', title: '成果类型配置' })
-    }
+    items.push({
+      path: '/results/create',
+      title: '创建成果物',
+      icon: Plus,
+      roles: ['researcher', 'expert', 'admin', 'manager']
+    })
+    items.push({
+      path: '/results/my',
+      title: '个人成果物',
+      icon: Document,
+      roles: ['researcher', 'expert', 'admin', 'manager']
+    })
+    items.push({
+      path: '/results/list',
+      title: '科研成果',
+      icon: List,
+      roles: ['researcher', 'expert', 'admin', 'manager']
+    })
+    items.push({
+      path: '/results/search',
+      title: '成果检索',
+      icon: Search,
+      roles: ['researcher', 'expert', 'admin', 'manager']
+    })
+    items.push({
+      path: '/insights/demands',
+      title: '需求洞察',
+      icon: DataAnalysis,
+      roles: ['researcher', 'expert', 'admin', 'manager']
+    })
   }
 
   return items
@@ -463,29 +525,135 @@ async function handleCommand(command) {
 .sidebar {
   background: #fff;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px;
   display: flex;
   flex-direction: column;
 }
 
-.sidebar-menu {
-  border-right: none;
+/* 美化滚动条 */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
+}
+
+.sidebar::-webkit-scrollbar-track {
   background: transparent;
 }
 
+.sidebar-menu {
+  border-right: none;
+  background: transparent;
+  flex: 1;
+}
+
+/* 重置Element Plus默认样式，防止重叠 */
+.sidebar-menu .el-menu-item,
+.sidebar-menu .el-sub-menu__title {
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* 菜单图标样式 */
 .menu-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   margin-right: 8px;
   font-size: 18px;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+/* 确保子菜单标题中的图标正确显示 */
+.el-sub-menu__title .menu-icon {
+  margin-right: 8px;
+}
+
+/* 确保文字不会被图标覆盖 */
+.el-sub-menu__title span {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.el-menu-item span {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .menu-pill {
   margin: 6px 0;
   border-radius: 12px !important;
+}
+
+/* 普通菜单项样式 */
+.el-menu-item.menu-pill {
   height: 44px;
   line-height: 44px;
+}
+
+/* 子菜单容器样式 */
+.el-sub-menu.menu-pill {
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+/* 子菜单展开后的内容区域 */
+.el-sub-menu.menu-pill .el-menu {
+  background: transparent !important;
+  padding: 4px 0;
+}
+
+/* 子菜单标题样式 */
+.el-sub-menu.menu-pill .el-sub-menu__title {
+  height: 44px;
+  line-height: 44px;
+  border-radius: 12px !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+  display: flex;
+  align-items: center;
+}
+
+/* 子菜单展开图标 */
+.el-sub-menu.menu-pill .el-sub-menu__icon-arrow {
+  position: absolute;
+  right: 20px;
+  margin-left: auto;
+}
+
+/* 子菜单标题hover效果 */
+.el-sub-menu.menu-pill .el-sub-menu__title:hover {
+  background: #f5f7fb !important;
+}
+
+/* 子菜单项样式 */
+.el-sub-menu.menu-pill .el-menu-item {
+  height: 40px;
+  line-height: 40px;
+  padding-left: 48px !important;
+  border-radius: 8px;
+  margin: 4px 12px;
+}
+
+/* 子菜单项hover效果 */
+.el-sub-menu.menu-pill .el-menu-item:hover {
+  background: #f5f7fb !important;
 }
 
 .el-menu-item.is-active {
