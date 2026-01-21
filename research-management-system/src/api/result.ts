@@ -48,6 +48,18 @@ function mapStatusToBackend(status?: string) {
   return map[normalized] || status.toString().toUpperCase()
 }
 
+const strapiAssetBase =
+  (import.meta.env.VITE_STRAPI_BASE_URL || import.meta.env.VITE_API_BASE_URL || '').toString()
+
+function resolveAssetUrl(url?: string) {
+  if (!url) return ''
+  if (/^https?:\/\//i.test(url)) return url
+  if (!strapiAssetBase) return url
+  const base = strapiAssetBase.replace(/\/$/, '')
+  const path = url.startsWith('/') ? url : `/${url}`
+  return `${base}${path}`
+}
+
 function mapListItem(item: any) {
   return {
     ...item,
@@ -55,7 +67,20 @@ function mapListItem(item: any) {
     status: mapStatus(item.auditStatus || item.status),
     type: item.typeName || item.type,
     authors: item.authorName ? [item.authorName] : item.creatorName ? [item.creatorName] : [],
-    visibility: item.visibilityRange || item.visibility
+    visibility: item.visibilityRange || item.visibility,
+    createdBy: item.createdBy || item.creatorName
+  }
+}
+
+function mapReviewHistoryItem(item: any) {
+  return {
+    ...item,
+    id: item.documentId || item.id,
+    type: item.typeName || item.type,
+    projectName: item.projectName,
+    projectCode: item.projectCode,
+    reviewResult: item.reviewResult || item.action,
+    reviewedAt: item.reviewedAt
   }
 }
 
@@ -67,6 +92,22 @@ function mapDetailItem(item: any) {
       metadata[field.fieldCode] = field.value
     }
   })
+  
+  // 解析附件:后端返回Strapi格式{data:[{id,attributes:{files:{data:[...]}}}]}
+  let attachments = []
+  if (item?.attachments?.data) {
+    attachments = Array.isArray(item.attachments.data) ? item.attachments.data.flatMap((fileRecord: any) => {
+      const filesData = fileRecord?.attributes?.files?.data || []
+      return filesData.map((file: any) => ({
+        id: file.id,
+        name: file.attributes?.name || '',
+        url: resolveAssetUrl(file.attributes?.url || ''),
+        size: file.attributes?.size || 0,
+        mime: file.attributes?.mime || ''
+      }))
+    }) : []
+  }
+  
   return {
     ...item,
     id: item.documentId || item.id,
@@ -76,9 +117,13 @@ function mapDetailItem(item: any) {
     typeName: item.typeName,
     typeCode: item.typeCode,
     abstract: item.summary || item.abstract,
-    authors: item.authorName ? [item.authorName] : item.creatorName ? [item.creatorName] : [],
+    authors: Array.isArray(item.authors) ? item.authors : item.authorName ? [item.authorName] : item.creatorName ? [item.creatorName] : [],
+    keywords: Array.isArray(item.keywords) ? item.keywords : [],
+    year: item.year,
+    projectCode: item.projectCode,
+    projectName: item.projectName,
     metadata,
-    attachments: [],
+    attachments,
     visibility: item.visibilityRange || item.visibility || 'internal_abstract'
   }
 }
@@ -221,16 +266,10 @@ export async function getResultAccessRequests(params?: QueryParams): Promise<Str
   const res = await request({
     url: '/results/access-requests',
     method: 'get',
-    params
+    params,
+    mock: false
   })
-  return {
-    data: {
-      list: res?.data?.list || [],
-      total: res?.data?.total || 0,
-      page: res?.data?.page || params?.page || 1,
-      pageSize: res?.data?.pageSize || params?.pageSize || 10
-    }
-  }
+  return normalizePageResult(res)
 }
 
 // 审核成果访问申请
@@ -255,12 +294,48 @@ export function createResult(data: Record<string, any>): Promise<ApiResponse<any
   })
 }
 
+// 创建成果（带文件）
+export function createResultWithFiles(data: Record<string, any>, files: File[]): Promise<ApiResponse<any>> {
+  const formData = new FormData()
+  formData.append('data', JSON.stringify(data))
+  files.forEach(file => {
+    formData.append('files', file)
+  })
+  return request({
+    url: '/user/achievement/createWithFiles',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    mock: false
+  })
+}
+
 // 更新成果
 export function updateResult(id: string, data: Record<string, any>): Promise<ApiResponse<any>> {
   return request({
     url: `/user/achievement/update/${id}`,
     method: 'put',
     data,
+    mock: false
+  })
+}
+
+// 更新成果（带文件）
+export function updateResultWithFiles(id: string, data: Record<string, any>, files: File[]): Promise<ApiResponse<any>> {
+  const formData = new FormData()
+  formData.append('data', JSON.stringify(data))
+  files.forEach(file => {
+    formData.append('files', file)
+  })
+  return request({
+    url: `/user/achievement/updateWithFiles/${id}`,
+    method: 'put',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
     mock: false
   })
 }
@@ -336,12 +411,25 @@ export function markFormatRejected(id: string, data: Record<string, any>): Promi
 }
 
 // 获取审核待办列表
-export function getReviewBacklog(params?: QueryParams): Promise<ApiResponse<any>> {
-  return request({
+export async function getReviewBacklog(params?: QueryParams): Promise<StrapiPaginatedResponse<any>> {
+  const res = await request({
     url: '/results/review-backlog',
     method: 'get',
-    params
+    params,
+    mock: false
   })
+  return normalizePageResult(res, mapListItem)
+}
+
+// 获取审核历史列表
+export async function getReviewHistory(params?: QueryParams): Promise<StrapiPaginatedResponse<any>> {
+  const res = await request({
+    url: '/results/review-history',
+    method: 'get',
+    params,
+    mock: false
+  })
+  return normalizePageResult(res, mapReviewHistoryItem)
 }
 
 // 智能补全元数据（通过DOI等）

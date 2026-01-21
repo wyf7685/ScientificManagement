@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.achievement.mapper.AchievementAccessRequestMapper">
+
+    <!-- 分页查询访问申请列表 -->
+    <select id="pageAccessRequests" resultType="com.achievement.domain.vo.AccessRequestVO">
+        SELECT
+            ar.document_id       AS id,
+            ar.achievement_doc_id AS resultId,
+            ar.achievement_title  AS resultTitle,
+            t.type_name          AS resultType,
+            m.achievement_status AS resultStatus,
+            m.project_name       AS projectName,
+            m.visibility_range   AS visibility,
+            ar.requester_id      AS userId,
+            ar.requester_name    AS userName,
+            ar.reason            AS reason,
+            ar.status            AS status,
+            ar.reviewer_name     AS reviewer,
+            ar.review_comment    AS comment,
+            ar.created_at        AS createdAt,
+            ar.reviewed_at       AS reviewedAt
+        FROM achievement_access_requests ar
+        LEFT JOIN achievement_mains m
+            ON m.document_id = ar.achievement_doc_id
+        LEFT JOIN achievement_mains_achievement_type_id_lnk mt
+            ON mt.achievement_main_id = m.id
+        LEFT JOIN achievement_types t
+            ON t.id = mt.achievement_type_id
+        WHERE ar.is_delete = 0
+        
+        <!-- 关键词搜索：成果标题或申请人 -->
+        <if test="dto.keyword != null and dto.keyword != ''">
+            AND (
+                ar.achievement_title LIKE CONCAT('%', #{dto.keyword}, '%')
+                OR ar.requester_name LIKE CONCAT('%', #{dto.keyword}, '%')
+            )
+        </if>
+        
+        <!-- 状态筛选 -->
+        <if test="dto.status != null and dto.status != ''">
+            AND ar.status = #{dto.status}
+        </if>
+        
+        ORDER BY 
+            CASE ar.status
+                WHEN 'pending' THEN 1
+                WHEN 'approved' THEN 2
+                WHEN 'rejected' THEN 3
+                ELSE 4
+            END,
+            ar.created_at DESC
+    </select>
+
+</mapper>

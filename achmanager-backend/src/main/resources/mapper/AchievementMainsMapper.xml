@@ -105,7 +105,14 @@
             t.id            AS typeId,
             t.document_id   AS typeDocId,
             t.type_name     AS typeName,
-            t.type_code     AS typeCode
+            t.type_code     AS typeCode,
+            
+            m.year          AS year,
+            m.authors       AS authorsJson,
+            m.keywords      AS keywordsJson,
+            m.project_code  AS projectCode,
+            m.project_name  AS projectName,
+            m.visibility_range AS visibilityRange
         FROM achievement_mains m
                  LEFT JOIN admin_users au
                            ON au.id = m.created_by_id
@@ -200,6 +207,57 @@
         </choose>
 
         ORDER BY m.created_at DESC
+    </select>
+
+    <!-- 分页查询审核待办列表 -->
+    <select id="pageReviewBacklog" resultType="com.achievement.domain.vo.ReviewBacklogVO">
+        SELECT
+            m.document_id    AS id,
+            m.title          AS title,
+            t.type_name      AS type,
+            m.project_name   AS projectName,
+            m.project_code   AS projectCode,
+            m.creator_name   AS createdBy,
+            m.created_at     AS createdAt,
+            m.achievement_status AS status
+        FROM achievement_mains m
+        LEFT JOIN achievement_mains_achievement_type_id_lnk mt
+            ON mt.achievement_main_id = m.id
+        LEFT JOIN achievement_types t
+            ON t.id = mt.achievement_type_id
+        WHERE m.is_delete = 0
+          AND m.published_at IS NOT NULL
+          AND m.achievement_status = 'UNDER_REVIEW'
+          AND (m.reviewer_id = #{reviewerId} OR m.reviewer_id IS NULL)
+        ORDER BY m.created_at ASC
+    </select>
+
+    <!-- 分页查询审核历史列表 -->
+    <select id="pageReviewHistory" resultType="com.achievement.domain.vo.ReviewHistoryVO">
+        SELECT
+            m.document_id    AS id,
+            m.title          AS title,
+            t.type_name      AS type,
+            m.project_name   AS projectName,
+            m.project_code   AS projectCode,
+            CASE 
+                WHEN m.achievement_status = 'APPROVED' THEN 'approve'
+                WHEN m.achievement_status = 'REJECTED' THEN 'reject'
+                ELSE 'unknown'
+            END              AS reviewResult,
+            m.reviewed_at    AS reviewedAt,
+            m.review_comment AS comment
+        FROM achievement_mains m
+        LEFT JOIN achievement_mains_achievement_type_id_lnk mt
+            ON mt.achievement_main_id = m.id
+        LEFT JOIN achievement_types t
+            ON t.id = mt.achievement_type_id
+        WHERE m.is_delete = 0
+          AND m.published_at IS NOT NULL
+          AND m.reviewer_id = #{reviewerId}
+          AND m.achievement_status IN ('APPROVED', 'REJECTED')
+          AND m.reviewed_at IS NOT NULL
+        ORDER BY m.reviewed_at DESC
     </select>
 
 

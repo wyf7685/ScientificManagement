@@ -2,7 +2,6 @@ package com.achievement.domain.vo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -26,6 +25,14 @@ public class AchDetailVO {
         private String typeDocId;
         private String typeName;
         private String typeCode;
+        
+        // 基础字段
+        private String year;
+        private List<String> authors;
+        private List<String> keywords;
+        private String projectCode;
+        private String projectName;
+        private String visibilityRange;
 
         // 动态字段：字段定义 + 值
         private List<AchFieldVO> fields;

@@ -53,5 +53,21 @@ public class AchievementMains implements Serializable {
 
     private Integer isDelete;
 
+    private String visibilityRange;
+
+    private Integer creatorId;
+
+    private String creatorName;
+
+    private String creatorDept;
+
+    private Integer reviewerId;
+
+    private String reviewerName;
+
+    private String reviewComment;
+
+    private LocalDateTime reviewedAt;
+
 
 }

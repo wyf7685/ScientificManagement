@@ -109,10 +109,19 @@
     <el-dialog v-model="assignDialogVisible" title="分配审核人" width="420px">
       <el-form label-width="88px">
         <el-form-item label="审核人" required>
-          <el-input
-            v-model="assignForm.reviewers"
-            placeholder="输入审核人，支持逗号分隔多个"
-          />
+          <el-select
+            v-model="assignForm.reviewerIds"
+            multiple
+            placeholder="选择审核人"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="user in expertList"
+              :key="user.id"
+              :label="`${user.name} (${user.department || '无部门'})`"
+              :value="user.id"
+            />
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -129,6 +138,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowDown } from '@element-plus/icons-vue'
 import { getResults, deleteResult, assignReviewers, markFormatChecked, markFormatRejected } from '@/api/result'
+import { getExpertUsers } from '@/api/user'
 import { ResultStatus } from '@/types'
 
 const router = useRouter()
@@ -138,8 +148,9 @@ const assignDialogVisible = ref(false)
 const assigning = ref(false)
 const formatChecking = ref(false)
 const currentAssignId = ref('')
+const expertList = ref<any[]>([])
 const assignForm = reactive({
-  reviewers: ''
+  reviewerIds: [] as number[]
 })
 
 const searchForm = reactive({
@@ -156,7 +167,17 @@ const pagination = reactive({
 
 onMounted(() => {
   handleSearch()
+  loadExpertList()
 })
+
+async function loadExpertList() {
+  try {
+    const res = await getExpertUsers()
+    expertList.value = res?.data || []
+  } catch (e) {
+    console.error('加载专家列表失败', e)
+  }
+}
 
 async function handleSearch() {
   loading.value = true
@@ -194,15 +215,26 @@ function canFormatReject(row: any) {
 
 function openAssign(row: any) {
   currentAssignId.value = row.id
-  assignForm.reviewers = (row.assignedReviewers || []).join(', ')
+  assignForm.reviewerIds = Array.isArray(row?.assignedReviewerIds) ? [...row.assignedReviewerIds] : []
   assignDialogVisible.value = true
 }
 
 async function handleAssign() {
   if (!currentAssignId.value) return
+  if (!assignForm.reviewerIds || assignForm.reviewerIds.length === 0) {
+    ElMessage.warning('请选择至少一位审核人')
+    return
+  }
   assigning.value = true
   try {
-    await assignReviewers(currentAssignId.value, { reviewers: assignForm.reviewers })
+    const reviewerNames = assignForm.reviewerIds
+      .map((id) => expertList.value.find((u) => u.id === id)?.name)
+      .filter(Boolean) as string[]
+
+    await assignReviewers(currentAssignId.value, {
+      reviewerIds: assignForm.reviewerIds,
+      reviewerNames
+    })
     ElMessage.success('已分配审核人')
     assignDialogVisible.value = false
     handleSearch()

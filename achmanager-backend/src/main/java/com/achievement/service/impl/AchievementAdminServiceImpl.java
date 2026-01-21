@@ -292,6 +292,12 @@ public class AchievementAdminServiceImpl implements IAchievementAdminService {
         moveKey(mainData, "achievementStatus", "achievement_status");
         // 成果物类型外键：typeDocId -> achievement_type_id
         moveKey(mainData, "typeDocId", "achievement_type_id");
+        
+        // 新增基础字段映射（前端驼峰 -> Strapi 下划线）
+        moveKey(mainData, "projectCode", "project_code");
+        moveKey(mainData, "projectName", "project_name");
+        moveKey(mainData, "visibilityRange", "visibility_range");
+        
         // 前端展示字段不写入 Strapi
         mainData.remove("typeName");
         mainData.remove("typeCode");

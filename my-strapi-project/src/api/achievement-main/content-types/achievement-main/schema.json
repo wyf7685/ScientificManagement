@@ -31,6 +31,24 @@
     "summary": {
       "type": "text"
     },
+    "year": {
+      "type": "string",
+      "maxLength": 4
+    },
+    "authors": {
+      "type": "json"
+    },
+    "keywords": {
+      "type": "json"
+    },
+    "project_code": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "project_name": {
+      "type": "string",
+      "maxLength": 255
+    },
     "is_delete": {
       "type": "integer",
       "required": true,

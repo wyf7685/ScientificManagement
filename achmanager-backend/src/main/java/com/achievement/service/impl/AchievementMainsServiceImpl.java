@@ -105,6 +105,16 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
         vo.setTypeDocId(base.getTypeDocId());
         vo.setTypeName(base.getTypeName());
         vo.setTypeCode(base.getTypeCode());
+        
+        // 设置基础字段
+        vo.setYear(base.getYear());
+        vo.setProjectCode(base.getProjectCode());
+        vo.setProjectName(base.getProjectName());
+        vo.setVisibilityRange(base.getVisibilityRange());
+        
+        // 解析 JSON 数组字段
+        vo.setAuthors(parseJsonArray(base.getAuthorsJson()));
+        vo.setKeywords(parseJsonArray(base.getKeywordsJson()));
 
         vo.setFields(fields);
 
@@ -121,6 +131,18 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
         }
 
         return vo;
+    }
+    
+    private List<String> parseJsonArray(String json) {
+        if (json == null || json.isBlank()) {
+            return Collections.emptyList();
+        }
+        try {
+            return objectMapper.readValue(json, 
+                objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
+        } catch (JsonProcessingException e) {
+            return Collections.emptyList();
+        }
     }
 
     @Override

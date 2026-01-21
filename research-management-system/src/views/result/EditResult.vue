@@ -261,7 +261,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { UploadFilled } from '@element-plus/icons-vue'
-import { getResultTypes, getFieldDefsByType, getResult, saveDraft, updateResult, autoFillMetadata, uploadAttachment } from '@/api/result'
+import { getResultTypes, getFieldDefsByType, getResult, saveDraft, updateResult, updateResultWithFiles, autoFillMetadata } from '@/api/result'
 import { getProjects, createProject } from '@/api/project'
 import { ResultVisibility } from '@/types'
 import DynamicFieldRenderer from '@/components/DynamicFieldRenderer.vue'
@@ -555,21 +555,6 @@ function handleFileChange(file, files) {
   fileList.value = files
 }
 
-async function uploadPendingFiles() {
-  const uploads = []
-  for (const file of fileList.value) {
-    if (file.url) {
-      uploads.push({ url: file.url, name: file.name, size: file.size })
-      continue
-    }
-    if (!file.raw) continue
-    const res = await uploadAttachment(file.raw)
-    if (!res?.data) throw new Error('附件上传失败')
-    uploads.push(res.data)
-  }
-  return uploads
-}
-
 function getAutoFillLabel() {
   const map = {
     doi: 'DOI',
@@ -655,8 +640,7 @@ async function handleSaveDraft() {
   if (!resultId.value) return
   saving.value = true
   try {
-    const attachments = await uploadPendingFiles()
-    const payload = { ...buildDraftPayload(attachments), status: 'draft' }
+    const payload = { ...buildDraftPayload(), status: 'draft' }
     await saveDraft(payload)
     ElMessage.success('草稿已保存（Mock）')
   } catch (error) {
@@ -670,9 +654,15 @@ async function handleSubmit() {
   if (!resultId.value) return
   submitting.value = true
   try {
-    const attachments = await uploadPendingFiles()
-    const payload = buildPayload(attachments)
-    await updateResult(resultId.value, payload)
+    const payload = buildPayload()
+    const rawFiles = fileList.value.filter(f => f.raw).map(f => f.raw) as File[]
+    
+    if (rawFiles.length > 0) {
+      await updateResultWithFiles(resultId.value, payload, rawFiles)
+    } else {
+      await updateResult(resultId.value, payload)
+    }
+    
     ElMessage.success('保存成功')
     router.push('/results/my')
   } catch (error) {
@@ -709,25 +699,30 @@ function buildFieldValues() {
     .filter(Boolean)
 }
 
-function buildDraftPayload(attachments) {
+function buildDraftPayload() {
   const project = projects.value.find((p) => p.id === formData.projectId)
   return {
     ...formData,
     projectName: project?.name || formData.projectName || '',
     projectCode: project?.code || formData.projectCode || '',
-    metadata: { ...formData.metadata },
-    attachments
+    metadata: { ...formData.metadata }
   }
 }
 
-function buildPayload(attachments) {
+function buildPayload() {
+  const project = projects.value.find((p) => p.id === formData.projectId)
   return {
     data: {
       title: formData.title,
       summary: formData.abstract,
       typeDocId: formData.typeId,
-      fields: buildFieldValues(),
-      attachments: attachments || []
+      year: formData.year,
+      authors: formData.authors,
+      keywords: formData.keywords,
+      projectCode: project?.code || formData.projectCode || '',
+      projectName: project?.name || formData.projectName || '',
+      visibilityRange: formData.visibility,
+      fields: buildFieldValues()
     }
   }
 }

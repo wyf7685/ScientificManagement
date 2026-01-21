@@ -163,7 +163,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { View, Document, Download } from '@element-plus/icons-vue'
-import { getResults, reviewResult } from '@/api/result'
+import { getReviewBacklog, getReviewHistory, reviewResult } from '@/api/result'
 
 const router = useRouter()
 const loading = ref(false)
@@ -196,14 +196,13 @@ function handleTabChange() {
 async function loadData() {
   loading.value = true
   try {
-    const status = activeTab.value === 'pending'
-      ? ['pending', 'reviewing']
-      : ['published', 'rejected']
-    const res = await getResults({
-      status,
+    const params = {
       page: pagination.page,
       pageSize: pagination.pageSize
-    })
+    }
+    const res = activeTab.value === 'pending'
+      ? await getReviewBacklog(params)
+      : await getReviewHistory(params)
     const { data } = res || {}
     tableData.value = data?.list || []
     pagination.total = data?.total || tableData.value.length

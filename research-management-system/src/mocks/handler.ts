@@ -464,7 +464,10 @@ export function handleMockRequest(config: Record<string, any> = {}) {
     const id = url.split('/')[2]
     const item = results.find((r) => r.id === id)
     if (!item) return fail(404, '未找到成果')
-    const reviewers = Array.isArray(body.reviewers) ? body.reviewers : (body.reviewers ? String(body.reviewers).split(',').map((r) => r.trim()).filter(Boolean) : [])
+    const reviewerIds = Array.isArray(body.reviewerIds) ? body.reviewerIds : []
+    const reviewerNames = Array.isArray(body.reviewerNames) ? body.reviewerNames : reviewerIds.map((rid) => `审核人${rid}`)
+    const reviewers = reviewerNames.length ? reviewerNames : (body.reviewers ? String(body.reviewers).split(',').map((r) => r.trim()).filter(Boolean) : [])
+    item.assignedReviewerIds = reviewerIds
     item.assignedReviewers = reviewers
     item.status = 'reviewing'
     item.updatedAt = now()
@@ -537,19 +540,51 @@ export function handleMockRequest(config: Record<string, any> = {}) {
 
   // 待审核/审核中看板
   if (method === 'get' && url === '/results/review-backlog') {
-    const pending = results.filter((r) => r.status === 'pending')
+    const page = Number(params.page || 1)
+    const pageSize = Number(params.pageSize || 10)
     const reviewing = results.filter((r) => r.status === 'reviewing')
-    const processPending = pending.filter((r) => r.source === 'process_system')
-    const manualPending = pending.filter((r) => r.source === 'manual_upload')
+    const start = (page - 1) * pageSize
+    const records = reviewing.slice(start, start + pageSize).map((r) => ({
+      documentId: r.id,
+      title: r.title,
+      typeName: r.type,
+      projectName: r.projectName,
+      projectCode: r.projectCode,
+      creatorName: r.createdBy,
+      createdAt: r.createdAt,
+      assignedAt: r.updatedAt
+    }))
     return success({
-      pending,
-      reviewing,
-      summary: {
-        pending: pending.length,
-        reviewing: reviewing.length,
-        processPending: processPending.length,
-        manualPending: manualPending.length
-      }
+      records,
+      total: reviewing.length,
+      current: page,
+      size: pageSize
+    })
+  }
+
+  // 审核历史列表
+  if (method === 'get' && url === '/results/review-history') {
+    const page = Number(params.page || 1)
+    const pageSize = Number(params.pageSize || 10)
+    const history = results
+      .filter((r) => Array.isArray(r.reviewHistory) && r.reviewHistory.length)
+      .flatMap((r) => r.reviewHistory.map((h) => ({
+        documentId: r.id,
+        title: r.title,
+        typeName: r.type,
+        projectName: r.projectName,
+        projectCode: r.projectCode,
+        reviewResult: h.action,
+        reviewedAt: h.createdAt
+      })))
+      .sort((a, b) => (a.reviewedAt < b.reviewedAt ? 1 : -1))
+    const start = (page - 1) * pageSize
+    const records = history.slice(start, start + pageSize)
+    return success({
+      records,
+      total: history.length,
+      current: page,
+      size: pageSize
     })
   }
 
