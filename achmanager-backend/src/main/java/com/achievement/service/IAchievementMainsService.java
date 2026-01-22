@@ -33,7 +33,7 @@ public interface IAchievementMainsService extends IService<AchievementMains> {
 
     Long countMonthNew();
 
-    Page<AchListVO> pageList4User(AchListDTO achListDTO);
+    Page<AchListVO> pageList4User(AchListDTO achListDTO,Integer userId);
 
     AchDetailVO selectDetail(String achDocId);
 

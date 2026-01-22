@@ -37,7 +37,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/admin/achievement")
 @RequiredArgsConstructor
-@Tag(name="管理员成果物管理相关接口")
+@Tag(name="成果物管理相关接口")
 public class AchievementManageController {
     private final IAchievementMainsService achievementMainsService;
     private final IAchievementAdminService achievementAdminService;
@@ -53,7 +53,7 @@ public class AchievementManageController {
     }
     /* 管理员分页查询所有成果物列表
      */
-    @Operation(description = "管理员分页查询成果物列表接口")
+    @Operation(description = "分页查询成果物列表接口")
     @PostMapping("/pageList")
     public Result<Page<AchListVO>> pageList(@RequestBody AchListDTO achListDTO, @CurrentUser BusinessUser currentUser){
         if (currentUser == null) {
@@ -67,7 +67,7 @@ public class AchievementManageController {
     /*
      *TODO管理员查询成果物详情
      * */
-    @Operation(description = "管理员查询成果物详情接口")
+    @Operation(description = "查询成果物详情接口")
     @GetMapping("/detail")
     public Result <AchDetailVO> detail(@RequestParam String achDocId){
         return Result.success(achievementMainsService.selectDetail(achDocId));

@@ -1,7 +1,9 @@
 package com.achievement.controller;
 
+import com.achievement.annotation.CurrentUser;
 import com.achievement.domain.dto.AchListDTO;
 import com.achievement.domain.dto.AchListDTO2;
+import com.achievement.domain.po.BusinessUser;
 import com.achievement.domain.vo.AchDetailVO;
 import com.achievement.domain.vo.AchListVO;
 import com.achievement.result.Result;
@@ -47,8 +49,11 @@ public class AchievementUserController {
     * */
     @Operation(description = "用户分页查询自己成果物列表接口")
     @PostMapping("/pageList")
-    public Result<Page<AchListVO>> pageList(@RequestBody AchListDTO achListDTO){
-        return Result.success(achievementMainsService.pageList4User(achListDTO));
+    public Result<Page<AchListVO>> pageList(@RequestBody AchListDTO achListDTO, @CurrentUser BusinessUser businessUser){
+        if (businessUser == null) {
+            return Result.error("未登录");
+        }
+        return Result.success(achievementMainsService.pageList4User(achListDTO,businessUser.getId()));
     }
     /*
      *TODO 用户分页查询所有 可见范围内 所有成果物

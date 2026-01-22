@@ -1,11 +1,13 @@
 package com.achievement.service.impl;
 
+import com.achievement.annotation.CurrentUser;
 import com.achievement.client.StrapiClient;
 import com.achievement.domain.dto.AchFieldRow;
 import com.achievement.domain.dto.AchListDTO;
 import com.achievement.domain.dto.AchListDTO2;
 import com.achievement.domain.dto.AchMainBaseRow;
 import com.achievement.domain.po.AchievementMains;
+import com.achievement.domain.po.BusinessUser;
 import com.achievement.domain.vo.AchDetailVO;
 import com.achievement.domain.vo.AchFieldVO;
 import com.achievement.domain.vo.AchListVO;
@@ -54,13 +56,12 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
         return baseMapper.pageList(page, achListDTO);
     }
     @Override
-    public Page<AchListVO> pageList4User(AchListDTO achListDTO){// 兜底：防止 null / 非法值（即使没有校验或校验被改了，其实也安全）
+    public Page<AchListVO> pageList4User(AchListDTO achListDTO,Integer userId){// 兜底：防止 null / 非法值（即使没有校验或校验被改了，其实也安全）
         int pageNum  = (achListDTO.getPageNum()  == null || achListDTO.getPageNum()  < 1)  ? 1  : achListDTO.getPageNum();
         int pageSize = (achListDTO.getPageSize() == null || achListDTO.getPageSize() < 1) ? 10 : achListDTO.getPageSize();
         if (pageSize > 100) {
             pageSize = 100; // 防止一次性查太多
         }
-        Integer userId = 1; //TODO 获取当前用户ID
         achListDTO.setCreatorId(userId);
         //MybatisPlus的分页查询
         Page<AchListVO> page = new Page<>(pageNum, pageSize);

@@ -55,6 +55,9 @@
         <if test="dto.typeId != null">
             AND mt.achievement_type_id = #{dto.typeId}
         </if>
+        <if  test = "dto.typeCode !=null">
+            AND  mt.type_code = #{dto.typeCode}t
+        </if>
 
         <if test="dto.projectId != null">
             <!-- 方式A：m.project_id -->

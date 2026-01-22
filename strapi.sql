@@ -11,7 +11,7 @@
  Target Server Version : 90100 (9.1.0)
  File Encoding         : 65001
 
- Date: 21/01/2026 15:25:36
+ Date: 21/01/2026 16:42:24
 */
 
 SET NAMES utf8mb4;
@@ -1212,12 +1212,16 @@ CREATE TABLE `business_users` (
   KEY `business_users_updated_by_id_fk` (`updated_by_id`),
   CONSTRAINT `business_users_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `business_users_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='业务用户表';
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='业务用户表';
 
 -- ----------------------------
 -- Records of business_users
 -- ----------------------------
 BEGIN;
+INSERT INTO `business_users` (`id`, `document_id`, `username`, `email`, `name`, `department`, `role`, `phone`, `is_active`, `last_login_at`, `created_at`, `updated_at`, `published_at`, `created_by_id`, `updated_by_id`, `locale`, `is_delete`) VALUES (1, 'user_001', 'researcher01', 'researcher01@example.com', '张三', '计算机学院', 'researcher', NULL, 1, NULL, '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', NULL, NULL, NULL, 0);
+INSERT INTO `business_users` (`id`, `document_id`, `username`, `email`, `name`, `department`, `role`, `phone`, `is_active`, `last_login_at`, `created_at`, `updated_at`, `published_at`, `created_by_id`, `updated_by_id`, `locale`, `is_delete`) VALUES (2, 'user_002', 'expert01', 'expert01@example.com', '李四', '信息学院', 'expert', NULL, 1, NULL, '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', NULL, NULL, NULL, 0);
+INSERT INTO `business_users` (`id`, `document_id`, `username`, `email`, `name`, `department`, `role`, `phone`, `is_active`, `last_login_at`, `created_at`, `updated_at`, `published_at`, `created_by_id`, `updated_by_id`, `locale`, `is_delete`) VALUES (3, 'user_003', 'manager01', 'manager01@example.com', '王五', '科研处', 'manager', NULL, 1, NULL, '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', NULL, NULL, NULL, 0);
+INSERT INTO `business_users` (`id`, `document_id`, `username`, `email`, `name`, `department`, `role`, `phone`, `is_active`, `last_login_at`, `created_at`, `updated_at`, `published_at`, `created_by_id`, `updated_by_id`, `locale`, `is_delete`) VALUES (4, 'user_004', 'admin01', 'admin01@example.com', '赵六', '管理部门', 'admin', NULL, 1, NULL, '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', NULL, NULL, NULL, 0);
 COMMIT;
 
 -- ----------------------------
@@ -2426,6 +2430,18 @@ CREATE TABLE `upload_folders_parent_lnk` (
 -- ----------------------------
 BEGIN;
 COMMIT;
+
+-- ----------------------------
+-- View structure for v_achievement_details
+-- ----------------------------
+DROP VIEW IF EXISTS `v_achievement_details`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_achievement_details` AS select `am`.`id` AS `id`,`am`.`document_id` AS `document_id`,`am`.`title` AS `title`,`am`.`summary` AS `summary`,`am`.`achievement_status` AS `achievement_status`,`am`.`visibility_range` AS `visibility_range`,`am`.`creator_id` AS `creator_id`,`am`.`creator_name` AS `creator_name`,`am`.`creator_dept` AS `creator_dept`,`am`.`reviewer_id` AS `reviewer_id`,`am`.`reviewer_name` AS `reviewer_name`,`am`.`review_comment` AS `review_comment`,`am`.`reviewed_at` AS `reviewed_at`,`am`.`created_at` AS `created_at`,`am`.`updated_at` AS `updated_at`,`am`.`published_at` AS `published_at`,`at`.`type_name` AS `type_name`,`at`.`type_code` AS `type_code`,`at`.`document_id` AS `type_doc_id` from ((`achievement_mains` `am` left join `achievement_mains_achievement_type_id_lnk` `aml` on((`am`.`id` = `aml`.`achievement_main_id`))) left join `achievement_types` `at` on((`aml`.`achievement_type_id` = `at`.`id`))) where ((`am`.`is_delete` = 0) and (`am`.`published_at` is not null));
+
+-- ----------------------------
+-- View structure for v_review_backlog
+-- ----------------------------
+DROP VIEW IF EXISTS `v_review_backlog`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_review_backlog` AS select `ara`.`id` AS `assignment_id`,`ara`.`achievement_doc_id` AS `achievement_doc_id`,`ara`.`reviewer_id` AS `reviewer_id`,`ara`.`reviewer_name` AS `reviewer_name`,`ara`.`assigned_at` AS `assigned_at`,`ara`.`status` AS `assignment_status`,`am`.`id` AS `achievement_id`,`am`.`title` AS `title`,`am`.`achievement_status` AS `achievement_status`,`am`.`creator_name` AS `creator_name`,`am`.`created_at` AS `created_at`,`at`.`type_name` AS `type_name` from (((`achievement_reviewer_assignments` `ara` join `achievement_mains` `am` on((`ara`.`achievement_id` = `am`.`id`))) left join `achievement_mains_achievement_type_id_lnk` `aml` on((`am`.`id` = `aml`.`achievement_main_id`))) left join `achievement_types` `at` on((`aml`.`achievement_type_id` = `at`.`id`))) where ((`ara`.`is_delete` = 0) and (`ara`.`status` = 'pending') and (`am`.`is_delete` = 0) and (`am`.`published_at` is not null));
 
 -- ----------------------------
 -- Procedure structure for safe_add_column

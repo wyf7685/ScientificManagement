@@ -49,7 +49,8 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         
         // 从请求头获取token
         String authorization = webRequest.getHeader("Authorization");
-        
+        log.info("Authorization={}", authorization);
+
         if (!StringUtils.hasText(authorization)) {
             log.warn("请求头中未找到Authorization");
             throw new RuntimeException("未登录，请先登录");

@@ -23,6 +23,9 @@ public class AchListDTO {
     @Schema(description = "按成果物摘类型搜索")
     /** 成果物类型ID（achievement_types.id） */
     private Integer typeId;
+
+    @Schema(description = "按成果物类型名称搜索")
+    private String typeCode;
     @Schema(description = "按成果物审核状态搜索")
     /** 审核状态（achievement_status） */
     private String status;

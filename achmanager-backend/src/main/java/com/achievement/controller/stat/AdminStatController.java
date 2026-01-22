@@ -53,7 +53,7 @@ public class AdminStatController {
         */
         @Operation(description = "饼图：各成果物类型数量")
         @GetMapping("/typePie")
-        public Result<List<TypeCountVO>> typePie(@RequestParam(required = false) Long creatorId) {
-        return Result.success(statService.typePie(creatorId));
+        public Result<List<TypeCountVO>> typePie() {
+        return Result.success(statService.typePie(null));
         }
 }
