@@ -24,7 +24,7 @@ spring:
           max-wait: 1000ms
 mybatis:
   configuration:
-    map-underscore-to-camel-case: true
+    map-underscore-to-camel-case:   true
 strapi:
   base-url: http://localhost:1337
   api-token: 0dc05c8baca8b7abfb19326e2ad6b0a1d2ba199b6ef8d9fe464e78d094f33eeaf8a4f4ca4da65ceea90aec65250521aeace3a23d2358bf5a3a9a8cb27c91f6e542b24c96acd5a9f38a6d65b9247e0d343ac3241f2a0e3ec208330cc4d7b00fd8db0052bcd68542d57a5092dc937f236cf2e4ae1aa9e918c6496f0c5d89e86dab
