@@ -221,6 +221,16 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
     }
 
     @Override
+    public Long countByUserIdAndTypeId(Long typeId) {
+        return 0L;
+    }
+
+    @Override
+    public Long countMonthNewByUserId() {
+        return 0L;
+    }
+
+    /*@Override
     public Long countByUserIdAndTypeId(Long typeId, Long userId) {
         if (userId == null || typeId == null) {
             return 0L;
@@ -254,7 +264,7 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
 
                 .count();
         return count;
-    }
+    }*/
 
     @Override
     public Long countByTypeId(Long typeId) {
