@@ -8,28 +8,23 @@
 <!-- 分页查询成果物列表 -->
     <select id="pageList" resultType="com.achievement.domain.vo.AchListVO">
         SELECT
-        m.id                 AS documentId,
+        m.document_id        AS documentId,
         m.title              AS title,
         t.type_name          AS typeName,
         m.achievement_status AS auditStatus,
-       /* au.username          AS creatorName,
-        p.project_name       AS projectName,*/
+        au.username          AS creatorName,
+        m.project_name       AS projectName,
         m.summary            AS summary,
         m.created_at         AS createdAt,
-        m.visibility_range      AS visibilityRange
+        m.visibility_range   AS visibilityRange
         FROM achievement_mains m
 
         LEFT JOIN achievement_mains_achievement_type_id_lnk mt
         ON mt.achievement_main_id = m.id
         LEFT JOIN achievement_types t
         ON t.id = mt.achievement_type_id
-        <!--目前还少这两张表先注释掉-->
-        <!--LEFT JOIN admin_users au
-        ON au.id = m.created_by_id*/
-
-
-        LEFT JOIN projects p
-        ON p.id = m.project_id -->
+        LEFT JOIN admin_users au
+        ON au.id = m.created_by_id
 
         <!-- 方式B：如果是 Strapi 多对多/多对一 link 表（按你实际表名改）
         LEFT JOIN achievement_mains_project_id_lnk mp
@@ -49,20 +44,29 @@
         </if>
 
         <if test="dto.status != null and dto.status != ''">
-            AND m.achievement_status = #{dto.status}
+            <choose>
+                <when test="dto.status.contains(',')">
+                    AND m.achievement_status IN 
+                    <foreach collection="dto.status.split(',')" item="status" open="(" separator="," close=")">
+                        #{status}
+                    </foreach>
+                </when>
+                <otherwise>
+                    AND m.achievement_status = #{dto.status}
+                </otherwise>
+            </choose>
+        </if>
+
+        <!-- 只有在明确查询待分配审核的成果时才添加未分配审核人的条件 -->
+        <if test="dto.onlyUnassigned != null and dto.onlyUnassigned == true and dto.status == 'PENDING'">
+            AND m.reviewer_id IS NULL
         </if>
 
         <if test="dto.typeId != null">
             AND mt.achievement_type_id = #{dto.typeId}
         </if>
         <if  test = "dto.typeCode !=null">
-            AND  mt.type_code = #{dto.typeCode}t
-        </if>
-
-        <if test="dto.projectId != null">
-            <!-- 方式A：m.project_id -->
-            AND m.project_id = #{dto.projectId}
-            <!-- 方式B：link 表的话改成 mp.project_id = #{projectId} -->
+            AND  mt.type_code = #{dto.typeCode}
         </if>
 
         <if test="dto.visibilityRange != null and dto.visibilityRange != ''">

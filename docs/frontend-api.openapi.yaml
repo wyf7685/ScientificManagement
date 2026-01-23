@@ -1,0 +1,1513 @@
+openapi: 3.0.3
+info:
+  title: Science Manager Frontend API
+  version: 0.1.0
+  description: API spec derived from frontend usage.
+servers:
+  - url: /api
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+  - name: Users
+  - name: Projects
+  - name: Results
+  - name: ResultTypes
+  - name: InterimResults
+  - name: Demand
+  - name: System
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BooleanResponse'
+
+  /auth/current:
+    get:
+      tags: [Auth]
+      summary: Get current user
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+  /users/experts:
+    get:
+      tags: [Users]
+      summary: Get expert users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+
+  /users:
+    get:
+      tags: [Users]
+      summary: Get business users
+      parameters:
+        - in: query
+          name: keyword
+          schema: { type: string }
+        - in: query
+          name: role
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+
+  /projects:
+    get:
+      tags: [Projects]
+      summary: Get projects (Strapi collection)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrapiCollectionResponse'
+    post:
+      tags: [Projects]
+      summary: Create project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /projects/{id}:
+    get:
+      tags: [Projects]
+      summary: Get project detail (Strapi single)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrapiSingleResponse'
+
+  /results/statistics:
+    get:
+      tags: [Results]
+      summary: Get statistics
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /results/my-statistics:
+    get:
+      tags: [Results]
+      summary: Get my statistics
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /admin/stat/typePie:
+    get:
+      tags: [Results]
+      summary: Get type distribution
+      parameters:
+        - in: query
+          name: creatorId
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /results/advanced-distribution:
+    get:
+      tags: [Results]
+      summary: Get advanced distribution
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /results/stacked-trend:
+    get:
+      tags: [Results]
+      summary: Get stacked trend
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /results/keywords:
+    get:
+      tags: [Results]
+      summary: Get keyword cloud
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /admin/achievement/pageList:
+    post:
+      tags: [Results]
+      summary: Get results (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AchListRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse'
+
+  /user/achievement/pageListAllVisible:
+    post:
+      tags: [Results]
+      summary: Get visible results
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AchListRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse'
+
+  /user/achievement/pageList:
+    post:
+      tags: [Results]
+      summary: Get my results
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AchListRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse'
+
+  /user/achievement/detail:
+    get:
+      tags: [Results]
+      summary: Get result detail
+      parameters:
+        - in: query
+          name: achDocId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /user/achievement/create:
+    post:
+      tags: [Results]
+      summary: Create result
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AchCreateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /user/achievement/createWithFiles:
+    post:
+      tags: [Results]
+      summary: Create result with files
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AchCreateWithFilesRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /user/achievement/update/{id}:
+    put:
+      tags: [Results]
+      summary: Update result
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AchUpdateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /user/achievement/updateWithFiles/{id}:
+    put:
+      tags: [Results]
+      summary: Update result with files
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AchUpdateWithFilesRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /admin/achievement/delete/{id}:
+    put:
+      tags: [Results]
+      summary: Delete result (logical)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /results/draft:
+    post:
+      tags: [Results]
+      summary: Save draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /results/{id}/submit:
+    post:
+      tags: [Results]
+      summary: Submit review
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /results/{id}/review:
+    post:
+      tags: [Results]
+      summary: Review result
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /results/{id}/assign-reviewers:
+    post:
+      tags: [Results]
+      summary: Assign reviewers
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignReviewersRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /results/{id}/request-changes:
+    post:
+      tags: [Results]
+      summary: Request changes
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /results/{id}/format-check:
+    post:
+      tags: [Results]
+      summary: Mark format checked
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /results/{id}/format-reject:
+    post:
+      tags: [Results]
+      summary: Mark format rejected
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /results/review-backlog:
+    get:
+      tags: [Results]
+      summary: Review backlog
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse'
+
+  /results/review-history:
+    get:
+      tags: [Results]
+      summary: Review history
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse'
+
+  /results/{id}/access-requests:
+    post:
+      tags: [Results]
+      summary: Request access to full text
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessRequestCreate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /results/access-requests:
+    get:
+      tags: [Results]
+      summary: Access request list
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse'
+
+  /results/access-requests/{id}/review:
+    post:
+      tags: [Results]
+      summary: Review access request
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /results/export:
+    get:
+      tags: [Results]
+      summary: Export results
+      parameters:
+        - in: query
+          name: keyword
+          schema: { type: string }
+        - in: query
+          name: type
+          schema: { type: string }
+        - in: query
+          name: author
+          schema: { type: string }
+        - in: query
+          name: projectId
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /results/auto-fill:
+    get:
+      tags: [Results]
+      summary: Auto fill metadata
+      parameters:
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+            enum: [doi, arxiv, wanfang, journalRank]
+        - in: query
+          name: value
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /upload:
+    post:
+      tags: [Results]
+      summary: Upload attachment
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UploadRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /achievementType/list:
+    post:
+      tags: [ResultTypes]
+      summary: Get result types
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /achievementType/types:
+    post:
+      tags: [ResultTypes]
+      summary: Create result type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AchTypeRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /achievementType/types/{documentId}:
+    put:
+      tags: [ResultTypes]
+      summary: Update result type
+      parameters:
+        - in: path
+          name: documentId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AchTypeRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /achievementType/types/{documentId}/delete:
+    put:
+      tags: [ResultTypes]
+      summary: Delete result type (logical)
+      parameters:
+        - in: path
+          name: documentId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /achievementType/detail:
+    get:
+      tags: [ResultTypes]
+      summary: Get type detail with fields
+      parameters:
+        - in: query
+          name: typeDocId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /achievementFieldDef/create:
+    post:
+      tags: [ResultTypes]
+      summary: Create field definition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FieldDefRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /achievementFieldDef/defs/{documentId}:
+    put:
+      tags: [ResultTypes]
+      summary: Update field definition
+      parameters:
+        - in: path
+          name: documentId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FieldDefUpdateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /achievementFieldDef/delete/{documentId}:
+    put:
+      tags: [ResultTypes]
+      summary: Delete field definition (logical)
+      parameters:
+        - in: path
+          name: documentId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /interim-results/stats:
+    get:
+      tags: [InterimResults]
+      summary: Get interim result stats
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /interim-results:
+    get:
+      tags: [InterimResults]
+      summary: Get interim results
+      parameters:
+        - in: query
+          name: projectId
+          schema: { type: string }
+        - in: query
+          name: type
+          schema: { type: string }
+        - in: query
+          name: year
+          schema: { type: string }
+        - in: query
+          name: keyword
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+
+  /interim-results/{id}:
+    get:
+      tags: [InterimResults]
+      summary: Get interim result detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /interim-results/sync:
+    post:
+      tags: [InterimResults]
+      summary: Sync interim results
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                projectId:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /interim-results/attachments/{id}/download:
+    get:
+      tags: [InterimResults]
+      summary: Download attachment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /interim-results/batch-download:
+    post:
+      tags: [InterimResults]
+      summary: Batch download interim results
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resultIds:
+                  type: array
+                  items: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /interim-results/export:
+    get:
+      tags: [InterimResults]
+      summary: Export interim results
+      parameters:
+        - in: query
+          name: projectId
+          schema: { type: string }
+        - in: query
+          name: type
+          schema: { type: string }
+        - in: query
+          name: year
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /demand:
+    get:
+      tags: [Demand]
+      summary: Get demand list
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /demand/{id}:
+    get:
+      tags: [Demand]
+      summary: Get demand detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /demand/{id}/rematch:
+    post:
+      tags: [Demand]
+      summary: Rematch demand
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /system/crawler-sources:
+    get:
+      tags: [System]
+      summary: Get crawler sources
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    post:
+      tags: [System]
+      summary: Create crawler source
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrawlerSource'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /system/crawler-sources/{id}:
+    put:
+      tags: [System]
+      summary: Update crawler source
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrawlerSource'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    delete:
+      tags: [System]
+      summary: Delete crawler source
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /system/crawler-sources/{id}/test:
+    post:
+      tags: [System]
+      summary: Test crawler source
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /system/crawler-settings:
+    get:
+      tags: [System]
+      summary: Get crawler settings
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    put:
+      tags: [System]
+      summary: Update crawler settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrawlerSettings'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        code: { type: integer }
+        message: { type: string }
+        data: { type: object, additionalProperties: true }
+      required: [code, message, data]
+
+    BooleanResponse:
+      type: object
+      properties:
+        code: { type: integer }
+        message: { type: string }
+        data: { type: boolean }
+      required: [code, message, data]
+
+    LoginRequest:
+      type: object
+      properties:
+        username: { type: string }
+        password: { type: string }
+      required: [username, password]
+
+    LoginResponse:
+      type: object
+      properties:
+        code: { type: integer }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            token: { type: string }
+            user: { type: object, additionalProperties: true }
+      required: [code, message, data]
+
+    UserResponse:
+      type: object
+      properties:
+        code: { type: integer }
+        message: { type: string }
+        data: { type: object, additionalProperties: true }
+      required: [code, message, data]
+
+    UserListResponse:
+      type: object
+      properties:
+        code: { type: integer }
+        message: { type: string }
+        data:
+          type: array
+          items: { type: object, additionalProperties: true }
+      required: [code, message, data]
+
+    StrapiCollectionResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { type: object, additionalProperties: true }
+        meta:
+          type: object
+          additionalProperties: true
+
+    StrapiSingleResponse:
+      type: object
+      properties:
+        data: { type: object, additionalProperties: true }
+        meta:
+          type: object
+          additionalProperties: true
+
+    ProjectCreateRequest:
+      type: object
+      properties:
+        name: { type: string }
+        code: { type: string }
+      required: [name, code]
+
+    AchListRequest:
+      type: object
+      properties:
+        pageNum: { type: integer }
+        pageSize: { type: integer }
+        mainTitle: { type: string }
+        typeId: { type: string }
+        status:
+          type: string
+          enum: [PENDING, UNDER_REVIEW, APPROVED, REJECTED, NEEDS_MODIFICATION]
+        projectId: { type: string }
+
+    PageResponse:
+      type: object
+      properties:
+        code: { type: integer }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            records:
+              type: array
+              items: { type: object, additionalProperties: true }
+            total: { type: integer }
+            current: { type: integer }
+            size: { type: integer }
+      required: [code, message, data]
+
+    ListResponse:
+      type: object
+      properties:
+        code: { type: integer }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items: { type: object, additionalProperties: true }
+            total: { type: integer }
+            page: { type: integer }
+            pageSize: { type: integer }
+      required: [code, message, data]
+
+    AchCreateRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            title: { type: string }
+            year: { type: string }
+            authors:
+              type: array
+              items: { type: string }
+            keywords:
+              type: array
+              items: { type: string }
+            summary: { type: string }
+            achievementStatus: { type: string }
+            typeDocId: { type: string }
+            projectCode: { type: string }
+            projectName: { type: string }
+            visibilityRange: { type: string }
+            fields:
+              type: array
+              items:
+                $ref: '#/components/schemas/AchFieldValue'
+          required: [title, typeDocId, visibilityRange]
+      required: [data]
+
+    AchUpdateRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            title: { type: string }
+            year: { type: string }
+            authors:
+              type: array
+              items: { type: string }
+            keywords:
+              type: array
+              items: { type: string }
+            summary: { type: string }
+            typeDocId: { type: string }
+            projectCode: { type: string }
+            projectName: { type: string }
+            visibilityRange: { type: string }
+            fields:
+              type: array
+              items:
+                $ref: '#/components/schemas/AchFieldValue'
+      required: [data]
+
+    AchCreateWithFilesRequest:
+      type: object
+      properties:
+        data:
+          type: string
+          description: JSON string of AchCreateRequest.data
+        files:
+          type: array
+          items:
+            type: string
+            format: binary
+      required: [data, files]
+
+    AchUpdateWithFilesRequest:
+      type: object
+      properties:
+        data:
+          type: string
+          description: JSON string of AchUpdateRequest.data
+        files:
+          type: array
+          items:
+            type: string
+            format: binary
+      required: [data, files]
+
+    AchFieldValue:
+      type: object
+      properties:
+        achievement_field_def_id: { type: string }
+        textValue: { type: string }
+        numberValue: { type: number }
+        booleanValue: { type: boolean }
+        dateValue: { type: string }
+      required: [achievement_field_def_id]
+
+    ReviewRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [approve, reject]
+        comment: { type: string }
+      required: [action]
+
+    AssignReviewersRequest:
+      type: object
+      properties:
+        reviewerIds:
+          type: array
+          items: { type: string }
+        reviewerNames:
+          type: array
+          items: { type: string }
+      required: [reviewerIds]
+
+    ReasonRequest:
+      type: object
+      properties:
+        reason: { type: string }
+
+    AccessRequestCreate:
+      type: object
+      properties:
+        reason: { type: string }
+
+    DraftRequest:
+      type: object
+      description: Raw draft payload from frontend form.
+      additionalProperties: true
+
+    UploadRequest:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+      required: [file]
+
+    AchTypeRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            type_name: { type: string }
+            type_code: { type: string }
+            description: { type: string }
+            is_delete: { type: integer }
+          required: [type_name, type_code]
+      required: [data]
+
+    FieldDefRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            field_code: { type: string }
+            field_name: { type: string }
+            field_type:
+              type: string
+              enum: [TEXT, RICHTEXT, NUMBER, DATE, EMAIL, BOOLEAN, JSON, MEDIA]
+            is_required: { type: integer }
+            description: { type: string }
+            is_delete: { type: integer }
+            achievement_type_id: { type: string }
+          required: [field_code, field_name, field_type, achievement_type_id]
+      required: [data]
+
+    FieldDefUpdateRequest:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            field_code: { type: string }
+            field_name: { type: string }
+            field_type:
+              type: string
+              enum: [TEXT, RICHTEXT, NUMBER, DATE, EMAIL, BOOLEAN, JSON, MEDIA]
+            is_required: { type: integer }
+            description: { type: string }
+            is_delete: { type: integer }
+          required: [field_code, field_name, field_type]
+      required: [data]
+
+    CrawlerSource:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        type:
+          type: string
+          enum: [rss, html, api, file]
+        industry: { type: string }
+        region: { type: string }
+        baseUrl: { type: string }
+        description: { type: string }
+        authType:
+          type: string
+          enum: [none, api_key, cookie, basic]
+        credentials:
+          type: object
+          additionalProperties: true
+        frequencyHours: { type: integer }
+        priority:
+          type: string
+          enum: [low, medium, high]
+        tags:
+          type: array
+          items: { type: string }
+        enabled: { type: boolean }
+        lastRunAt: { type: string }
+        lastSuccessAt: { type: string }
+        status:
+          type: string
+          enum: [healthy, warning, error, idle]
+        failureReason: { type: string }
+
+    CrawlerSettings:
+      type: object
+      properties:
+        defaultFrequencyHours: { type: integer }
+        retryLimit: { type: integer }
+        autoTagging: { type: boolean }
+        deduplicateThreshold: { type: number }
+        notifyEmails:
+          type: array
+          items: { type: string }
+        notifyWebhook: { type: string }

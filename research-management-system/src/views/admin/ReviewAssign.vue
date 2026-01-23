@@ -22,7 +22,7 @@
     <el-dialog v-model="assignDialog" title="分配审核专家" width="600px">
       <el-form label-width="100px">
         <el-form-item label="选择专家">
-          <el-select v-model="selectedExperts" multiple placeholder="请选择专家">
+          <el-select v-model="selectedExperts" multiple placeholder="请选择专家" v-loading="expertsLoading">
             <el-option
               v-for="expert in experts"
               :key="expert.id"
@@ -30,14 +30,14 @@
               :value="expert.id"
             >
               <span>{{ expert.name }}</span>
-              <span style="float: right; color: #8492a6">在审 {{ expert.taskCount }} 条</span>
+              <span style="float: right; color: #8492a6">{{ expert.department }}</span>
             </el-option>
           </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="assignDialog = false">取消</el-button>
-        <el-button type="primary" @click="confirmAssign">确定</el-button>
+        <el-button type="primary" @click="confirmAssign" :loading="assignLoading">确定</el-button>
       </template>
     </el-dialog>
   </div>
@@ -46,31 +46,47 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getResults } from '@/api/result'
+import { getPendingAssignResults, assignReviewers } from '@/api/result'
+import { getExpertUsers } from '@/api/user'
 
 const loading = ref(false)
+const expertsLoading = ref(false)
+const assignLoading = ref(false)
 const tableData = ref([])
 const assignDialog = ref(false)
 const selectedExperts = ref([])
 const currentResult = ref(null)
-const experts = ref([
-  { id: '1', name: '张教授', taskCount: 3 },
-  { id: '2', name: '李教授', taskCount: 5 }
-])
+const experts = ref([])
 
 onMounted(() => {
   loadData()
+  loadExperts()
 })
 
 async function loadData() {
   loading.value = true
   try {
-    const res = await getResults({ status: ['pending', 'reviewing'], page: 1, pageSize: 50 })
+    // 使用专门的API获取待分配审核的成果
+    const res = await getPendingAssignResults({ page: 1, pageSize: 50 })
     tableData.value = res?.data?.list || []
   } catch (error) {
+    console.error('加载数据失败:', error)
     ElMessage.error('加载数据失败')
   } finally {
     loading.value = false
+  }
+}
+
+async function loadExperts() {
+  expertsLoading.value = true
+  try {
+    const res = await getExpertUsers()
+    experts.value = res?.data || []
+  } catch (error) {
+    console.error('加载专家列表失败:', error)
+    ElMessage.error('加载专家列表失败')
+  } finally {
+    expertsLoading.value = false
   }
 }
 
@@ -80,7 +96,7 @@ function assignExpert(row) {
   assignDialog.value = true
 }
 
-function confirmAssign() {
+async function confirmAssign() {
   if (!currentResult.value) {
     ElMessage.warning('未选择成果')
     return
@@ -89,8 +105,28 @@ function confirmAssign() {
     ElMessage.warning('请选择专家')
     return
   }
-  ElMessage.success('分配成功')
-  assignDialog.value = false
-  loadData()
+
+  assignLoading.value = true
+  try {
+    // 获取选中专家的姓名
+    const selectedExpertNames = selectedExperts.value.map(id => {
+      const expert = experts.value.find(e => e.id === id)
+      return expert ? expert.name : `专家${id}`
+    })
+
+    await assignReviewers(currentResult.value.id, {
+      reviewerIds: selectedExperts.value,
+      reviewerNames: selectedExpertNames
+    })
+    
+    ElMessage.success('分配成功')
+    assignDialog.value = false
+    loadData() // 重新加载数据
+  } catch (error) {
+    console.error('分配失败:', error)
+    ElMessage.error('分配失败')
+  } finally {
+    assignLoading.value = false
+  }
 }
 </script>

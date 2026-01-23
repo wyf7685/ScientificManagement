@@ -643,6 +643,7 @@ export interface ApiAchievementMainAchievementMain
       'manyToOne',
       'api::achievement-type.achievement-type'
     >;
+    authors: Schema.Attribute.JSON;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -656,12 +657,21 @@ export interface ApiAchievementMainAchievementMain
         number
       > &
       Schema.Attribute.DefaultTo<0>;
+    keywords: Schema.Attribute.JSON;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::achievement-main.achievement-main'
     > &
       Schema.Attribute.Private;
+    project_code: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    project_name: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 255;
+      }>;
     publishedAt: Schema.Attribute.DateTime;
     summary: Schema.Attribute.Text;
     title: Schema.Attribute.String &
@@ -675,6 +685,10 @@ export interface ApiAchievementMainAchievementMain
     visibility_range: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'ALL'>;
+    year: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 4;
+      }>;
   };
 }
 

@@ -66,13 +66,21 @@ public class AchievementReviewController {
     @PostMapping("/{id}/assign-reviewers")
     public Result<ReviewResultVO> assignReviewers(
             @PathVariable("id") String achievementDocId,
-            @Validated @RequestBody AssignReviewerDTO assignReviewerDTO) {
+            @Validated @RequestBody AssignReviewerDTO assignReviewerDTO,
+            @CurrentUser BusinessUser currentUser) {
         
-        // TODO: 从当前登录用户获取assignerId
-        Integer assignerId = 1; // 临时硬编码
+        // 验证用户权限
+        if (currentUser == null) {
+            return Result.error(401, "未登录");
+        }
+        
+        // 只有管理员和审核管理员可以分配审核人
+        if (!"admin".equals(currentUser.getRole()) && !"manager".equals(currentUser.getRole())) {
+            return Result.error(403, "无权限：只有管理员可以分配审核人");
+        }
         
         ReviewResultVO result = achievementReviewService.assignReviewers(
-                achievementDocId, assignReviewerDTO, assignerId);
+                achievementDocId, assignReviewerDTO, currentUser.getId());
         return Result.success(result);
     }
     

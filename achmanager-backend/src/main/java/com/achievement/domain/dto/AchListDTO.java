@@ -36,4 +36,8 @@ public class AchListDTO {
     private Integer creatorId;
     /** 可见范围（后面你加字段再用） */
     private String visibilityRange;
+    
+    @Schema(description = "是否只查询未分配审核人的成果（用于审核分配场景）")
+    /** 是否只查询未分配审核人的成果 */
+    private Boolean onlyUnassigned;
 }

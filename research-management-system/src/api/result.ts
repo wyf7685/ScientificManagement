@@ -40,7 +40,7 @@ function mapStatusToBackend(status?: string) {
   const normalized = status.toString().toLowerCase()
   const map: Record<string, string> = {
     pending: 'PENDING',
-    reviewing: 'UNDER_REVIEW',
+    reviewing: 'UNDER_REVIEW', 
     published: 'APPROVED',
     rejected: 'REJECTED',
     revision: 'NEEDS_MODIFICATION'
@@ -128,17 +128,26 @@ function mapDetailItem(item: any) {
   }
 }
 
-function buildAchListPayload(params?: QueryParams) {
+function buildAchListPayload(params?: QueryParams, useTypeCode = false, onlyUnassigned = false) {
   const rawStatus = Array.isArray(params?.status) ? params?.status?.[0] : params?.status
   const status = mapStatusToBackend(rawStatus)
-  return {
+  const payload: any = {
     pageNum: params?.page,
     pageSize: params?.pageSize,
     mainTitle: params?.keyword,
-    typeId: params?.typeId ?? params?.type,
     status,
-    projectId: params?.projectId
+    projectId: params?.projectId,
+    onlyUnassigned
   }
+  
+  // 根据useTypeCode参数决定使用typeCode还是typeId
+  if (useTypeCode) {
+    payload.typeCode = params?.typeId ?? params?.type
+  } else {
+    payload.typeId = params?.typeId ?? params?.type
+  }
+  
+  return payload
 }
 
 // 获取统计数据
@@ -154,8 +163,7 @@ export function getTypePie(creatorId?: number): Promise<ApiResponse<any>> {
   return request({
     url: '/admin/stat/typePie',
     method: 'get',
-    params: creatorId ? { creatorId } : undefined,
-    mock: false
+    params: creatorId ? { creatorId } : undefined
   })
 }
 
@@ -199,8 +207,7 @@ export async function getResults(params?: QueryParams): Promise<StrapiPaginatedR
   const res = await request({
     url: '/admin/achievement/pageList',
     method: 'post',
-    data: buildAchListPayload(params),
-    mock: false
+    data: buildAchListPayload(params)
   })
   return normalizePageResult(res, mapListItem)
 }
@@ -210,18 +217,13 @@ export async function getVisibleResults(params?: QueryParams): Promise<StrapiPag
   const res = await request({
     url: '/user/achievement/pageListAllVisible',
     method: 'post',
-    data: buildAchListPayload(params),
-    mock: false
+    data: buildAchListPayload(params, true) // 使用typeCode
   })
   return normalizePageResult(res, mapListItem)
 }
 
 // 导出成果列表
 export function exportResults(params?: QueryParams): Promise<Blob> {
-  if (import.meta.env.VITE_USE_MOCK === 'true') {
-    const content = 'Mock export is not implemented yet.\n'
-    return Promise.resolve(new Blob([content], { type: 'text/plain;charset=utf-8' }))
-  }
   return request({
     url: '/results/export',
     method: 'get',
@@ -235,8 +237,7 @@ export async function getMyResults(params?: QueryParams): Promise<StrapiPaginate
   const res = await request({
     url: '/user/achievement/pageList',
     method: 'post',
-    data: buildAchListPayload(params),
-    mock: false
+    data: buildAchListPayload(params)
   })
   return normalizePageResult(res, mapListItem)
 }
@@ -246,8 +247,7 @@ export async function getResult(id: string): Promise<StrapiSingleResponse<any>> 
   const res = await request({
     url: '/user/achievement/detail',
     method: 'get',
-    params: { achDocId: id },
-    mock: false
+    params: { achDocId: id }
   })
   return { data: mapDetailItem(res?.data || {}) }
 }
@@ -266,8 +266,7 @@ export async function getResultAccessRequests(params?: QueryParams): Promise<Str
   const res = await request({
     url: '/results/access-requests',
     method: 'get',
-    params,
-    mock: false
+    params
   })
   return normalizePageResult(res)
 }
@@ -289,8 +288,7 @@ export function createResult(data: Record<string, any>): Promise<ApiResponse<any
   return request({
     url: '/user/achievement/create',
     method: 'post',
-    data,
-    mock: false
+    data
   })
 }
 
@@ -307,8 +305,7 @@ export function createResultWithFiles(data: Record<string, any>, files: File[]):
     data: formData,
     headers: {
       'Content-Type': 'multipart/form-data'
-    },
-    mock: false
+    }
   })
 }
 
@@ -317,8 +314,7 @@ export function updateResult(id: string, data: Record<string, any>): Promise<Api
   return request({
     url: `/user/achievement/update/${id}`,
     method: 'put',
-    data,
-    mock: false
+    data
   })
 }
 
@@ -335,8 +331,7 @@ export function updateResultWithFiles(id: string, data: Record<string, any>, fil
     data: formData,
     headers: {
       'Content-Type': 'multipart/form-data'
-    },
-    mock: false
+    }
   })
 }
 
@@ -344,8 +339,7 @@ export function updateResultWithFiles(id: string, data: Record<string, any>, fil
 export function deleteResult(id: string): Promise<ApiResponse<any>> {
   return request({
     url: `/admin/achievement/delete/${id}`,
-    method: 'put',
-    mock: false
+    method: 'put'
   })
 }
 
@@ -415,8 +409,7 @@ export async function getReviewBacklog(params?: QueryParams): Promise<StrapiPagi
   const res = await request({
     url: '/results/review-backlog',
     method: 'get',
-    params,
-    mock: false
+    params
   })
   return normalizePageResult(res, mapListItem)
 }
@@ -426,20 +419,27 @@ export async function getReviewHistory(params?: QueryParams): Promise<StrapiPagi
   const res = await request({
     url: '/results/review-history',
     method: 'get',
-    params,
-    mock: false
+    params
   })
   return normalizePageResult(res, mapReviewHistoryItem)
 }
 
+// 获取待分配审核的成果列表
+export async function getPendingAssignResults(params?: QueryParams): Promise<StrapiPaginatedResponse<any>> {
+  const res = await request({
+    url: '/admin/achievement/pageList',
+    method: 'post',
+    data: buildAchListPayload({ ...params, status: 'pending' }, false, true) // 使用onlyUnassigned=true
+  })
+  return normalizePageResult(res, mapListItem)
+}
+
 // 智能补全元数据（通过DOI等）
 export function autoFillMetadata(params?: QueryParams): Promise<ApiResponse<any>> {
-  const isJournalRank = params?.type === 'journalRank'
   return request({
     url: '/results/auto-fill',
     method: 'get',
-    params,
-    mock: !isJournalRank
+    params
   })
 }
 
@@ -488,8 +488,7 @@ export interface AchievementFieldDef {
 export function getResultTypes(): Promise<any> {
   return request({
     url: '/achievementType/list',
-    method: 'post',
-    mock: false
+    method: 'post'
   }).then((res: any) => {
     const list = Array.isArray(res?.data) ? res.data : []
     const normalized = list.map((item: any) => ({
@@ -507,7 +506,6 @@ export function createResultType(data: Partial<AchievementType>): Promise<any> {
   return request({
     url: '/achievementType/types',
     method: 'post',
-    mock: false,
     data: { data }
   })
 }
@@ -517,7 +515,6 @@ export function updateResultType(documentId: string, data: Partial<AchievementTy
   return request({
     url: `/achievementType/types/${documentId}`,
     method: 'put',
-    mock: false,
     data: { data }
   })
 }
@@ -526,8 +523,7 @@ export function updateResultType(documentId: string, data: Partial<AchievementTy
 export function deleteResultType(documentId: string): Promise<any> {
   return request({
     url: `/achievementType/types/${documentId}/delete`,
-    method: 'put',
-    mock: false
+    method: 'put'
   })
 }
 
@@ -538,8 +534,7 @@ export function getFieldDefsByType(typeDocumentId: string): Promise<any> {
   return request({
     url: '/achievementType/detail',
     method: 'get',
-    params: { typeDocId: typeDocumentId },
-    mock: false
+    params: { typeDocId: typeDocumentId }
   }).then((res: any) => {
     const fields = res?.data?.fieldDefinitions || []
     const normalized = fields.map((field: any) => ({
@@ -565,7 +560,6 @@ export function createFieldDef(data: AchievementFieldDef): Promise<any> {
   return request({
     url: '/achievementFieldDef/create',
     method: 'post',
-    mock: false,
     data: { data: payload }
   })
 }
@@ -581,7 +575,6 @@ export function updateFieldDef(documentId: string, data: Partial<AchievementFiel
   return request({
     url: `/achievementFieldDef/defs/${documentId}`,
     method: 'put',
-    mock: false,
     data: { data: payload }
   })
 }
@@ -590,7 +583,6 @@ export function updateFieldDef(documentId: string, data: Partial<AchievementFiel
 export function deleteFieldDef(documentId: string): Promise<any> {
   return request({
     url: `/achievementFieldDef/delete/${documentId}`,
-    method: 'put',
-    mock: false
+    method: 'put'
   })
 }
