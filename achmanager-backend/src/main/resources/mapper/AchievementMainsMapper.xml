@@ -85,14 +85,14 @@
         AND m.is_delete = 0
         AND m.published_at IS NOT NULL
         AND m.achievement_status = 'APPROVED'
-        WHERE t.is_delete = 0
         <if test="creatorId != null">
             AND m.created_by_id = #{creatorId}
         </if>
+        WHERE t.is_delete = 0
         GROUP BY t.id, t.type_name, t.type_code
         ORDER BY count DESC
-
     </select>
+
     <select id="selectMainBaseByDocId" resultType="com.achievement.domain.dto.AchMainBaseRow">
         SELECT
             m.id            AS mainId,
@@ -186,8 +186,8 @@
 
         <!-- 只查 ALL 可见 -->
         AND m.visibility_range = 'ALL'
-        <!-- 个人成果物：强制按创建者过滤-->
-        AND m.created_by_id = #{dto.creatorId}
+        <!-- 个人成果物：强制按创建者过滤
+        AND m.created_by_id = #{dto.creatorId}-->
         <!-- 成果物类型筛选 -->
         <if test="dto.typeId != null">
             AND mt.achievement_type_id = #{dto.typeId}
@@ -262,7 +262,70 @@
           AND m.reviewed_at IS NOT NULL
         ORDER BY m.reviewed_at DESC
     </select>
+    <select id="countTotalByUser" resultType="java.lang.Integer">
+            SELECT COUNT(1)
+            FROM achievement_mains m
+            WHERE m.is_delete = 0
+              AND m.published_at IS NOT NULL
+              AND m.achievement_status = 'APPROVED'
+              AND m.created_by_id = #{userId}
+    </select>
+    <select id="countMonthNewByUser" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM achievement_mains m
+        WHERE m.is_delete = 0
+          AND m.published_at IS NOT NULL
+          AND m.achievement_status = 'APPROVED'
+          AND m.created_by_id = #{userId}
+          AND m.created_at <![CDATA[ >= ]]> #{start}
+          AND m.created_at <![CDATA[ < ]]> #{end}
+    </select>
+    <select id="countByTypeCodeForUser" resultType="java.lang.Integer">
 
+            SELECT COUNT(DISTINCT m.id)
+            FROM achievement_mains m
+                     LEFT JOIN achievement_mains_achievement_type_id_lnk mt
+                               ON mt.achievement_main_id = m.id
+                     LEFT JOIN achievement_types t
+                               ON t.id = mt.achievement_type_id
+            WHERE m.is_delete = 0
+              AND m.published_at IS NOT NULL
+              AND m.achievement_status = 'APPROVED'
+              AND m.created_by_id = #{userId}
+              AND t.is_delete = 0
+              AND UPPER(t.type_code) LIKE CONCAT('%', UPPER(#{typeCode}), '%')
+
+    </select>
+    <select id="countTotal" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM achievement_mains m
+        WHERE m.is_delete = 0
+          AND m.published_at IS NOT NULL
+          AND m.achievement_status = 'APPROVED'
+    </select>
+    <select id="countMonthNew" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM achievement_mains m
+        WHERE m.is_delete = 0
+          AND m.published_at IS NOT NULL
+          AND m.achievement_status = 'APPROVED'
+          AND m.created_at <![CDATA[ >= ]]> #{start}
+          AND m.created_at <![CDATA[ < ]]> #{end}
+    </select>
+    <select id="countByTypeCode" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT m.id)
+        FROM achievement_mains m
+                 LEFT JOIN achievement_mains_achievement_type_id_lnk mt
+                           ON mt.achievement_main_id = m.id
+                 LEFT JOIN achievement_types t
+                           ON t.id = mt.achievement_type_id
+        WHERE m.is_delete = 0
+          AND m.published_at IS NOT NULL
+          AND m.achievement_status = 'APPROVED'
+          AND t.is_delete = 0
+          AND UPPER(t.type_code) LIKE CONCAT('%', UPPER(#{typeCode}), '%')
+
+    </select>
 
 </mapper>
 

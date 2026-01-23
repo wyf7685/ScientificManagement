@@ -6,6 +6,7 @@ import com.achievement.domain.po.AchievementMains;
 import com.achievement.domain.vo.AchDetailVO;
 import com.achievement.domain.vo.AchList2VO;
 import com.achievement.domain.vo.AchListVO;
+import com.achievement.domain.vo.UserStatVo;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -21,7 +22,7 @@ public interface IAchievementMainsService extends IService<AchievementMains> {
 
     Page<AchListVO> pageList(AchListDTO achListDTO);
 
-    Long countByUserId();
+    UserStatVo countByUserId(Integer userId);
 
     Long countByUserIdAndTypeId(Long typeId);
 
@@ -38,4 +39,6 @@ public interface IAchievementMainsService extends IService<AchievementMains> {
     AchDetailVO selectDetail(String achDocId);
 
     Page<AchListVO> pageList4Visibility(AchListDTO2 achListDTO);
+
+    UserStatVo countstatistics();
 }

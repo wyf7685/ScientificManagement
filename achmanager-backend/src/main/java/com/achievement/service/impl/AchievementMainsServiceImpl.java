@@ -7,10 +7,12 @@ import com.achievement.domain.dto.AchListDTO;
 import com.achievement.domain.dto.AchListDTO2;
 import com.achievement.domain.dto.AchMainBaseRow;
 import com.achievement.domain.po.AchievementMains;
+import com.achievement.domain.po.AchievementTypes;
 import com.achievement.domain.po.BusinessUser;
 import com.achievement.domain.vo.AchDetailVO;
 import com.achievement.domain.vo.AchFieldVO;
 import com.achievement.domain.vo.AchListVO;
+import com.achievement.domain.vo.UserStatVo;
 import com.achievement.mapper.AchievementMainsMapper;
 import com.achievement.service.IAchievementMainsService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -44,6 +46,7 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
 
     private final StrapiClient strapiClient;
     private final ObjectMapper objectMapper;
+    private final AchievementMainsMapper mainsMapper;
     @Override
     public Page<AchListVO> pageList(AchListDTO achListDTO){// 兜底：防止 null / 非法值（即使没有校验或校验被改了，其实也安全）
         int pageNum  = (achListDTO.getPageNum()  == null || achListDTO.getPageNum()  < 1)  ? 1  : achListDTO.getPageNum();
@@ -158,6 +161,26 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
             return baseMapper.pageList2(page, achListDTO);
     }
 
+    @Override
+    public UserStatVo countstatistics() {
+        // 本月时间范围 [本月第一天00:00:00, 下月第一天00:00:00)
+        LocalDate now = LocalDate.now();
+        LocalDateTime start = now.withDayOfMonth(1).atStartOfDay();
+        LocalDateTime end = now.plusMonths(1).withDayOfMonth(1).atStartOfDay();
+
+        Integer total = mainsMapper.countTotal();
+        Integer monthNew = mainsMapper.countMonthNew( start, end);
+        Integer paperCount = mainsMapper.countByTypeCode( "paper");
+        Integer patentCount = mainsMapper.countByTypeCode( "patent");
+
+        UserStatVo vo = new UserStatVo();
+        vo.setTotalResults(total == null ? 0 : total);
+        vo.setMonthlyNew(monthNew == null ? 0 : monthNew);
+        vo.setPaperCount(paperCount == null ? 0 : paperCount);
+        vo.setPatentCount(patentCount == null ? 0 : patentCount);
+        return vo;
+    }
+
     private Object pickValueByType(AchFieldRow r) {
         if (r.getFieldType() == null) return r.getTextValue();
         return switch (r.getFieldType()) {
@@ -173,14 +196,28 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
 
 
     @Override
-    public Long countByUserId() {
-        Long userId = 1L; //TODO 获取当前用户ID ,
-        Long count = 0L;
-        /*Long count = this.lambdaQuery()
-                .eq(AchievementMains::getCreatorId, userId)
-                .isNotNull(AchievementTypes::getPublishedAt) // ✅ 只要已发布
-                .count();*/ //TODO 数据表尚未修改
-        return count;
+    public UserStatVo countByUserId(Integer userId) {
+        userId = 1;
+        if (userId == null) {
+            throw new RuntimeException("userId不能为空");
+        }
+
+        // 本月时间范围 [本月第一天00:00:00, 下月第一天00:00:00)
+        LocalDate now = LocalDate.now();
+        LocalDateTime start = now.withDayOfMonth(1).atStartOfDay();
+        LocalDateTime end = now.plusMonths(1).withDayOfMonth(1).atStartOfDay();
+
+        Integer total = mainsMapper.countTotalByUser(userId);
+        Integer monthNew = mainsMapper.countMonthNewByUser(userId, start, end);
+        Integer paperCount = mainsMapper.countByTypeCodeForUser(userId, "paper");
+        Integer patentCount = mainsMapper.countByTypeCodeForUser(userId, "patent");
+
+        UserStatVo vo = new UserStatVo();
+        vo.setTotalResults(total == null ? 0 : total);
+        vo.setMonthlyNew(monthNew == null ? 0 : monthNew);
+        vo.setPaperCount(paperCount == null ? 0 : paperCount);
+        vo.setPatentCount(patentCount == null ? 0 : patentCount);
+        return vo;
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -29,7 +30,23 @@ public interface AchievementMainsMapper extends BaseMapper<AchievementMains> {
      * 管理员分页查询成果物列表（带类型名、创建者名等）
      */
     Page<AchListVO> pageList(Page<?> page, @Param("dto") AchListDTO dto);
-    
+    // 统计某用户的成果物总数
+    Integer countTotalByUser(@Param("userId") Integer userId);
+    //统计某用户本月新增成果物数量
+    Integer countMonthNewByUser(@Param("userId") Integer userId,
+                                @Param("start") LocalDateTime start,
+                                @Param("end") LocalDateTime end);
+    //统计某用户的某类型成果物数量
+    Integer countByTypeCodeForUser(@Param("userId") Integer userId,
+                                   @Param("typeCode") String typeCode);
+
+    // 统计某用户的成果物总数
+    Integer countTotal();
+    //统计某用户本月新增成果物数量
+    Integer countMonthNew(@Param("start") LocalDateTime start,
+                                @Param("end") LocalDateTime end);
+    //统计某用户的某类型成果物数量
+    Integer countByTypeCode(@Param("typeCode") String typeCode);
     /**
      * 根据成果物类型统计数量
      */
