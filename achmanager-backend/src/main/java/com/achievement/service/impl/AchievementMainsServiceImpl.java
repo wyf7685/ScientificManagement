@@ -221,8 +221,10 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
     }
 
     @Override
-    public Long countByUserIdAndTypeId(Long typeId) {
-        Long userId = 1L; //TODO 获取当前用户ID
+    public Long countByUserIdAndTypeId(Long typeId, Long userId) {
+        if (userId == null || typeId == null) {
+            return 0L;
+        }
         return this.lambdaQuery()
                 //TODO 数据表尚未修改 .eq(AchievementMains::getCreatorId, userId)
                 .eq(AchievementMains::getIsDelete, 0)
@@ -235,8 +237,10 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
                 .count();
     }
     @Override
-    public Long countMonthNewByUserId() {
-        Long userId = 1L;//TODO 获取当前用户ID
+    public Long countMonthNewByUserId(Long userId) {
+        if (userId == null) {
+            return 0L;
+        }
         LocalDate now = LocalDate.now();
         LocalDateTime firstDay = now.withDayOfMonth(1).atStartOfDay(); // 本月1号 00:00:00
         LocalDateTime firstDayNextMonth = firstDay.plusMonths(1); // 下月1号 00:00:00

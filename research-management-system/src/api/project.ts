@@ -9,6 +9,18 @@ export async function getProjects(params?: QueryParams): Promise<StrapiCollectio
     method: 'get',
     params
   })
+  if (Array.isArray(res?.data?.data)) {
+    return {
+      data: res.data.data,
+      meta: res.data.meta
+    }
+  }
+  if (Array.isArray(res?.data)) {
+    return {
+      data: res.data,
+      meta: res?.meta
+    }
+  }
   return normalizeStrapiCollection(res)
 }
 

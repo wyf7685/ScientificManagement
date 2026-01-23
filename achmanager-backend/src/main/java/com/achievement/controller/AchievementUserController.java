@@ -67,7 +67,12 @@ public class AchievementUserController {
     @Operation(description = "用户新增成果物（主信息+多个字段值）")
     @PostMapping("/create")
     public Result<JsonNode> create(@RequestBody Map<String, Object> req) {
-        return Result.success(achievementAdminService.createAchievement(req));
+        try {
+            return Result.success(achievementAdminService.createAchievement(req));
+        } catch (Exception e) {
+            log.error("创建成果失败: reqKeys={}", req == null ? null : req.keySet(), e);
+            return Result.error(500, e.getMessage());
+        }
     }
     
     @Operation(description = "用户一次请求上传文件并创建成果物（multipart：data+files）")
@@ -75,7 +80,15 @@ public class AchievementUserController {
     public Result<JsonNode> createWithFiles(@RequestPart("data") String dataJson,
                                             @RequestPart(value = "files", required = false) MultipartFile[] files) {
         Map<String, Object> req = readJsonMap(dataJson);
-        return Result.success(achievementAdminService.createAchievementWithFiles(req, files));
+        try {
+            return Result.success(achievementAdminService.createAchievementWithFiles(req, files));
+        } catch (Exception e) {
+            log.error("创建成果(含附件)失败: reqKeys={}, filesCount={}",
+                    req == null ? null : req.keySet(),
+                    files == null ? 0 : files.length,
+                    e);
+            return Result.error(500, e.getMessage());
+        }
     }
 
     @Operation(description = "用户修改成果物（主信息+多个字段值，仅处理前端传回的改动项）")

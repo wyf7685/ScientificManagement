@@ -224,6 +224,7 @@ const menuItems = computed(() => {
       roles: ['admin', 'manager'],
       children: [
         { path: '/results/list', title: '科研成果' },
+        { path: '/results/search', title: '成果检索' },
         { path: '/admin/interim-results', title: '过程成果' }
       ]
     })

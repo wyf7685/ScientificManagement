@@ -646,7 +646,14 @@ async function handleSubmit() {
     ElMessage.success('提交成功')
     router.push('/results/my')
   } catch (error) {
-    ElMessage.error('提交失败')
+    const err = error as any
+    const message =
+      err?.message ||
+      err?.response?.data?.message ||
+      err?.response?.data?.msg ||
+      '提交失败'
+    console.error('提交失败:', err)
+    ElMessage.error(message)
   } finally {
     submitting.value = false
   }

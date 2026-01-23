@@ -34,11 +34,15 @@ public class AchievementReviewController {
      */
     @Operation(description = "提交成果进入审核流程")
     @PostMapping("/{id}/submit")
-    public Result<ReviewResultVO> submitForReview(@PathVariable("id") String achievementDocId) {
-        // TODO: 从当前登录用户获取userId
-        Integer userId = 1; // 临时硬编码
+    public Result<ReviewResultVO> submitForReview(
+            @PathVariable("id") String achievementDocId,
+            @CurrentUser BusinessUser currentUser) {
         
-        ReviewResultVO result = achievementReviewService.submitForReview(achievementDocId, userId);
+        if (currentUser == null) {
+            return Result.error(401, "未登录");
+        }
+        
+        ReviewResultVO result = achievementReviewService.submitForReview(achievementDocId, currentUser.getId());
         return Result.success(result);
     }
     
@@ -49,13 +53,20 @@ public class AchievementReviewController {
     @PostMapping("/{id}/review")
     public Result<ReviewResultVO> reviewAchievement(
             @PathVariable("id") String achievementDocId,
-            @Validated @RequestBody ReviewRequestDTO reviewRequest) {
+            @Validated @RequestBody ReviewRequestDTO reviewRequest,
+            @CurrentUser BusinessUser currentUser) {
         
-        // TODO: 从当前登录用户获取reviewerId
-        Integer reviewerId = 1; // 临时硬编码
+        if (currentUser == null) {
+            return Result.error(401, "未登录");
+        }
+        
+        // 验证用户是否有审核权限
+        if (!"admin".equals(currentUser.getRole()) && !"expert".equals(currentUser.getRole()) && !"manager".equals(currentUser.getRole())) {
+            return Result.error(403, "无权限：只有管理员、专家或审核管理员可以审核成果");
+        }
         
         ReviewResultVO result = achievementReviewService.reviewAchievement(
-                achievementDocId, reviewRequest, reviewerId);
+                achievementDocId, reviewRequest, currentUser.getId());
         return Result.success(result);
     }
     
@@ -91,13 +102,20 @@ public class AchievementReviewController {
     @GetMapping("/review-backlog")
     public Result<Page<ReviewBacklogVO>> getReviewBacklog(
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @CurrentUser BusinessUser currentUser) {
         
-        // TODO: 从当前登录用户获取reviewerId
-        Integer reviewerId = 1; // 临时硬编码
+        if (currentUser == null) {
+            return Result.error(401, "未登录");
+        }
+        
+        // 验证用户是否有审核权限
+        if (!"admin".equals(currentUser.getRole()) && !"expert".equals(currentUser.getRole()) && !"manager".equals(currentUser.getRole())) {
+            return Result.error(403, "无权限：只有管理员、专家或审核管理员可以查看审核待办");
+        }
         
         Page<ReviewBacklogVO> result = achievementReviewService.pageReviewBacklog(
-                reviewerId, page, pageSize);
+                currentUser.getId(), page, pageSize);
         return Result.success(result);
     }
     
@@ -108,13 +126,20 @@ public class AchievementReviewController {
     @GetMapping("/review-history")
     public Result<Page<ReviewHistoryVO>> getReviewHistory(
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @CurrentUser BusinessUser currentUser) {
         
-        // TODO: 从当前登录用户获取reviewerId
-        Integer reviewerId = 1; // 临时硬编码
+        if (currentUser == null) {
+            return Result.error(401, "未登录");
+        }
+        
+        // 验证用户是否有审核权限
+        if (!"admin".equals(currentUser.getRole()) && !"expert".equals(currentUser.getRole()) && !"manager".equals(currentUser.getRole())) {
+            return Result.error(403, "无权限：只有管理员、专家或审核管理员可以查看审核历史");
+        }
         
         Page<ReviewHistoryVO> result = achievementReviewService.pageReviewHistory(
-                reviewerId, page, pageSize);
+                currentUser.getId(), page, pageSize);
         return Result.success(result);
     }
 }

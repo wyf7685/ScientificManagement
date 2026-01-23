@@ -36,17 +36,22 @@ public class UserStatController {
     //统计某用户的某类别成果物数量
     @Operation(description = "统计某用户创建的某类别成果物数量")
     @GetMapping("/userTypeAchCount")
-    public Result<Long> userTypeAchStat(@RequestParam Long typeId){
-
-        Long count = mainsService.countByUserIdAndTypeId(typeId);
+    public Result<Long> userTypeAchStat(@RequestParam Long typeId, @CurrentUser BusinessUser currentUser){
+        if (currentUser == null) {
+            return Result.error(401, "未登录");
+        }
+        Long count = mainsService.countByUserIdAndTypeId(typeId, Long.valueOf(currentUser.getId()));
         return Result.success(count);
 
     }
     @Operation(description = "统计某用户的本月新增成果物数量")
     //统计某用户的本月新增成果物数量
     @GetMapping("/userMonthNewAchCount")
-    public Result<Long> userMonthNewAchStat(){
-        Long count = mainsService.countMonthNewByUserId();
+    public Result<Long> userMonthNewAchStat(@CurrentUser BusinessUser currentUser){
+        if (currentUser == null) {
+            return Result.error(401, "未登录");
+        }
+        Long count = mainsService.countMonthNewByUserId(Long.valueOf(currentUser.getId()));
         return Result.success(count);
     }
     @Operation(description = "饼图：各成果物类型数量")

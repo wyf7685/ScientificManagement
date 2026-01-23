@@ -44,17 +44,7 @@
         </if>
 
         <if test="dto.status != null and dto.status != ''">
-            <choose>
-                <when test="dto.status.contains(',')">
-                    AND m.achievement_status IN 
-                    <foreach collection="dto.status.split(',')" item="status" open="(" separator="," close=")">
-                        #{status}
-                    </foreach>
-                </when>
-                <otherwise>
-                    AND m.achievement_status = #{dto.status}
-                </otherwise>
-            </choose>
+            AND m.achievement_status = #{dto.status}
         </if>
 
         <!-- 只有在明确查询待分配审核的成果时才添加未分配审核人的条件 -->
@@ -65,8 +55,8 @@
         <if test="dto.typeId != null">
             AND mt.achievement_type_id = #{dto.typeId}
         </if>
-        <if  test = "dto.typeCode !=null">
-            AND  mt.type_code = #{dto.typeCode}
+        <if test="dto.typeCode != null and dto.typeCode != ''">
+            AND t.type_code = #{dto.typeCode}
         </if>
 
         <if test="dto.visibilityRange != null and dto.visibilityRange != ''">
