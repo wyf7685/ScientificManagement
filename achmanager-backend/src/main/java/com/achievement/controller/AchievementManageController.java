@@ -78,6 +78,7 @@ public class AchievementManageController {
     @Operation(description = "管理员新增成果物（主信息+多个字段值）")
     @PostMapping("/create")
     public Result<JsonNode> create(@RequestBody Map<String, Object> req) {
+        log.info("新增成果物");
         return Result.success(achievementAdminService.createAchievement(req));
     }
 

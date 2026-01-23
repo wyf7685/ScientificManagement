@@ -169,6 +169,7 @@ public class AchievementTypesServiceImpl extends ServiceImpl<AchievementTypesMap
     }
     public JsonNode createType(Map<String, Object> req) {
         String raw =  strapiClient.create("achievement-types", req);
+        evictTypeListCache();
         try {
             return new ObjectMapper().readTree(raw);
         } catch (JsonProcessingException e) {

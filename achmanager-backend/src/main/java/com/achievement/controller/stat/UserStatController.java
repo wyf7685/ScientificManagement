@@ -3,6 +3,7 @@ package com.achievement.controller.stat;
 import com.achievement.annotation.CurrentUser;
 import com.achievement.domain.po.BusinessUser;
 import com.achievement.domain.vo.TypeCountVO;
+import com.achievement.domain.vo.UserStatVo;
 import com.achievement.result.Result;
 import com.achievement.service.AchievementStatService;
 import com.achievement.service.IAchievementMainsService;
@@ -17,23 +18,21 @@ import java.util.List;
 //12.14 统计某用户的成果物数量
 @Slf4j
 @RestController
-@RequestMapping("/user/stat/")
+@RequestMapping("")
 @RequiredArgsConstructor
 @Tag(name="统计用户的成果物")
 public class UserStatController {
     private final IAchievementMainsService mainsService;
     private final AchievementStatService statService;
     //统计某用户的成果物数量
-    @Operation(description = "统计某用户的成果物数量")
-    @GetMapping("/userAchCount")
-    public Result<Long> userAchStat(@CurrentUser BusinessUser currentUser){
-        if (currentUser == null) {
-            return Result.error(401, "未登录");
-        }
-        Long count = mainsService.countByUserId(Long.valueOf(currentUser.getId()));
-        return Result.success(count);
-
+    @Operation(description = "统计某用户的数据,包含该用户审核通过的成果物数量、论文数、专利数、本月新增")
+    @GetMapping("/results/my-statistics")
+    public Result<UserStatVo> userAchStat(@CurrentUser BusinessUser businessUser){
+        Integer userId = businessUser.getId();
+        UserStatVo statVo = mainsService.countByUserId(userId);
+        return Result.success(statVo);
     }
+
     //统计某用户的某类别成果物数量
     @Operation(description = "统计某用户创建的某类别成果物数量")
     @GetMapping("/userTypeAchCount")
@@ -56,7 +55,7 @@ public class UserStatController {
         return Result.success(count);
     }
     @Operation(description = "饼图：各成果物类型数量")
-    @GetMapping("/typePie")
+    @GetMapping("/user/stat/typePie")
     public Result<List<TypeCountVO>> typePie(@CurrentUser BusinessUser businessUser) {
         if (businessUser == null) {
             return Result.error("未登录");
