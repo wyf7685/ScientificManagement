@@ -53,7 +53,7 @@ public class UserStatController {
         }
         Long count = mainsService.countMonthNewByUserId(Long.valueOf(currentUser.getId()));
         return Result.success(count);
-    }
+    }*/
     @Operation(description = "饼图：各成果物类型数量")
     @GetMapping("/user/stat/typePie")
     public Result<List<TypeCountVO>> typePie(@CurrentUser BusinessUser businessUser) {
