@@ -24,9 +24,9 @@ public interface IAchievementMainsService extends IService<AchievementMains> {
 
     UserStatVo countByUserId(Integer userId);
 
-    Long countByUserIdAndTypeId(Long typeId, Long userId);
+    Long countByUserIdAndTypeId(Long typeId);
 
-    Long countMonthNewByUserId(Long userId);
+    Long countMonthNewByUserId();
 
     Long countAch();
 

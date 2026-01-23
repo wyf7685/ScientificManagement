@@ -69,8 +69,8 @@ Authorization: Bearer {api_key}
 X-Signature: {request_signature}
 
 {
-  "submission_id": "12345",
-  "application_id": "67890",
+  "submission_id": 12345,
+  "application_id": 67890,
   "submission_type": "proposal",
   "submission_stage": "application",
   "submission_round": 1,
@@ -103,7 +103,7 @@ X-Signature: {request_signature}
       "file_name": "申报书.pdf",
       "file_size": 2048576,
       "file_type": "pdf",
-      "file_content": "base64_encoded_content"
+      "file_url": "/uploads/proposals/file_001.pdf"
     },
     "other_attachments": [
       {
@@ -111,7 +111,7 @@ X-Signature: {request_signature}
         "file_name": "附件1.docx",
         "file_size": 1024000,
         "file_type": "docx",
-        "file_content": "base64_encoded_content"
+        "file_url": "/uploads/attachments/file_002.docx"
       }
     ]
   },
@@ -129,19 +129,9 @@ X-Signature: {request_signature}
   "code": 200,
   "message": "存储成功",
   "data": {
-    "submission_id": "12345",
-    "storage_id": "internal_id_456",
-    "files": [
-      {
-        "file_id": "file_001",
-        "storage_url": "/files/submissions/12345/proposal.pdf"
-      },
-      {
-        "file_id": "file_002",
-        "storage_url": "/files/submissions/12345/attachment1.docx"
-      }
-    ],
-    "created_at": "2026-01-23T10:30:00Z"
+    "submission_id": 12345,
+    "application_id": 67890,
+    "sync_time": "2026-01-23T10:30:00Z"
   }
 }
 ```
@@ -162,8 +152,8 @@ X-Signature: {request_signature}
     "total": 2,
     "submissions": [
       {
-        "submission_id": "12345",
-        "application_id": "67890",
+        "submission_id": 12345,
+        "application_id": 67890,
         "submission_type": "proposal",
         "submission_stage": "application",
         "submission_round": 1,
@@ -171,16 +161,14 @@ X-Signature: {request_signature}
         "project_name": "智能交通管理系统",
         "applicant_name": "张三",
         "upload_time": "2026-01-23T10:30:00Z",
-        "files_count": 2,
-        "files": [
-          {
-            "file_id": "file_001",
-            "file_name": "申报书.pdf",
-            "file_size": 2048576,
-            "file_type": "pdf",
-            "storage_url": "/files/submissions/12345/proposal.pdf"
-          }
-        ]
+        "proposal_file": {
+          "file_id": "file_001",
+          "file_name": "申报书.pdf",
+          "file_size": 2048576,
+          "file_type": "pdf",
+          "file_url": "/uploads/proposals/file_001.pdf"
+        },
+        "other_attachments_count": 1
       }
     ]
   }
@@ -200,8 +188,8 @@ X-Signature: {request_signature}
   "code": 200,
   "message": "查询成功",
   "data": {
-    "submission_id": "12345",
-    "application_id": "67890",
+    "submission_id": 12345,
+    "application_id": 67890,
     "submission_type": "proposal",
     "submission_stage": "application",
     "submission_round": 1,
@@ -228,24 +216,24 @@ X-Signature: {request_signature}
       "unit_address": "北京市海淀区...",
       "representative_achievements": "主要成果包括..."
     },
-    "files": [
-      {
+    "files": {
+      "proposal_file": {
         "file_id": "file_001",
         "file_name": "申报书.pdf",
         "file_size": 2048576,
         "file_type": "pdf",
-        "file_category": "proposal",
-        "storage_url": "/files/submissions/12345/proposal.pdf"
+        "file_url": "/uploads/proposals/file_001.pdf"
       },
-      {
-        "file_id": "file_002",
-        "file_name": "附件1.docx",
-        "file_size": 1024000,
-        "file_type": "docx",
-        "file_category": "attachment",
-        "storage_url": "/files/submissions/12345/attachment1.docx"
-      }
-    ],
+      "other_attachments": [
+        {
+          "file_id": "file_002",
+          "file_name": "附件1.docx",
+          "file_size": 1024000,
+          "file_type": "docx",
+          "file_url": "/uploads/attachments/file_002.docx"
+        }
+      ]
+    },
     "upload_info": {
       "uploader_id": "user_123",
       "uploader_name": "李四",
@@ -268,7 +256,167 @@ X-Signature: {request_signature}
 - `getFileDownloadUrl(String fileId)`: 获取文件下载链接
 - `batchDownloadFiles(List<String> fileIds)`: 批量下载文件
 
-### 4. File Storage Service
+### 4. Admin Interim Results Controller
+
+**职责**: 为管理员前端提供中期成果物查询和管理接口
+
+**主要接口**:
+
+#### 4.1 获取中期成果物统计
+```http
+GET /api/v1/interim-results/stats
+Authorization: Bearer {admin_token}
+```
+
+**响应**:
+```json
+{
+  "code": 200,
+  "message": "查询成功",
+  "data": {
+    "totalProjects": 15,
+    "totalResults": 45,
+    "byType": {
+      "proposal": 15,
+      "application_attachment": 30
+    },
+    "byYear": {
+      "2026": 45
+    },
+    "recentSyncTime": "2026-01-23T10:30:00Z"
+  }
+}
+```
+
+#### 4.2 获取中期成果物列表
+```http
+GET /api/v1/interim-results?projectId=67890&type=application&page=1&pageSize=10
+Authorization: Bearer {admin_token}
+```
+
+**响应**:
+```json
+{
+  "code": 200,
+  "message": "查询成功",
+  "data": {
+    "list": [
+      {
+        "id": "12345",
+        "projectId": "67890",
+        "projectName": "智能交通管理系统",
+        "projectCode": "PROC067890",
+        "projectPhase": "申报阶段",
+        "name": "智能交通管理系统申报书",
+        "type": "application",
+        "typeLabel": "申报书",
+        "description": "基于AI的智能交通管理系统申报材料",
+        "attachments": [
+          {
+            "id": "file_001",
+            "name": "申报书.pdf",
+            "url": "/uploads/proposals/file_001.pdf",
+            "size": 2048576,
+            "ext": "pdf"
+          },
+          {
+            "id": "file_002",
+            "name": "附件1.docx",
+            "url": "/uploads/attachments/file_002.docx",
+            "size": 1024000,
+            "ext": "docx"
+          }
+        ],
+        "submitter": "张三",
+        "submitterDept": "某某大学",
+        "submittedAt": "2026-01-23T10:30:00Z",
+        "syncedAt": "2026-01-23T10:30:00Z",
+        "source": "process_system",
+        "sourceRef": "12345",
+        "sourceUrl": "http://process.example.com/submissions/12345",
+        "tags": ["重点项目", "人工智能"],
+        "status": "synced"
+      }
+    ],
+    "total": 45,
+    "page": 1,
+    "pageSize": 10
+  }
+}
+```
+
+#### 4.3 获取中期成果物详情
+```http
+GET /api/v1/interim-results/{id}
+Authorization: Bearer {admin_token}
+```
+
+#### 4.4 手动同步中期成果物
+```http
+POST /api/v1/interim-results/sync
+Authorization: Bearer {admin_token}
+Content-Type: application/json
+
+{
+  "projectId": "67890"
+}
+```
+
+**响应**:
+```json
+{
+  "code": 200,
+  "message": "同步成功",
+  "data": {
+    "syncCount": 5,
+    "syncTime": "2026-01-23T11:00:00Z"
+  }
+}
+```
+
+#### 4.5 导出中期成果物列表
+```http
+GET /api/v1/interim-results/export?projectId=67890&type=proposal
+Authorization: Bearer {admin_token}
+```
+
+**响应**: Excel文件流
+
+#### 4.6 获取附件下载链接
+```http
+GET /api/v1/interim-results/attachments/{attachmentId}/download
+Authorization: Bearer {admin_token}
+```
+
+**响应**: 文件流或重定向到文件URL
+
+### 5. Data Transformation Service
+
+**职责**: 数据格式转换，将过程系统数据转换为前端期望的格式
+
+**核心转换逻辑**:
+- 将ProcessSubmission转换为InterimResult
+- 将提交物类型映射为前端类型枚举
+- 生成项目树结构数据
+- 统计数据聚合
+
+**转换映射**:
+```java
+// 提交物类型映射
+private static final Map<String, String> TYPE_MAPPING = Map.of(
+    "proposal", "application",
+    "application_attachment", "other"
+);
+
+// 项目阶段映射
+private static final Map<String, String> PHASE_MAPPING = Map.of(
+    "application", "申报阶段",
+    "review", "评审阶段",
+    "execution", "执行阶段"
+);
+```
+
+### 6. File Storage Service
 
 **职责**: 文件存储、访问控制、临时链接生成
 
@@ -284,27 +432,28 @@ X-Signature: {request_signature}
 
 ```sql
 CREATE TABLE process_submissions (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
-    submission_id VARCHAR(64) NOT NULL COMMENT '提交物ID（来自过程系统）',
-    application_id VARCHAR(64) NOT NULL COMMENT '申报ID（来自过程系统）',
-    submission_type VARCHAR(30) NOT NULL COMMENT '提交物类型',
-    submission_stage VARCHAR(30) NOT NULL COMMENT '提交阶段',
+    submission_id BIGINT PRIMARY KEY COMMENT '提交物唯一标识',
+    application_id BIGINT NOT NULL COMMENT '外键 - 关联申报记录',
+    submission_type VARCHAR(30) NOT NULL COMMENT '提交物类型 - proposal/application_attachment',
+    submission_stage VARCHAR(30) NOT NULL COMMENT '提交阶段 - application',
     submission_round INT NOT NULL DEFAULT 1 COMMENT '提交轮次',
     submission_version INT NOT NULL DEFAULT 1 COMMENT '版本号',
     
     -- 项目基本信息
     project_name VARCHAR(200) NOT NULL COMMENT '项目名称',
-    project_field VARCHAR(100) COMMENT '项目领域',
-    category_level VARCHAR(20) NOT NULL COMMENT '类别级别',
+    project_field VARCHAR(100) COMMENT '项目所属领域',
+    category_level VARCHAR(20) NOT NULL COMMENT '类别级别 - 重点/一般',
     category_specific VARCHAR(100) NOT NULL COMMENT '具体分类',
     research_period INT COMMENT '研究周期(月)',
     project_keywords VARCHAR(500) COMMENT '项目关键词',
+    
+    -- 项目内容信息
     project_description TEXT NOT NULL COMMENT '项目描述',
     expected_results TEXT COMMENT '预期成果',
-    willing_adjust CHAR(1) COMMENT '是否愿意调整',
+    willing_adjust CHAR(1) COMMENT '是否愿意调整为一般项目',
     
     -- 申报人信息
-    applicant_name VARCHAR(100) NOT NULL COMMENT '申报人姓名',
+    applicant_name VARCHAR(100) NOT NULL COMMENT '负责人姓名',
     id_card VARCHAR(30) COMMENT '证件号码',
     education_degree VARCHAR(50) COMMENT '学历学位',
     technical_title VARCHAR(50) COMMENT '技术职称',
@@ -312,58 +461,43 @@ CREATE TABLE process_submissions (
     phone VARCHAR(20) NOT NULL COMMENT '联系电话',
     work_unit VARCHAR(200) COMMENT '工作单位',
     unit_address VARCHAR(300) COMMENT '单位地址',
-    representative_achievements TEXT COMMENT '代表成果',
+    representative_achievements TEXT COMMENT '申报人代表成果',
+    
+    -- 文件信息
+    proposal_file_id VARCHAR(200) NOT NULL COMMENT '申报书文件ID',
+    proposal_file_name VARCHAR(200) NOT NULL COMMENT '申报书文件名称',
+    proposal_file_size BIGINT COMMENT '申报书文件大小(字节)',
+    proposal_file_type VARCHAR(50) COMMENT '文件类型',
+    proposal_file_url VARCHAR(500) COMMENT '申报书访问路径',
+    other_attachments_json TEXT COMMENT '其他附件列表(JSON格式)',
     
     -- 上传信息
-    uploader_id VARCHAR(64) NOT NULL COMMENT '上传者ID',
-    uploader_name VARCHAR(100) NOT NULL COMMENT '上传者姓名',
+    uploader_id VARCHAR(64) NOT NULL COMMENT '上传者用户ID',
+    uploader_name VARCHAR(100) NOT NULL COMMENT '上传者名称',
     upload_time DATETIME NOT NULL COMMENT '上传时间',
-    submission_description TEXT COMMENT '提交说明',
+    submission_description TEXT COMMENT '提交物备注说明',
     
     -- 系统字段
-    sync_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '同步时间',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    is_deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记',
+    create_by VARCHAR(64) COMMENT '创建者ID',
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_by VARCHAR(64) COMMENT '更新者ID',
+    update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    del_flag CHAR(1) NOT NULL DEFAULT '0' COMMENT '删除标志',
+    remark VARCHAR(500) COMMENT '备注',
     
-    UNIQUE KEY uk_submission_id (submission_id),
+    -- 同步字段
+    sync_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '同步时间',
+    
     KEY idx_application_id (application_id),
     KEY idx_project_name (project_name),
     KEY idx_applicant_name (applicant_name),
-    KEY idx_upload_time (upload_time)
+    KEY idx_upload_time (upload_time),
+    KEY idx_submission_type (submission_type),
+    KEY idx_category_level (category_level)
 ) COMMENT='过程系统项目提交物表';
 ```
 
-### 2. 提交物文件表 (process_submission_files)
-
-```sql
-CREATE TABLE process_submission_files (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
-    submission_id VARCHAR(64) NOT NULL COMMENT '提交物ID',
-    file_id VARCHAR(200) NOT NULL COMMENT '文件ID（来自过程系统）',
-    file_name VARCHAR(200) NOT NULL COMMENT '文件名称',
-    file_size BIGINT COMMENT '文件大小(字节)',
-    file_type VARCHAR(50) COMMENT '文件类型',
-    file_category VARCHAR(20) NOT NULL COMMENT '文件分类：proposal/attachment',
-    
-    -- 存储信息
-    storage_path VARCHAR(500) NOT NULL COMMENT '存储路径',
-    storage_url VARCHAR(500) COMMENT '访问URL',
-    file_hash VARCHAR(64) COMMENT '文件哈希值',
-    
-    -- 系统字段
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    is_deleted TINYINT NOT NULL DEFAULT 0 COMMENT '删除标记',
-    
-    UNIQUE KEY uk_file_id (file_id),
-    KEY idx_submission_id (submission_id),
-    KEY idx_file_category (file_category),
-    FOREIGN KEY fk_submission (submission_id) REFERENCES process_submissions(submission_id)
-) COMMENT='过程系统提交物文件表';
-```
-
-### 3. API访问日志表 (process_api_logs)
+### 2. API访问日志表 (process_api_logs)
 
 ```sql
 CREATE TABLE process_api_logs (
@@ -384,6 +518,68 @@ CREATE TABLE process_api_logs (
     KEY idx_created_at (created_at),
     KEY idx_response_code (response_code)
 ) COMMENT='过程系统API访问日志表';
+```
+
+### 3. 中期成果物视图 (interim_results_view)
+
+```sql
+CREATE VIEW interim_results_view AS
+SELECT 
+    ps.submission_id as id,
+    ps.submission_id as source_ref,
+    ps.application_id as project_id,
+    ps.project_name,
+    CONCAT('PROC', LPAD(ps.application_id, 6, '0')) as project_code,
+    CASE ps.submission_stage
+        WHEN 'application' THEN '申报阶段'
+        ELSE ps.submission_stage
+    END as project_phase,
+    COALESCE(ps.project_description, ps.project_name) as name,
+    CASE ps.submission_type
+        WHEN 'proposal' THEN 'application'
+        WHEN 'application_attachment' THEN 'other'
+        ELSE 'other'
+    END as type,
+    CASE ps.submission_type
+        WHEN 'proposal' THEN '申报书'
+        WHEN 'application_attachment' THEN '其他附件'
+        ELSE '其他'
+    END as type_label,
+    ps.project_description as description,
+    ps.applicant_name as submitter,
+    ps.work_unit as submitter_dept,
+    ps.upload_time as submitted_at,
+    ps.sync_time as synced_at,
+    'process_system' as source,
+    CONCAT('http://process.example.com/submissions/', ps.submission_id) as source_url,
+    CASE ps.category_level
+        WHEN '重点' THEN JSON_ARRAY('重点项目', COALESCE(ps.project_field, ''))
+        WHEN '一般' THEN JSON_ARRAY('一般项目', COALESCE(ps.project_field, ''))
+        ELSE JSON_ARRAY(COALESCE(ps.project_field, ''))
+    END as tags,
+    'synced' as status,
+    -- 附件信息聚合（包含申报书和其他附件）
+    JSON_MERGE_PRESERVE(
+        -- 申报书文件
+        JSON_ARRAY(
+            JSON_OBJECT(
+                'id', ps.proposal_file_id,
+                'name', ps.proposal_file_name,
+                'url', ps.proposal_file_url,
+                'size', ps.proposal_file_size,
+                'ext', SUBSTRING_INDEX(ps.proposal_file_name, '.', -1),
+                'category', 'proposal'
+            )
+        ),
+        -- 其他附件
+        COALESCE(ps.other_attachments_json, JSON_ARRAY())
+    ) as attachments_json,
+    -- 统计字段
+    YEAR(ps.upload_time) as upload_year,
+    ps.category_level,
+    ps.project_field
+FROM process_submissions ps
+WHERE ps.del_flag = '0';
 ```
 
 ## Error Handling

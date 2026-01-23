@@ -129,33 +129,46 @@
     - **Validates: Requirements 7.1, 7.2, 7.3, 7.5**
 
 - [ ] 8. 实现管理员界面后端支持
-  - [ ] 8.1 实现管理员查询接口
-    - 实现提交物列表查询API
-    - 实现筛选和分页功能
-    - 实现详情查询API
+  - [ ] 8.1 创建数据转换服务(DataTransformationService)
+    - 实现ProcessSubmission到InterimResult的转换
+    - 实现类型和阶段映射
+    - 实现统计数据聚合
     - _Requirements: 8.1, 8.2, 8.3_
 
-  - [ ]* 8.2 写属性测试验证管理界面功能
+  - [ ] 8.2 实现管理员中期成果物控制器(AdminInterimResultsController)
+    - 实现获取统计数据API (/interim-results/stats)
+    - 实现获取成果物列表API (/interim-results)
+    - 实现获取成果物详情API (/interim-results/{id})
+    - 实现附件下载API (/interim-results/attachments/{id}/download)
+    - _Requirements: 8.1, 8.2, 8.3_
+
+  - [ ]* 8.3 写属性测试验证管理界面功能
     - **Property 14: 管理界面数据展示准确性**
     - **Validates: Requirements 8.1, 8.2, 8.3**
 
-  - [ ] 8.3 实现手动同步功能
-    - 实现手动同步触发接口
+  - [ ] 8.4 实现手动同步功能
+    - 实现手动同步触发接口 (/interim-results/sync)
     - 实现同步状态反馈
     - _Requirements: 8.4_
 
-  - [ ]* 8.4 写属性测试验证同步功能
+  - [ ]* 8.5 写属性测试验证同步功能
     - **Property 15: 手动同步功能性**
     - **Validates: Requirements 8.4**
 
-  - [ ] 8.5 实现数据导出功能
-    - 实现Excel格式导出
+  - [ ] 8.6 实现数据导出功能
+    - 实现Excel格式导出 (/interim-results/export)
     - 实现导出数据筛选
     - _Requirements: 8.5_
 
-  - [ ]* 8.6 写属性测试验证导出功能
+  - [ ]* 8.7 写属性测试验证导出功能
     - **Property 16: 导出功能完整性**
     - **Validates: Requirements 8.5**
+
+  - [ ] 8.8 创建中期成果物视图
+    - 创建数据库视图支持前端查询
+    - 实现附件信息JSON聚合
+    - 配置视图索引优化查询性能
+    - _Requirements: 8.1, 8.2, 8.3_
 
 - [ ] 9. 实现历史版本管理
   - [ ] 9.1 实现版本查询功能
