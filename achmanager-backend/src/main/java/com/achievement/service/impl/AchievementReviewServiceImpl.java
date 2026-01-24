@@ -241,7 +241,8 @@ public class AchievementReviewServiceImpl implements IAchievementReviewService {
     private AchievementMains getAchievementByDocId(String documentId) {
         LambdaQueryWrapper<AchievementMains> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AchievementMains::getDocumentId, documentId)
-                .eq(AchievementMains::getIsDelete, 0);
+                .eq(AchievementMains::getIsDelete, 0)
+                .isNotNull(AchievementMains::getPublishedAt);
         return achievementMainsMapper.selectOne(queryWrapper);
     }
 

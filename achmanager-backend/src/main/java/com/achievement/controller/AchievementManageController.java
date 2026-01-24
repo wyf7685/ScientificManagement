@@ -77,17 +77,20 @@ public class AchievementManageController {
      * */
     @Operation(description = "管理员新增成果物（主信息+多个字段值）")
     @PostMapping("/create")
-    public Result<JsonNode> create(@RequestBody Map<String, Object> req) {
+    public Result<JsonNode> create(@RequestBody Map<String, Object> req,@CurrentUser BusinessUser businessUser) {
         log.info("新增成果物");
-        return Result.success(achievementAdminService.createAchievement(req));
+        Integer userId = businessUser.getId();
+        return Result.success(achievementAdminService.createAchievement(req,userId));
     }
 
     @Operation(description = "管理员一次请求上传文件并创建成果物（multipart：data+files）")
     @PostMapping(value = "/createWithFiles", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Result<JsonNode> createWithFiles(@RequestPart("data") String dataJson,
-                                            @RequestPart(value = "files", required = false) MultipartFile[] files) {
+                                            @RequestPart(value = "files", required = false) MultipartFile[] files,
+                                            @CurrentUser BusinessUser businessUser) {
+        Integer userId = businessUser.getId();
         Map<String, Object> req = readJsonMap(dataJson);
-        return Result.success(achievementAdminService.createAchievementWithFiles(req, files));
+        return Result.success(achievementAdminService.createAchievementWithFiles(req, files,userId));
     }
     /*
      *TODO管理员修改成果物 包括 公共属性 和 自定义属性

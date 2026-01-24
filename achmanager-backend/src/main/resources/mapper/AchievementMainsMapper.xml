@@ -180,6 +180,7 @@
 
         <!-- 只查 ALL 可见 -->
         AND m.visibility_range = 'public_abstract'
+        AND m.achievement_status = 'APPROVED'
         <!-- 个人成果物：强制按创建者过滤
         AND m.created_by_id = #{dto.creatorId}-->
         <!-- 成果物类型筛选 -->

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AchievementAdminServiceImpl implements IAchievementAdminService {
@@ -30,12 +32,23 @@ public class AchievementAdminServiceImpl implements IAchievementAdminService {
     private final ObjectMapper objectMapper;
 
     @Override
-    public JsonNode createAchievement(Map<String, Object> req) {
+    public JsonNode createAchievement(Map<String, Object> req,Integer userId) {
         MainAndFields mainAndFields = parseMainAndFields(req);
         Map<String, Object> mainReq = mainAndFields.mainReq;
         List<Map<String, Object>> fields = mainAndFields.fields;
         List<Map<String, Object>> attachments = mainAndFields.attachments;
+        // 新增：写入创建人
+        Object dataObj = mainReq.get("data");
+        if (!(dataObj instanceof Map<?, ?> dataAny)) {
+            throw new RuntimeException("mainReq 必须包含 data 对象");
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = (Map<String, Object>) dataAny;
 
+// 字段在 Strapi 里是 Text，传字符串更稳
+        data.put("created_by_user_id", String.valueOf(userId));
+
+        log.info("创建成果物，创建人 userId={}", userId);
         String mainRaw = strapiClient.create(ACHIEVEMENT_COLLECTION, mainReq);
         JsonNode mainJson = readJson(mainRaw);
         String achievementDocId = extractDocumentId(mainJson);
@@ -74,15 +87,15 @@ public class AchievementAdminServiceImpl implements IAchievementAdminService {
 
     @Override
     @SuppressWarnings("unchecked")
-    public JsonNode createAchievementWithFiles(Map<String, Object> req, MultipartFile[] files) {
+    public JsonNode createAchievementWithFiles(Map<String, Object> req, MultipartFile[] files,Integer userId) {
         if (files == null || files.length == 0) {
-            return createAchievement(req);
+            return createAchievement(req,userId);
         }
 
         String uploadRaw = strapiClient.upload(files);
         JsonNode uploadJson = readJson(uploadRaw);
         if (uploadJson == null || !uploadJson.isArray() || uploadJson.isEmpty()) {
-            return createAchievement(req);
+            return createAchievement(req,userId);
         }
 
         List<Integer> fileIds = new ArrayList<>();
@@ -94,7 +107,7 @@ public class AchievementAdminServiceImpl implements IAchievementAdminService {
             fileIds.add(idNode.intValue());
         }
         if (fileIds.isEmpty()) {
-            return createAchievement(req);
+            return createAchievement(req,userId);
         }
 
         Object dataObj = req.get("data");
@@ -120,7 +133,7 @@ public class AchievementAdminServiceImpl implements IAchievementAdminService {
         attachmentItem.put("data", attachmentData);
         attachments.add(attachmentItem);
 
-        return createAchievement(req);
+        return createAchievement(req,userId);
     }
 
     @Override

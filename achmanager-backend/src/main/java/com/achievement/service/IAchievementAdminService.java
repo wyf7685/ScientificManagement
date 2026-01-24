@@ -7,7 +7,7 @@ import java.util.Map;
 
 public interface IAchievementAdminService {
 
-    JsonNode createAchievement(Map<String, Object> req);
+    JsonNode createAchievement(Map<String, Object> req,Integer userId);
 
     JsonNode updateAchievement(String achievementDocId, Map<String, Object> req);
 
@@ -20,7 +20,7 @@ public interface IAchievementAdminService {
      * <p>
      * 后端会先调用 Strapi /api/upload 拿到文件 id，自动写入 data.attachments[].data.file。
      */
-    JsonNode createAchievementWithFiles(Map<String, Object> req, MultipartFile[] files);
+    JsonNode createAchievementWithFiles(Map<String, Object> req, MultipartFile[] files,Integer userId);
 
     /**
      * 一次请求：上传文件到 Strapi 并更新成果物。

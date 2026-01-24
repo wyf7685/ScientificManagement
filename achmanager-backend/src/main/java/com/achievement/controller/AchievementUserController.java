@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -66,9 +67,11 @@ public class AchievementUserController {
 
     @Operation(description = "用户新增成果物（主信息+多个字段值）")
     @PostMapping("/create")
-    public Result<JsonNode> create(@RequestBody Map<String, Object> req) {
+    public Result<JsonNode> create(@RequestBody Map<String, Object> req,
+                                   @CurrentUser BusinessUser businessUser) {
+        Integer userId = businessUser == null ? null : businessUser.getId();
         try {
-            return Result.success(achievementAdminService.createAchievement(req));
+            return Result.success(achievementAdminService.createAchievement(req, userId));
         } catch (Exception e) {
             log.error("创建成果失败: reqKeys={}", req == null ? null : req.keySet(), e);
             return Result.error(500, e.getMessage());
@@ -78,10 +81,13 @@ public class AchievementUserController {
     @Operation(description = "用户一次请求上传文件并创建成果物（multipart：data+files）")
     @PostMapping(value = "/createWithFiles", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Result<JsonNode> createWithFiles(@RequestPart("data") String dataJson,
-                                            @RequestPart(value = "files", required = false) MultipartFile[] files) {
+                                            @RequestPart(value = "files", required = false) MultipartFile[] files,
+                                            @CurrentUser BusinessUser businessUser
+    ) {
+        Integer userId = businessUser == null ? null : businessUser.getId();
         Map<String, Object> req = readJsonMap(dataJson);
         try {
-            return Result.success(achievementAdminService.createAchievementWithFiles(req, files));
+            return Result.success(achievementAdminService.createAchievementWithFiles(req, files, userId));
         } catch (Exception e) {
             log.error("创建成果(含附件)失败: reqKeys={}, filesCount={}",
                     req == null ? null : req.keySet(),

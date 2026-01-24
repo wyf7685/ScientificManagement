@@ -220,14 +220,16 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
     }
 
     @Override
-    public Long countByUserIdAndTypeId(Long typeId) {
+    public Long countByUserIdAndTypeId(Long typeId, Long userId) {
         return 0L;
     }
 
     @Override
-    public Long countMonthNewByUserId() {
+    public Long countMonthNewByUserId(Long userId) {
         return 0L;
     }
+
+
 
     /*@Override
     public Long countByUserIdAndTypeId(Long typeId, Long userId) {
