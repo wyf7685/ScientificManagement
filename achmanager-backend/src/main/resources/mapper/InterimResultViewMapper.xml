@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.achievement.mapper.InterimResultViewMapper">
+
+    <!-- 通用结果映射 -->
+    <resultMap id="BaseResultMap" type="com.achievement.domain.po.InterimResultView">
+        <id column="id" property="id" />
+        <result column="source_ref" property="sourceRef" />
+        <result column="project_id" property="projectId" />
+        <result column="project_name" property="projectName" />
+        <result column="project_code" property="projectCode" />
+        <result column="project_phase" property="projectPhase" />
+        <result column="name" property="name" />
+        <result column="type" property="type" />
+        <result column="type_label" property="typeLabel" />
+        <result column="description" property="description" />
+        <result column="submitter" property="submitter" />
+        <result column="submitter_dept" property="submitterDept" />
+        <result column="submitted_at" property="submittedAt" />
+        <result column="synced_at" property="syncedAt" />
+        <result column="source" property="source" />
+        <result column="source_url" property="sourceUrl" />
+        <result column="tags" property="tags" />
+        <result column="status" property="status" />
+        <result column="attachments_json" property="attachmentsJson" />
+        <result column="upload_year" property="uploadYear" />
+        <result column="category_level" property="categoryLevel" />
+        <result column="project_field" property="projectField" />
+    </resultMap>
+
+    <!-- 通用查询字段 -->
+    <sql id="Base_Column_List">
+        id, source_ref, project_id, project_name, project_code, project_phase,
+        name, type, type_label, description, submitter, submitter_dept,
+        submitted_at, synced_at, source, source_url, tags, status,
+        attachments_json, upload_year, category_level, project_field
+    </sql>
+
+    <!-- 分页查询中期成果物 -->
+    <select id="selectPageByConditions" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM interim_results_view
+        <where>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
+            </if>
+            <if test="type != null and type != ''">
+                AND type = #{type}
+            </if>
+            <if test="projectName != null and projectName != ''">
+                AND project_name LIKE CONCAT('%', #{projectName}, '%')
+            </if>
+            <if test="submitter != null and submitter != ''">
+                AND submitter LIKE CONCAT('%', #{submitter}, '%')
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    project_name LIKE CONCAT('%', #{keyword}, '%')
+                    OR name LIKE CONCAT('%', #{keyword}, '%')
+                    OR description LIKE CONCAT('%', #{keyword}, '%')
+                    OR submitter LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="year != null">
+                AND upload_year = #{year}
+            </if>
+            <if test="startTime != null">
+                AND submitted_at >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND submitted_at &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY submitted_at DESC
+    </select>
+
+    <!-- 查询中期成果物列表（不分页） -->
+    <select id="selectByConditions" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM interim_results_view
+        <where>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
+            </if>
+            <if test="type != null and type != ''">
+                AND type = #{type}
+            </if>
+            <if test="projectName != null and projectName != ''">
+                AND project_name LIKE CONCAT('%', #{projectName}, '%')
+            </if>
+            <if test="submitter != null and submitter != ''">
+                AND submitter LIKE CONCAT('%', #{submitter}, '%')
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    project_name LIKE CONCAT('%', #{keyword}, '%')
+                    OR name LIKE CONCAT('%', #{keyword}, '%')
+                    OR description LIKE CONCAT('%', #{keyword}, '%')
+                    OR submitter LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="year != null">
+                AND upload_year = #{year}
+            </if>
+            <if test="startTime != null">
+                AND submitted_at >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND submitted_at &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY submitted_at DESC
+    </select>
+
+    <!-- 根据项目ID查询成果物 -->
+    <select id="selectByProjectId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM interim_results_view
+        WHERE project_id = #{projectId}
+        ORDER BY submitted_at DESC
+    </select>
+
+    <!-- 根据类型查询成果物 -->
+    <select id="selectByType" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM interim_results_view
+        WHERE type = #{type}
+        ORDER BY submitted_at DESC
+    </select>
+
+    <!-- 根据提交者查询成果物 -->
+    <select id="selectBySubmitter" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM interim_results_view
+        WHERE submitter LIKE CONCAT('%', #{submitter}, '%')
+        ORDER BY submitted_at DESC
+    </select>
+
+    <!-- 根据时间范围查询成果物 -->
+    <select id="selectByTimeRange" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM interim_results_view
+        <where>
+            <if test="startTime != null">
+                AND submitted_at >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND submitted_at &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY submitted_at DESC
+    </select>
+
+</mapper>

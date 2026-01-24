@@ -142,7 +142,13 @@
                 <el-button type="primary" link size="small" @click="viewDetail(row)">
                   查看详情
                 </el-button>
-                <el-button type="success" link size="small" @click="jumpToProcessSystem(row)">
+                <el-button
+                  v-if="row.source === 'process_system'"
+                  type="success"
+                  link
+                  size="small"
+                  @click="jumpToProcessSystem(row)"
+                >
                   跳转过程系统
                 </el-button>
               </template>
@@ -437,7 +443,10 @@ async function handleSync() {
 async function handleExport() {
   try {
     loading.value = true
-    await exportInterimResults(filterParams)
+    await exportInterimResults({
+      ...filterParams,
+      keyword: searchKeyword.value
+    })
     ElMessage.success('导出成功')
   } catch (error) {
     ElMessage.error('导出失败')
@@ -614,4 +623,3 @@ function previewFile(file: any) {
   gap: 8px;
 }
 </style>
-

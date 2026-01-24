@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.achievement.mapper.ProcessSyncRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.achievement.domain.po.ProcessSyncRecord">
+        <id column="id" property="id" />
+        <result column="sync_id" property="syncId" />
+        <result column="application_id" property="applicationId" />
+        <result column="submission_id" property="submissionId" />
+        <result column="sync_type" property="syncType" />
+        <result column="sync_status" property="syncStatus" />
+        <result column="operation_type" property="operationType" />
+        <result column="sync_start_time" property="syncStartTime" />
+        <result column="sync_end_time" property="syncEndTime" />
+        <result column="sync_count" property="syncCount" />
+        <result column="success_count" property="successCount" />
+        <result column="failed_count" property="failedCount" />
+        <result column="error_message" property="errorMessage" />
+        <result column="error_code" property="errorCode" />
+        <result column="data_version" property="dataVersion" />
+        <result column="source_data_hash" property="sourceDataHash" />
+        <result column="operator_id" property="operatorId" />
+        <result column="operator_name" property="operatorName" />
+        <result column="sync_remark" property="syncRemark" />
+        <result column="retry_count" property="retryCount" />
+        <result column="next_retry_time" property="nextRetryTime" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, sync_id, application_id, submission_id, sync_type, sync_status, operation_type,
+        sync_start_time, sync_end_time, sync_count, success_count, failed_count,
+        error_message, error_code, data_version, source_data_hash, operator_id, operator_name,
+        sync_remark, retry_count, next_retry_time, created_at, updated_at
+    </sql>
+
+    <!-- 根据申报ID获取最新同步记录 -->
+    <select id="selectLatestByApplicationId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_sync_records
+        WHERE application_id = #{applicationId}
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+
+    <!-- 根据申报ID和同步类型获取最新同步记录 -->
+    <select id="selectLatestByApplicationIdAndType" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_sync_records
+        WHERE application_id = #{applicationId}
+          AND sync_type = #{syncType}
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+
+    <!-- 分页查询同步记录 -->
+    <select id="selectPageByConditions" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_sync_records
+        WHERE 1=1
+        <if test="applicationId != null">
+            AND application_id = #{applicationId}
+        </if>
+        <if test="syncType != null and syncType != ''">
+            AND sync_type = #{syncType}
+        </if>
+        <if test="syncStatus != null and syncStatus != ''">
+            AND sync_status = #{syncStatus}
+        </if>
+        <if test="operationType != null and operationType != ''">
+            AND operation_type = #{operationType}
+        </if>
+        <if test="startTime != null">
+            AND created_at >= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND created_at &lt;= #{endTime}
+        </if>
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 统计同步记录 -->
+    <select id="selectSyncStatistics" resultMap="BaseResultMap">
+        SELECT 
+            sync_type,
+            sync_status,
+            COUNT(*) as sync_count,
+            SUM(success_count) as success_count,
+            SUM(failed_count) as failed_count,
+            MIN(sync_start_time) as sync_start_time,
+            MAX(sync_end_time) as sync_end_time
+        FROM process_sync_records
+        WHERE 1=1
+        <if test="startTime != null">
+            AND created_at >= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND created_at &lt;= #{endTime}
+        </if>
+        GROUP BY sync_type, sync_status
+        ORDER BY sync_start_time DESC
+    </select>
+
+    <!-- 查询失败的同步记录 -->
+    <select id="selectFailedRecords" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_sync_records
+        WHERE sync_status = 'failed'
+        <if test="applicationIds != null and applicationIds.size() > 0">
+            AND application_id IN
+            <foreach collection="applicationIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 查询需要重试的同步记录 -->
+    <select id="selectRetryRecords" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_sync_records
+        WHERE sync_status = 'failed'
+          AND retry_count &lt; 3
+          AND (next_retry_time IS NULL OR next_retry_time &lt;= #{currentTime})
+        ORDER BY created_at ASC
+    </select>
+
+    <!-- 删除过期的同步记录 -->
+    <delete id="deleteExpiredRecords">
+        DELETE FROM process_sync_records
+        WHERE created_at &lt; #{beforeTime}
+    </delete>
+
+    <!-- 根据同步ID查询记录 -->
+    <select id="selectBySyncId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_sync_records
+        WHERE sync_id = #{syncId}
+        ORDER BY created_at ASC
+    </select>
+
+    <!-- 更新重试信息 -->
+    <update id="updateRetryInfo">
+        UPDATE process_sync_records
+        SET retry_count = #{retryCount},
+            next_retry_time = #{nextRetryTime},
+            error_message = #{errorMessage},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

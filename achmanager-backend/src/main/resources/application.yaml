@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/strapi?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
-    password: 123456
+    password: Wjh0921@
     driver-class-name: com.mysql.cj.jdbc.Driver
   servlet:
     multipart:
@@ -22,9 +22,20 @@ spring:
           max-idle: 8
           min-idle: 0
           max-wait: 1000ms
+
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      logic-delete-field: delFlag
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
 strapi:
   base-url: http://localhost:1337
   api-token: 0dc05c8baca8b7abfb19326e2ad6b0a1d2ba199b6ef8d9fe464e78d094f33eeaf8a4f4ca4da65ceea90aec65250521aeace3a23d2358bf5a3a9a8cb27c91f6e542b24c96acd5a9f38a6d65b9247e0d343ac3241f2a0e3ec208330cc4d7b00fd8db0052bcd68542d57a5092dc937f236cf2e4ae1aa9e918c6496f0c5d89e86dab
@@ -32,3 +43,41 @@ strapi:
 easyscholar:
   base-url: https://www.easyscholar.cc/open/getPublicationRank
   secret-key: ${EASYSCHOLAR_SECRET_KEY:}
+
+# 过程系统集成配置
+process-system:
+  api:
+    keys:
+      # 示例API密钥配置，实际使用时应该从环境变量或配置文件中读取
+      process-system-key-001: "过程管理系统"
+      process-system-key-002: "测试系统"
+    signature-secret: ${PROCESS_SYSTEM_SIGNATURE_SECRET:default-process-signature-secret}
+    version: v1
+    base-path: /api/v1/process-system
+  file-storage:
+    base-path: ${PROCESS_SYSTEM_FILE_BASE_PATH:./data/process-system/files}
+    proposal-path: proposals
+    attachment-path: attachments
+    allowed-types:
+      - pdf
+      - doc
+      - docx
+      - xls
+      - xlsx
+      - txt
+      - zip
+      - rar
+    max-file-size: 104857600  # 100MB
+    url-prefix: /process-system/files
+  security:
+    rate-limit-per-minute: 100
+    signature-validity-seconds: 300
+    enable-ip-whitelist: false
+    ip-whitelist:
+      - 127.0.0.1
+      - localhost
+
+logging:
+  level:
+    com.achievement.filter.ProcessSystemApiKeyFilter: DEBUG
+    com.achievement.config: INFO

@@ -184,7 +184,10 @@ export interface ResultAccessRequest {
  */
 export const InterimResultType = {
   CONTRACT: 'contract',                    // 合同
+  CONTRACT_TEMPLATE: 'contract_template',  // 合同模板
+  SIGNED_CONTRACT: 'signed_contract',      // 已签署合同
   APPLICATION: 'application',              // 申报书
+  DELIVERABLE_REPORT: 'deliverable_report', // 成果物报告
   FEASIBILITY_REPORT: 'feasibility_report', // 可行性报告
   REQUIREMENT_DOC: 'requirement_doc',      // 需求文档
   DESIGN_DOC: 'design_doc',                // 设计文档
@@ -200,7 +203,10 @@ export type InterimResultType = typeof InterimResultType[keyof typeof InterimRes
  */
 export const INTERIM_RESULT_TYPE_MAP: Record<InterimResultType, string> = {
   [InterimResultType.CONTRACT]: '合同',
+  [InterimResultType.CONTRACT_TEMPLATE]: '合同模板',
+  [InterimResultType.SIGNED_CONTRACT]: '已签署合同',
   [InterimResultType.APPLICATION]: '申报书',
+  [InterimResultType.DELIVERABLE_REPORT]: '成果物报告',
   [InterimResultType.FEASIBILITY_REPORT]: '可行性报告',
   [InterimResultType.REQUIREMENT_DOC]: '需求文档',
   [InterimResultType.DESIGN_DOC]: '设计文档',
@@ -216,7 +222,7 @@ export interface Attachment {
   id: string
   name: string
   url: string
-  size: number
+  size?: number
   ext?: string
   uploadedAt?: string
 }
@@ -251,7 +257,7 @@ export interface InterimResult {
   syncedAt: string
   
   // 来源标识
-  source: 'process_system'
+  source: 'process_system' | 'contract_template' | 'signed_contract' | 'deliverable_report'
   sourceRef: string
   sourceUrl?: string
   

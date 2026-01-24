@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.achievement.mapper.InterimResultFileMapper">
+
+    <select id="selectFileById" resultType="com.achievement.domain.po.ProcessSubmissionFile">
+        SELECT file_id, file_name, file_size, file_type, file_url, file_category
+        FROM (
+            SELECT file_id, file_name, file_size, file_type, file_url, file_category, 1 AS priority
+            FROM process_submission_files
+            WHERE file_id = #{fileId} AND del_flag = '0'
+            UNION ALL
+            SELECT contract_template_file_id AS file_id,
+                   contract_template_file_name AS file_name,
+                   contract_template_file_size AS file_size,
+                   contract_template_file_type AS file_type,
+                   contract_template_file_url AS file_url,
+                   'contract_template' AS file_category,
+                   2 AS priority
+            FROM project_submission_demo_contract
+            WHERE contract_template_file_id = #{fileId} AND del_flag = '0'
+            UNION ALL
+            SELECT signed_contract_file_id AS file_id,
+                   signed_contract_file_name AS file_name,
+                   signed_contract_file_size AS file_size,
+                   signed_contract_file_type AS file_type,
+                   signed_contract_file_url AS file_url,
+                   'signed_contract' AS file_category,
+                   3 AS priority
+            FROM project_submission_contract
+            WHERE signed_contract_file_id = #{fileId} AND del_flag = '0'
+            UNION ALL
+            SELECT deliverable_file_id AS file_id,
+                   deliverable_file_name AS file_name,
+                   deliverable_file_size AS file_size,
+                   deliverable_file_type AS file_type,
+                   deliverable_file_url AS file_url,
+                   'deliverable' AS file_category,
+                   4 AS priority
+            FROM project_submission_deliverable
+            WHERE deliverable_file_id = #{fileId} AND del_flag = '0'
+            UNION ALL
+            SELECT inspection_report_file_id AS file_id,
+                   inspection_report_file_name AS file_name,
+                   inspection_report_file_size AS file_size,
+                   inspection_report_file_type AS file_type,
+                   inspection_report_file_url AS file_url,
+                   'inspection_report' AS file_category,
+                   5 AS priority
+            FROM project_submission_deliverable
+            WHERE inspection_report_file_id = #{fileId} AND del_flag = '0'
+        ) files
+        ORDER BY priority
+        LIMIT 1
+    </select>
+
+</mapper>

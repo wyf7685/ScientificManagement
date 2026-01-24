@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.achievement.mapper.ProcessSubmissionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.achievement.domain.po.ProcessSubmission">
+        <id column="submission_id" property="submissionId" />
+        <result column="application_id" property="applicationId" />
+        <result column="submission_type" property="submissionType" />
+        <result column="submission_stage" property="submissionStage" />
+        <result column="submission_round" property="submissionRound" />
+        <result column="submission_version" property="submissionVersion" />
+        <result column="project_name" property="projectName" />
+        <result column="project_field" property="projectField" />
+        <result column="category_level" property="categoryLevel" />
+        <result column="category_specific" property="categorySpecific" />
+        <result column="research_period" property="researchPeriod" />
+        <result column="project_keywords" property="projectKeywords" />
+        <result column="project_description" property="projectDescription" />
+        <result column="expected_results" property="expectedResults" />
+        <result column="willing_adjust" property="willingAdjust" />
+        <result column="applicant_name" property="applicantName" />
+        <result column="id_card" property="idCard" />
+        <result column="education_degree" property="educationDegree" />
+        <result column="technical_title" property="technicalTitle" />
+        <result column="email" property="email" />
+        <result column="phone" property="phone" />
+        <result column="work_unit" property="workUnit" />
+        <result column="unit_address" property="unitAddress" />
+        <result column="representative_achievements" property="representativeAchievements" />
+        <result column="proposal_file_id" property="proposalFileId" />
+        <result column="proposal_file_name" property="proposalFileName" />
+        <result column="proposal_file_size" property="proposalFileSize" />
+        <result column="proposal_file_type" property="proposalFileType" />
+        <result column="proposal_file_url" property="proposalFileUrl" />
+        <result column="other_attachments_json" property="otherAttachmentsJson" />
+        <result column="uploader_id" property="uploaderId" />
+        <result column="uploader_name" property="uploaderName" />
+        <result column="upload_time" property="uploadTime" />
+        <result column="submission_description" property="submissionDescription" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="del_flag" property="delFlag" />
+        <result column="remark" property="remark" />
+        <result column="sync_time" property="syncTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        submission_id, application_id, submission_type, submission_stage, submission_round, submission_version,
+        project_name, project_field, category_level, category_specific, research_period, project_keywords,
+        project_description, expected_results, willing_adjust, applicant_name, id_card, education_degree,
+        technical_title, email, phone, work_unit, unit_address, representative_achievements,
+        proposal_file_id, proposal_file_name, proposal_file_size, proposal_file_type, proposal_file_url,
+        other_attachments_json, uploader_id, uploader_name, upload_time, submission_description,
+        create_by, create_time, update_by, update_time, del_flag, remark, sync_time
+    </sql>
+
+    <!-- 根据申报ID查询提交物列表 -->
+    <select id="selectByApplicationId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_submissions
+        WHERE application_id = #{applicationId}
+          AND del_flag = '0'
+        ORDER BY upload_time DESC
+    </select>
+
+    <!-- 根据申报ID和提交阶段查询提交物列表 -->
+    <select id="selectByApplicationIdAndStage" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_submissions
+        WHERE application_id = #{applicationId}
+          AND submission_stage = #{submissionStage}
+          AND del_flag = '0'
+        ORDER BY upload_time DESC
+    </select>
+
+    <!-- 根据时间范围查询提交物列表 -->
+    <select id="selectByTimeRange" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_submissions
+        WHERE upload_time BETWEEN #{startTime} AND #{endTime}
+          AND del_flag = '0'
+        ORDER BY upload_time DESC
+    </select>
+
+    <!-- 分页查询提交物列表 -->
+    <select id="selectPageByConditions" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_submissions
+        WHERE del_flag = '0'
+        <if test="applicationId != null">
+            AND application_id = #{applicationId}
+        </if>
+        <if test="submissionStage != null and submissionStage != ''">
+            AND submission_stage = #{submissionStage}
+        </if>
+        <if test="submissionType != null and submissionType != ''">
+            AND submission_type = #{submissionType}
+        </if>
+        <if test="projectName != null and projectName != ''">
+            AND project_name LIKE CONCAT('%', #{projectName}, '%')
+        </if>
+        <if test="applicantName != null and applicantName != ''">
+            AND applicant_name LIKE CONCAT('%', #{applicantName}, '%')
+        </if>
+        <if test="startTime != null">
+            AND upload_time >= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND upload_time &lt;= #{endTime}
+        </if>
+        ORDER BY upload_time DESC
+    </select>
+
+    <!-- 检查是否存在重复的提交物 -->
+    <select id="selectDuplicate" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_submissions
+        WHERE application_id = #{applicationId}
+          AND submission_type = #{submissionType}
+          AND submission_stage = #{submissionStage}
+          AND submission_round = #{submissionRound}
+          AND submission_version = #{submissionVersion}
+          AND del_flag = '0'
+        LIMIT 1
+    </select>
+
+    <!-- 获取最新版本号 -->
+    <select id="selectMaxVersion" resultType="java.lang.Integer">
+        SELECT COALESCE(MAX(submission_version), 0)
+        FROM process_submissions
+        WHERE application_id = #{applicationId}
+          AND submission_type = #{submissionType}
+          AND submission_stage = #{submissionStage}
+          AND submission_round = #{submissionRound}
+          AND del_flag = '0'
+    </select>
+
+    <!-- 统计提交物数量 -->
+    <select id="countByConditions" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM process_submissions
+        WHERE del_flag = '0'
+        <if test="applicationId != null">
+            AND application_id = #{applicationId}
+        </if>
+        <if test="submissionStage != null and submissionStage != ''">
+            AND submission_stage = #{submissionStage}
+        </if>
+        <if test="submissionType != null and submissionType != ''">
+            AND submission_type = #{submissionType}
+        </if>
+    </select>
+
+    <!-- 根据版本号查询提交物历史记录 -->
+    <select id="selectVersionHistory" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_submissions
+        WHERE application_id = #{applicationId}
+          AND submission_type = #{submissionType}
+          AND submission_stage = #{submissionStage}
+          AND submission_round = #{submissionRound}
+          AND del_flag = '0'
+        ORDER BY submission_version DESC, upload_time DESC
+    </select>
+
+    <!-- 根据轮次查询提交物历史记录 -->
+    <select id="selectRoundHistory" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_submissions
+        WHERE application_id = #{applicationId}
+          AND submission_type = #{submissionType}
+          AND submission_stage = #{submissionStage}
+          AND del_flag = '0'
+        ORDER BY submission_round DESC, submission_version DESC, upload_time DESC
+    </select>
+
+    <!-- 获取指定版本的提交物 -->
+    <select id="selectByVersion" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_submissions
+        WHERE application_id = #{applicationId}
+          AND submission_type = #{submissionType}
+          AND submission_stage = #{submissionStage}
+          AND submission_round = #{submissionRound}
+          AND submission_version = #{submissionVersion}
+          AND del_flag = '0'
+        LIMIT 1
+    </select>
+
+    <!-- 获取提交物的完整历史记录 -->
+    <select id="selectFullHistory" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_submissions
+        WHERE application_id = #{applicationId}
+          AND submission_type = #{submissionType}
+          AND submission_stage = #{submissionStage}
+          AND del_flag = '0'
+        ORDER BY submission_round DESC, submission_version DESC, upload_time DESC
+    </select>
+
+</mapper>

@@ -3,7 +3,8 @@ import type { InterimResult, ProjectTreeNode, InterimResultType, INTERIM_RESULT_
 /**
  * 格式化文件大小
  */
-export function formatFileSize(bytes: number): string {
+export function formatFileSize(bytes?: number): string {
+  if (bytes == null || Number.isNaN(bytes)) return '-'
   if (bytes === 0) return '0 B'
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB']
@@ -52,6 +53,9 @@ export function buildProjectTree(results: InterimResult[]): ProjectTreeNode[] {
   
   // 按年份和项目分组
   results.forEach(result => {
+    if (!result.submittedAt) {
+      return
+    }
     const year = result.submittedAt.substring(0, 4)
     
     if (!yearMap.has(year)) {
@@ -158,6 +162,4 @@ export function formatShortDate(dateTime?: string): string {
   
   return date + ' ' + dateTime.substring(11, 16)
 }
-
-
 

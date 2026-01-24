@@ -85,6 +85,7 @@ export function exportInterimResults(params?: {
   projectId?: string
   type?: string
   year?: string
+  keyword?: string
 }): Promise<Blob> {
   return request({
     url: '/interim-results/export',
@@ -93,6 +94,5 @@ export function exportInterimResults(params?: {
     responseType: 'blob'
   })
 }
-
 
 

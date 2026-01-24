@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.achievement.mapper.ProcessApiLogMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.achievement.domain.po.ProcessApiLog">
+        <id column="id" property="id" />
+        <result column="request_id" property="requestId" />
+        <result column="api_key" property="apiKey" />
+        <result column="method" property="method" />
+        <result column="url" property="url" />
+        <result column="request_body" property="requestBody" />
+        <result column="response_code" property="responseCode" />
+        <result column="response_body" property="responseBody" />
+        <result column="response_time" property="responseTime" />
+        <result column="client_ip" property="clientIp" />
+        <result column="user_agent" property="userAgent" />
+        <result column="request_headers" property="requestHeaders" />
+        <result column="response_headers" property="responseHeaders" />
+        <result column="error_message" property="errorMessage" />
+        <result column="operation_type" property="operationType" />
+        <result column="operation_result" property="operationResult" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, request_id, api_key, method, url, request_body, response_code, response_body,
+        response_time, client_ip, user_agent, request_headers, response_headers,
+        error_message, operation_type, operation_result, created_at
+    </sql>
+
+    <!-- 分页查询API日志 -->
+    <select id="selectPageByConditions" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_api_logs
+        WHERE 1=1
+        <if test="apiKey != null and apiKey != ''">
+            AND api_key = #{apiKey}
+        </if>
+        <if test="method != null and method != ''">
+            AND method = #{method}
+        </if>
+        <if test="responseCode != null">
+            AND response_code = #{responseCode}
+        </if>
+        <if test="operationType != null and operationType != ''">
+            AND operation_type = #{operationType}
+        </if>
+        <if test="operationResult != null and operationResult != ''">
+            AND operation_result = #{operationResult}
+        </if>
+        <if test="startTime != null">
+            AND created_at >= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND created_at &lt;= #{endTime}
+        </if>
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 根据API密钥统计请求次数 -->
+    <select id="countByApiKey" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM process_api_logs
+        WHERE api_key = #{apiKey}
+        <if test="startTime != null">
+            AND created_at >= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND created_at &lt;= #{endTime}
+        </if>
+    </select>
+
+    <!-- 查询最近的错误日志 -->
+    <select id="selectRecentErrors" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_api_logs
+        WHERE response_code >= 400
+        ORDER BY created_at DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 统计响应时间分布 -->
+    <select id="selectResponseTimeStats" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM process_api_logs
+        WHERE 1=1
+        <if test="startTime != null">
+            AND created_at >= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND created_at &lt;= #{endTime}
+        </if>
+        ORDER BY response_time DESC
+    </select>
+
+</mapper>
