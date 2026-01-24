@@ -179,14 +179,16 @@
         AND m.published_at IS NOT NULL
 
         <!-- 只查 ALL 可见 -->
-        AND m.visibility_range = 'ALL'
+        AND m.visibility_range = 'public_abstract'
         <!-- 个人成果物：强制按创建者过滤
         AND m.created_by_id = #{dto.creatorId}-->
         <!-- 成果物类型筛选 -->
         <if test="dto.typeId != null">
             AND mt.achievement_type_id = #{dto.typeId}
         </if>
-
+        <if test="dto.typeCode != null and dto.typeCode != ''">
+            AND t.type_code = #{dto.typeCode}
+        </if>
         <!-- 成果物年份范围：一年/三年/五年/全部 -->
         <choose>
             <when test="dto.recentRange != null and dto.recentRange != '' and (dto.recentRange == '一年' or dto.recentRange == '1年')">
