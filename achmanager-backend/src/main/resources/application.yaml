@@ -27,7 +27,7 @@ mybatis:
     map-underscore-to-camel-case:   true
 strapi:
   base-url: http://localhost:1337
-  api-token: 24aaefdaae2382f394e174ac78889bb53c9c44a0f14905a58955bcee27b297aad320b1b4c078e6a4c1d673ae5b98f6cb8c39c21216765088edf8872bff74dad144840fa04a1ff30f3e6f21b930daee6acda9d77732c4e7cc6ab8e77ad5f61e6727cd91554e4350083663533817d5697be937a95ce5460f8f85b147bee81a9310
+  api-token: 140fb444f1c680dea24a3d139cd6a850832f2bca4952365342bdb3668d3730ac6dc08def580fe42016af28db25c18a73c8c39cfeef6abb5f6d26da332d25e72c53eaf2ec8cf594d92d38c4ffe39e6407968d3fe3197eb72a4a38e8b00e60ad7b3bf702eb1dffd05129fae21d00395f0f39aed46620cf9904e05a09e9441ba70e
 
 easyscholar:
   base-url: https://www.easyscholar.cc/open/getPublicationRank
