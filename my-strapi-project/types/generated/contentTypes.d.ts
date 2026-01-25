@@ -644,6 +644,7 @@ export interface ApiAchievementMainAchievementMain
       'api::achievement-type.achievement-type'
     >;
     authors: Schema.Attribute.JSON;
+    created_by_user_id: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

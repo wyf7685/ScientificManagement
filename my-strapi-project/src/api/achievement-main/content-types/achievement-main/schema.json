@@ -78,6 +78,9 @@
       "relation": "oneToMany",
       "target": "api::achievement-file.achievement-file",
       "mappedBy": "achievement_main_id"
+    },
+    "created_by_user_id": {
+      "type": "string"
     }
   }
 }
