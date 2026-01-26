@@ -21,10 +21,11 @@
         </el-form-item>
         <el-form-item label="年份范围">
           <el-select v-model="filters.year" placeholder="全部" style="width: 120px">
+            <el-option label="全部" value="all" />
             <el-option label="近1年" value="1y" />
             <el-option label="近3年" value="3y" />
             <el-option label="近5年" value="5y" />
-            <el-option label="全部" value="all" />
+            
           </el-select>
         </el-form-item>
         <el-form-item label="排序方式">
@@ -104,7 +105,7 @@ const resultList = ref<any[]>([])
 // 筛选条件
 const filters = reactive({
   type: '',
-  year: '1y',
+  year: 'all',
   sortBy: 'latest'
 })
 

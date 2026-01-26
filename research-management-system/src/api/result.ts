@@ -66,11 +66,18 @@ function mapListItem(item: any) {
     id: item.documentId || item.id,
     status: mapStatus(item.auditStatus || item.status),
     type: item.typeName || item.type,
-    authors: item.authorName ? [item.authorName] : item.creatorName ? [item.creatorName] : [],
+
+    // ZZQ改 : 关键：优先使用后端的 authors 数组
+    authors: Array.isArray(item.authors)
+      ? item.authors
+      : (item.authorName ? [item.authorName] : item.creatorName ? [item.creatorName] : []),
+
     visibility: item.visibilityRange || item.visibility,
     createdBy: item.createdBy || item.creatorName
   }
+  // ZZQ改
 }
+
 
 function mapReviewHistoryItem(item: any) {
   return {
@@ -139,7 +146,15 @@ function buildAchListPayload(params?: QueryParams, useTypeCode = false, onlyUnas
     projectId: params?.projectId,
     onlyUnassigned
   }
-  
+
+  // ZZQ改 ：✅ 追加：年份范围（页面传的是 yearRange: [start,end]）
+  const yr: any = (params as any)?.yearRange
+  if (Array.isArray(yr) && yr.length === 2) {
+    payload.yearStart = String(yr[0] ?? '')
+    payload.yearEnd = String(yr[1] ?? '')
+  }
+  // ZZQ改 
+
   // 根据useTypeCode参数决定使用typeCode还是typeId
   if (useTypeCode) {
     payload.typeCode = params?.typeId ?? params?.type

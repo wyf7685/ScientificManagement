@@ -18,8 +18,12 @@ public class AchListDTO2 {
     private Integer typeId;
     @Schema(description = "按成果物类型Code搜索")
     private String typeCode;
-    @Schema(description = "按成果物最近范围搜索")
-    private String recentRange; //一年/三年/五年/全部
+    /*@Schema(description = "按成果物最近范围搜索")
+    private String recentRange; //一年/三年/五年/全部*/
+    @Schema(description = "成果物范围起始时间")
+    private String yearStart;
+    @Schema(description = "成果物范围结束时间")
+    private String yearEnd;
     /// TODO 目前缺少用户ID
     private Integer creatorId;
     /** 可见范围（后面你加字段再用） */
