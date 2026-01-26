@@ -31,7 +31,6 @@ public class UserStatController {
         Integer userId = businessUser.getId();
         UserStatVo statVo = mainsService.countByUserId(userId);
         return Result.success(statVo);
-
     }
     /*//统计某用户的某类别成果物数量
     @Operation(description = "统计某用户创建的某类别成果物数量")

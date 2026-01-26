@@ -5,10 +5,7 @@ import com.achievement.domain.dto.AchListDTO;
 import com.achievement.domain.dto.AchListDTO2;
 import com.achievement.domain.dto.AchMainBaseRow;
 import com.achievement.domain.po.AchievementMains;
-import com.achievement.domain.vo.AchListVO;
-import com.achievement.domain.vo.ReviewBacklogVO;
-import com.achievement.domain.vo.ReviewHistoryVO;
-import com.achievement.domain.vo.TypeCountVO;
+import com.achievement.domain.vo.*;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Param;
@@ -74,4 +71,7 @@ public interface AchievementMainsMapper extends BaseMapper<AchievementMains> {
      * 分页查询审核历史列表
      */
     Page<ReviewHistoryVO> pageReviewHistory(Page<?> page, @Param("reviewerId") Integer reviewerId);
+
+    List<YearTrendItem> countYearlyTrendByUser(@Param("userId") Integer userId, @Param("fromYear") Integer fromYear,
+                                               @Param("toYear") Integer toYear);
 }

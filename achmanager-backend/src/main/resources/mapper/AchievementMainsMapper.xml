@@ -323,6 +323,34 @@
           AND UPPER(t.type_code) LIKE CONCAT('%', UPPER(#{typeCode}), '%')
 
     </select>
+    <select id="countYearlyTrendByUser" resultType="com.achievement.domain.vo.YearTrendItem">
+
+        <!--这里暂不确定取决的是created_at 还是year
+        SELECT
+            YEAR(created_at) AS year,
+
+            COUNT(1) AS count
+        FROM achievement_mains
+        WHERE created_by_user_id = #{userId}
+          AND (is_delete IS NULL OR is_delete = 0)
+          AND created_at IS NOT NULL
+          AND YEAR(created_at) <![CDATA[>=]]> #{fromYear}
+          AND YEAR(created_at) <![CDATA[<=]]> #{toYear}
+        GROUP BY YEAR(created_at)
+        ORDER BY YEAR(created_at)
+        -->
+        SELECT
+        `year` AS year,
+        COUNT(1) AS count
+        FROM achievement_mains
+        WHERE created_by_user_id = #{userId}
+        AND (is_delete IS NULL OR is_delete = 0)
+        AND `year` IS NOT NULL
+        AND `year` <![CDATA[>=]]> #{fromYear}
+        AND `year` <![CDATA[<=]]> #{toYear}
+        GROUP BY `year`
+        ORDER BY `year`
+    </select>
 
 </mapper>
 

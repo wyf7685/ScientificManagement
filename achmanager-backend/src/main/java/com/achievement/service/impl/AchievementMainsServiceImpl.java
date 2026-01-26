@@ -9,10 +9,7 @@ import com.achievement.domain.dto.AchMainBaseRow;
 import com.achievement.domain.po.AchievementMains;
 import com.achievement.domain.po.AchievementTypes;
 import com.achievement.domain.po.BusinessUser;
-import com.achievement.domain.vo.AchDetailVO;
-import com.achievement.domain.vo.AchFieldVO;
-import com.achievement.domain.vo.AchListVO;
-import com.achievement.domain.vo.UserStatVo;
+import com.achievement.domain.vo.*;
 import com.achievement.mapper.AchievementMainsMapper;
 import com.achievement.service.IAchievementMainsService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -24,10 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.achievement.constant.AchievementStatusConstant.APPROVED;
 
@@ -210,12 +204,35 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
         Integer monthNew = mainsMapper.countMonthNewByUser(userId, start, end);
         Integer paperCount = mainsMapper.countByTypeCodeForUser(userId, "paper");
         Integer patentCount = mainsMapper.countByTypeCodeForUser(userId, "patent");
+        // ===== 近年趋势：默认近 5 年（含今年）=====
+        int years = 5;
+        int fromYear = now.getYear() - (years - 1);
+        int toYear = now.getYear();
+
+        // 一次性查出这几年每年的数量（可能缺年）
+        List<YearTrendItem> dbTrend = mainsMapper.countYearlyTrendByUser(userId, fromYear, toYear);
+
+        // 补齐缺失年份（保证前端 xAxis 连续）
+        Map<Integer, Integer> year2count = new HashMap<>();
+        if (dbTrend != null) {
+            for (YearTrendItem it : dbTrend) {
+                year2count.put(it.getYear(), it.getCount() == null ? 0 : it.getCount());
+            }
+        }
+        List<YearTrendItem> fullTrend = new ArrayList<>();
+        for (int y = fromYear; y <= toYear; y++) {
+            YearTrendItem item = new YearTrendItem();
+            item.setYear(y);
+            item.setCount(year2count.getOrDefault(y, 0));
+            fullTrend.add(item);
+        }
 
         UserStatVo vo = new UserStatVo();
         vo.setTotalResults(total == null ? 0 : total);
         vo.setMonthlyNew(monthNew == null ? 0 : monthNew);
         vo.setPaperCount(paperCount == null ? 0 : paperCount);
         vo.setPatentCount(patentCount == null ? 0 : patentCount);
+        vo.setYearlyTrend(fullTrend);
         return vo;
     }
 
