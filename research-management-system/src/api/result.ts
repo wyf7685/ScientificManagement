@@ -124,7 +124,7 @@ function mapDetailItem(item: any) {
     projectName: item.projectName,
     metadata,
     attachments,
-    visibility: item.visibilityRange || item.visibility || 'internal_abstract'
+    visibility: item.visibilityRange || item.visibility || 'private'
   }
 }
 
