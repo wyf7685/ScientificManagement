@@ -136,7 +136,7 @@ import { ElMessage } from 'element-plus'
 import dayjs from 'dayjs'
 import { InfoFilled, Search as SearchIcon, RefreshRight as RefreshIcon, Download as DownloadIcon } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
-import { getVisibleResults, exportResults } from '@/api/result'
+import { getVisibleResults, getResults, getMyResults, exportResults } from '@/api/result'
 import { getProjects } from '@/api/project'
 
 const router = useRouter()
@@ -171,11 +171,17 @@ onMounted(() => {
 async function handleSearch() {
   loading.value = true
   try {
-    const res = await getVisibleResults({
+    const params = {
       ...getSearchParams(),
       page: pagination.page,
       pageSize: pagination.pageSize
-    })
+    }
+    
+    // 管理员使用管理员接口，普通用户使用用户端检索接口
+    const res = userStore.isAdmin 
+      ? await getResults(params, true)
+      : await getMyResults(params, true)
+
     const { data } = res || {}
     tableData.value = data?.list || []
     pagination.total = data?.total || 0

@@ -39,7 +39,11 @@ public class ProcessSystemValidationService {
     
     // 支持的提交物类型
     private static final List<String> SUPPORTED_SUBMISSION_TYPES = List.of(
-        "proposal", "application_attachment"
+        "proposal",              // 申报书
+        "application_attachment", // 申报附件
+        "contract_template",      // 合同模板
+        "signed_contract",        // 已签署合同
+        "deliverable_report"      // 成果物报告（包含验收材料）
     );
     
     // 支持的提交阶段

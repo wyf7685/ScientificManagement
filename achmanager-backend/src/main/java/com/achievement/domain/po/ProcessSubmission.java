@@ -37,7 +37,7 @@ public class ProcessSubmission implements Serializable {
     @TableField("application_id")
     private Long applicationId;
 
-    @Schema(description = "提交物类型 - proposal/application_attachment")
+    @Schema(description = "提交物类型 - proposal(申报书)/application_attachment(申报附件)/contract_template(合同模板)/signed_contract(已签署合同)/deliverable_report(成果物报告)")
     @TableField("submission_type")
     private String submissionType;
 

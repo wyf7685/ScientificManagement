@@ -199,10 +199,8 @@
             </el-form-item>
             <el-form-item label="可见范围" required>
               <el-radio-group v-model="formData.visibility">
-                <el-radio label="private">私有（仅自己）</el-radio>
-                <el-radio label="internal_abstract">机构内摘要可见</el-radio>
-                <el-radio label="internal_full">机构内全文可见</el-radio>
-                <el-radio label="public_abstract">公开摘要</el-radio>
+                <el-radio label="private">私有</el-radio>
+                <el-radio label="public">公开</el-radio>
               </el-radio-group>
             </el-form-item>
           </el-form>
@@ -288,7 +286,7 @@ const formData = reactive({
   year: new Date().getFullYear().toString(),
   abstract: '',
   keywords: [],
-  visibility: ResultVisibility.INTERNAL_ABSTRACT,
+  visibility: ResultVisibility.PRIVATE,
   metadata: {},
   attachments: []
 })
@@ -395,7 +393,7 @@ async function loadDetail() {
     formData.year = detail.year?.toString() || new Date().getFullYear().toString()
     formData.abstract = detail.abstract || ''
     formData.keywords = detail.keywords || []
-    formData.visibility = detail.visibility || ResultVisibility.INTERNAL_ABSTRACT
+    formData.visibility = detail.visibility || ResultVisibility.PRIVATE
     formData.metadata = { ...(detail.metadata || {}) }
     formData.attachments = detail.attachments || []
 
@@ -625,11 +623,8 @@ function canRequestJournalRank() {
 }
 
 const VISIBILITY_TEXT = {
-  [ResultVisibility.PRIVATE]: '私有（仅自己）',
-  [ResultVisibility.INTERNAL_ABSTRACT]: '机构内摘要可见',
-  [ResultVisibility.INTERNAL_FULL]: '机构内全文可见',
-  [ResultVisibility.PUBLIC_ABSTRACT]: '公开摘要',
-  [ResultVisibility.PUBLIC_FULL]: '公开全文'
+  [ResultVisibility.PRIVATE]: '私有',
+  [ResultVisibility.PUBLIC]: '公开'
 }
 
 function getVisibilityText(visibility) {

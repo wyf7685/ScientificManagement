@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/strapi?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
-    password: 123456
+    password: Wjh0921@
     driver-class-name: com.mysql.cj.jdbc.Driver
   servlet:
     multipart:
@@ -24,7 +24,54 @@ spring:
           max-wait: 1000ms
 mybatis:
   configuration:
-    map-underscore-to-camel-case:   true
+    map-underscore-to-camel-case: true
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      logic-delete-field: delFlag
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# 过程系统集成配置
+process-system:
+  api:
+    keys:
+      # 示例API密钥配置，实际使用时应该从环境变量或配置文件中读取
+      process-system-key-001: "过程管理系统"
+      process-system-key-002: "测试系统"
+    signature-secret: ${PROCESS_SYSTEM_SIGNATURE_SECRET:default-process-signature-secret}
+    version: v1
+    base-path: /api/v1/process-system
+  file-storage:
+    base-path: ${PROCESS_SYSTEM_FILE_BASE_PATH:./data/process-system/files}
+    proposal-path: proposals
+    attachment-path: attachments
+    allowed-types:
+      - pdf
+      - doc
+      - docx
+      - xls
+      - xlsx
+      - txt
+      - zip
+      - rar
+    max-file-size: 104857600  # 100MB
+    url-prefix: /process-system/files
+  security:
+    rate-limit-per-minute: 100
+    signature-validity-seconds: 300
+    enable-ip-whitelist: false
+    ip-whitelist:
+      - 127.0.0.1
+      - localhost
+
+logging:
+  level:
+    com.achievement.filter.ProcessSystemApiKeyFilter: DEBUG
+    com.achievement.config: INFO
 strapi:
   base-url: http://localhost:1337
   api-token: 140fb444f1c680dea24a3d139cd6a850832f2bca4952365342bdb3668d3730ac6dc08def580fe42016af28db25c18a73c8c39cfeef6abb5f6d26da332d25e72c53eaf2ec8cf594d92d38c4ffe39e6407968d3fe3197eb72a4a38e8b00e60ad7b3bf702eb1dffd05129fae21d00395f0f39aed46620cf9904e05a09e9441ba70e

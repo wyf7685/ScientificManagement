@@ -14,6 +14,9 @@
  Date: 25/01/2026 00:32:19
 */
 
+CREATE DATABASE IF NOT EXISTS `strapi` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `strapi`;
+
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 

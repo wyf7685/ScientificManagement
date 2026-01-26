@@ -65,7 +65,7 @@ public class ProcessSubmissionFile implements Serializable {
     @TableField("file_url")
     private String fileUrl;
 
-    @Schema(description = "文件分类 - proposal/attachment")
+    @Schema(description = "文件分类 - proposal(申报书)/attachment(附件)/contract_template(合同模板)/signed_contract(已签署合同)/deliverable(成果物)/inspection_report(验收报告)")
     @TableField("file_category")
     private String fileCategory;
 

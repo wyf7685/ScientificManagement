@@ -124,7 +124,7 @@ function mapDetailItem(item: any) {
     projectName: item.projectName,
     metadata,
     attachments,
-    visibility: item.visibilityRange || item.visibility || 'internal_abstract'
+    visibility: item.visibilityRange || item.visibility || 'private'
   }
 }
 
@@ -203,11 +203,11 @@ export function getMyStatistics(): Promise<ApiResponse<StatisticsData>> {
 }
 
 // 获取成果列表（管理员口径）
-export async function getResults(params?: QueryParams): Promise<StrapiPaginatedResponse<any>> {
+export async function getResults(params?: QueryParams, useTypeCode = false): Promise<StrapiPaginatedResponse<any>> {
   const res = await request({
     url: '/admin/achievement/pageList',
     method: 'post',
-    data: buildAchListPayload(params)
+    data: buildAchListPayload(params, useTypeCode)
   })
   return normalizePageResult(res, mapListItem)
 }
@@ -232,12 +232,12 @@ export function exportResults(params?: QueryParams): Promise<Blob> {
   })
 }
 
-// 获取我的成果列表
-export async function getMyResults(params?: QueryParams): Promise<StrapiPaginatedResponse<any>> {
+// 获取我的成果列表（也可用于用户端通用检索）
+export async function getMyResults(params?: QueryParams, useTypeCode = false): Promise<StrapiPaginatedResponse<any>> {
   const res = await request({
     url: '/user/achievement/pageList',
     method: 'post',
-    data: buildAchListPayload(params)
+    data: buildAchListPayload(params, useTypeCode)
   })
   return normalizePageResult(res, mapListItem)
 }
