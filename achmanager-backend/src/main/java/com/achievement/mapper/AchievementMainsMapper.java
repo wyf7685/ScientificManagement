@@ -74,4 +74,11 @@ public interface AchievementMainsMapper extends BaseMapper<AchievementMains> {
 
     List<YearTrendItem> countYearlyTrendByUser(@Param("userId") Integer userId, @Param("fromYear") Integer fromYear,
                                                @Param("toYear") Integer toYear);
+
+    List<TypeYearTrendRow> countTypeYearTrend(
+            @Param("fromYear") Integer fromYear,
+            @Param("toYear") Integer toYear
+    );
+
+    Page<AchListVO> pageList4admin(Page<?> page, @Param("dto")AchListDTO2 achListDTO);
 }

@@ -95,13 +95,14 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { getVisibleResults } from '@/api/result'
+import { getVisibleResults, getVisibleResults4Admin } from '@/api/result.ts'
+import { useUserStore } from '@/stores/user' 
 import ResultCard from './components/ResultCard.vue'
 
 const router = useRouter()
 const loading = ref(false)
 const resultList = ref<any[]>([])
-
+const userStore = useUserStore()
 // 筛选条件
 const filters = reactive({
   type: '',
@@ -117,17 +118,21 @@ const pagination = reactive({
 })
 
 onMounted(() => {
+  userStore.initUserInfo()
   loadResults()
 })
 
 async function loadResults() {
   loading.value = true
   try {
-    const res = await getVisibleResults({
+    const api = userStore.isAdmin ? getVisibleResults4Admin : getVisibleResults
+
+    const res = await api({
       ...buildQueryParams(),
       page: pagination.page,
       pageSize: pagination.pageSize
     })
+
     const { data } = res || {}
     resultList.value = data?.list || (Array.isArray(data) ? data : [])
     pagination.total = data?.total || resultList.value.length
@@ -138,6 +143,7 @@ async function loadResults() {
     loading.value = false
   }
 }
+
 
 function handleSearch() {
   pagination.page = 1

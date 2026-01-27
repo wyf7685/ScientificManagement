@@ -2,11 +2,9 @@ package com.achievement.service;
 
 import com.achievement.domain.dto.AchListDTO;
 import com.achievement.domain.dto.AchListDTO2;
+import com.achievement.domain.dto.TrendQueryDTO;
 import com.achievement.domain.po.AchievementMains;
-import com.achievement.domain.vo.AchDetailVO;
-import com.achievement.domain.vo.AchList2VO;
-import com.achievement.domain.vo.AchListVO;
-import com.achievement.domain.vo.UserStatVo;
+import com.achievement.domain.vo.*;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -41,4 +39,8 @@ public interface IAchievementMainsService extends IService<AchievementMains> {
     Page<AchListVO> pageList4Visibility(AchListDTO2 achListDTO);
 
     UserStatVo countstatistics();
+
+    TypeYearTrendVo typeYearTrend(TrendQueryDTO trendQueryDTO);
+
+    Page<AchListVO> pageList4Admin(AchListDTO2 achListDTO);
 }

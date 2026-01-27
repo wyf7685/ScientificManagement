@@ -141,7 +141,10 @@ function buildAchListPayload(params?: QueryParams, useTypeCode = false, onlyUnas
   const payload: any = {
     pageNum: params?.page,
     pageSize: params?.pageSize,
-    mainTitle: params?.keyword,
+    // 成果名称
+    title: params?.title,
+    // 关键词
+    keyword: params?.keyword,
     status,
     projectId: params?.projectId,
     onlyUnassigned,
@@ -238,7 +241,15 @@ export async function getVisibleResults(params?: QueryParams): Promise<StrapiPag
   })
   return normalizePageResult(res, mapListItem)
 }
-
+// 获取成果列表（管理员口径，包含所有可见成果）
+export async function getVisibleResults4Admin(params?: QueryParams): Promise<StrapiPaginatedResponse<any>> {
+  const res = await request({
+    url: '/admin/achievement/pageListAllVisible',
+    method: 'post',
+    data: buildAchListPayload(params, true) // 使用typeCode
+  })
+  return normalizePageResult(res, mapListItem)
+}
 // 导出成果列表
 export function exportResults(params?: QueryParams): Promise<Blob> {
   return request({
@@ -262,12 +273,15 @@ export async function getMyResults(params?: QueryParams, useTypeCode = false): P
 // 获取成果详情
 export async function getResult(id: string): Promise<StrapiSingleResponse<any>> {
   const res = await request({
-    url: '/user/achievement/detail',
+    url: '/user/achievement/detail', // ✅ 详情页统一走这个
     method: 'get',
     params: { achDocId: id }
   })
   return { data: mapDetailItem(res?.data || {}) }
 }
+
+
+
 
 // 申请查看成果全文
 export function requestResultAccess(id: string, data: Record<string, any>): Promise<ApiResponse<any>> {

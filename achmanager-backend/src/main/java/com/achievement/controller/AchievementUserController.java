@@ -48,7 +48,7 @@ public class AchievementUserController {
     /* 用户分页查询个人成果物列表
     *
     * */
-    @Operation(description = "用户分页查询自己成果物列表接口")
+    @Operation(description = "用户分页查询成果物列表接口")
     @PostMapping("/pageList")
     public Result<Page<AchListVO>> pageList(@RequestBody AchListDTO achListDTO, @CurrentUser BusinessUser businessUser){
         if (businessUser == null) {
@@ -123,6 +123,7 @@ public class AchievementUserController {
     @Operation(description = "用户成果物详情接口")
     @GetMapping("/detail")
     public Result <AchDetailVO> detail(@RequestParam String achDocId){
+        log.info("用户查询成果物详情，achDocId={}", achDocId);
         return Result.success(achievementMainsService.selectDetail(achDocId));
     }
 }

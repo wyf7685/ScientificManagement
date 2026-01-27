@@ -14,6 +14,7 @@ public class AchListVO {
     private String creatorName;    // 创建者用户名称
     private String year; // 成果物年份
     private List<String> authors;     // 成果物作者（若与创建者不同，按你的表字段映射）
+    private List<String> keywords;    // 成果物关键词
     private String projectName;    // 所属项目名称
     private String summary;        // 成果物概要
     private LocalDateTime createdAt; //创建时间

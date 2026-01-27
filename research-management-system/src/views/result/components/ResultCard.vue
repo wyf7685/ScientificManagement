@@ -4,6 +4,9 @@
       <div class="type-icon" :style="{ background: typeColor }">
         <component :is="typeIcon" class="icon" />
       </div>
+      <el-tag :type="statusTagType" size="small" class="status-tag">
+      {{ statusLabel }}
+    </el-tag>
       <el-tag :type="typeTagType" size="small" class="type-tag">
         {{ typeLabel }}
       </el-tag>
@@ -55,6 +58,7 @@ interface Props {
     title: string
     type: string
     authors: string[]
+    status: string
     createdAt: string
     viewCount?: number
   }
@@ -84,6 +88,28 @@ const typeConfig: Record<string, any> = {
     tagType: 'success'
   }
 }
+//审核状态标签
+const statusLabel = computed(() => {
+  const s = (props.result.status || '').toLowerCase()
+  const map: Record<string, string> = {
+    pending: '待审核',
+    reviewing: '审核中',
+    published: '已通过',
+    rejected: '已驳回',
+    revision: '需修改'
+  }
+  return map[s] || (props.result.status ? props.result.status : '未知状态')
+})
+
+const statusTagType = computed(() => {
+  const s = (props.result.status || '').toLowerCase()
+  if (s === 'published') return 'success'
+  if (s === 'reviewing') return 'warning'
+  if (s === 'pending') return 'info'
+  if (s === 'rejected') return 'danger'
+  if (s === 'revision') return 'warning'
+  return 'info'
+})
 
 const typeLabel = computed(() => {
   return typeConfig[props.result.type]?.label || '其他'
@@ -129,6 +155,12 @@ function handleClick() {
 </script>
 
 <style scoped>
+.header-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .result-card {
   background: #fff;
   border-radius: 8px;

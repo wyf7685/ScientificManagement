@@ -19,11 +19,12 @@ public class AchListDTO {
     private Integer pageSize = 10;
     @Schema(description = "按成果物关键词模糊搜索")
     /** 按成果物关键词模糊搜索 */
-    private String mainTitle;
+    private String keyword;
     @Schema(description = "按成果物摘类型搜索")
     /** 成果物类型ID（achievement_types.id） */
     private Integer typeId;
-
+    @Schema(description = "按成果物名称搜索")
+    private String title;
     @Schema(description = "按成果物类型名称搜索")
     private String typeCode;
     @Schema(description = "按成果物审核状态搜索")
@@ -41,4 +42,8 @@ public class AchListDTO {
     @Schema(description = "是否只查询未分配审核人的成果（用于审核分配场景）")
     /** 是否只查询未分配审核人的成果 */
     private Boolean onlyUnassigned;
+    @Schema(description = "成果物范围起始时间")
+    private String yearStart;
+    @Schema(description = "成果物范围结束时间")
+    private String yearEnd;
 }

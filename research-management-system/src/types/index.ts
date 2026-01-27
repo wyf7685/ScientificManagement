@@ -10,6 +10,7 @@ export const UserRole = {
 export type UserRole = typeof UserRole[keyof typeof UserRole]
 
 export const ResultStatus = {
+  ALL: 'all',
   DRAFT: 'draft',
   PENDING: 'pending',
   REVIEWING: 'reviewing',

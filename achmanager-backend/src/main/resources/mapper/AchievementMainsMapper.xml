@@ -10,7 +10,8 @@
         <result column="auditStatus" property="auditStatus"/>
         <result column="creatorName" property="creatorName"/>
         <result column="year" property="year"/>
-
+        <result column="keywords" property="keywords"
+                typeHandler="com.achievement.utils.JsonStringListTypeHandler"/>
         <!-- 关键：authors 用 JSON List TypeHandler -->
         <result column="authors" property="authors"
                 typeHandler="com.achievement.utils.JsonStringListTypeHandler"/>
@@ -29,6 +30,7 @@
         m.title              AS title,
         t.type_name          AS typeName,
         m.achievement_status AS auditStatus,
+        m.keywords         AS mainTitle,
         m.authors          AS authors,
         m.year              AS year,
         m.project_name       AS projectName,
@@ -56,11 +58,9 @@
 
         <!-- 个人成果物：强制按创建者过滤
         AND m.created_by_id = #{dto.creatorId}-->
-
-        <if test="dto.mainTitle != null and dto.mainTitle != ''">
-            AND m.title LIKE CONCAT('%', #{dto.mainTitle}, '%')
+        <if test="dto.title!=null and dto.title !=''">
+            AND m.title LIKE CONCAT('%', #{dto.title}, '%')
         </if>
-
         <if test="dto.status != null and dto.status != ''">
             AND m.achievement_status = #{dto.status}
         </if>
@@ -82,12 +82,32 @@
             OR JSON_SEARCH(m.authors, 'all', CONCAT('%', TRIM(#{dto.author}), '%')) IS NOT NULL
             )
         </if>
-
-
+        <if test="dto.keyword != null and dto.keyword.trim() != ''">
+            AND (
+            JSON_SEARCH(m.keywords, 'one', CONCAT('%', TRIM(#{dto.keyword}), '%')) IS NOT NULL
+            OR JSON_SEARCH(m.keywords, 'all', CONCAT('%', TRIM(#{dto.keyword}), '%')) IS NOT NULL
+            )
+        </if>
         <if test="dto.visibilityRange != null and dto.visibilityRange != ''">
             AND m.visibility_range = #{dto.visibilityRange}
         </if>
+        <!-- 成果物年份范围：按 m.year（String）字段，区间 [yearStart, yearEnd] -->
+        <if test="dto.yearStart != null and dto.yearStart != '' and dto.yearEnd != null and dto.yearEnd != ''">
+            AND m.`year` IS NOT NULL
+            AND CAST(m.`year` AS UNSIGNED) <![CDATA[ >= ]]> CAST(#{dto.yearStart} AS UNSIGNED)
+            AND CAST(m.`year` AS UNSIGNED) <![CDATA[ <= ]]> CAST(#{dto.yearEnd} AS UNSIGNED)
+        </if>
 
+        <!-- 可选：只传 start 或只传 end 时也能用 -->
+        <if test="(dto.yearStart != null and dto.yearStart != '') and (dto.yearEnd == null or dto.yearEnd == '')">
+            AND m.`year` IS NOT NULL
+            AND CAST(m.`year` AS UNSIGNED) <![CDATA[ >= ]]> CAST(#{dto.yearStart} AS UNSIGNED)
+        </if>
+
+        <if test="(dto.yearEnd != null and dto.yearEnd != '') and (dto.yearStart == null or dto.yearStart == '')">
+            AND m.`year` IS NOT NULL
+            AND CAST(m.`year` AS UNSIGNED) <![CDATA[ <= ]]> CAST(#{dto.yearEnd} AS UNSIGNED)
+        </if>
         ORDER BY m.created_at DESC
     </select>
 
@@ -380,6 +400,87 @@
         GROUP BY `year`
         ORDER BY `year`
     </select>
+    <select id="countTypeYearTrend" resultType="com.achievement.domain.vo.TypeYearTrendRow">
+        SELECT
+        CAST(m.year AS UNSIGNED) AS year,
+        COALESCE(t.type_code, 'UNKNOWN') AS typeCode,
+        COALESCE(t.type_name, t.type_code, '未知类型') AS typeName,
+        COUNT(DISTINCT m.id) AS totalCount,
+        COUNT(DISTINCT CASE WHEN m.achievement_status = 'APPROVED' THEN m.id END) AS approvedCount
+        FROM achievement_mains m
+        LEFT JOIN achievement_mains_achievement_type_id_lnk l
+        ON l.achievement_main_id = m.id
+        LEFT JOIN achievement_types t
+        ON t.id = l.achievement_type_id
+        AND (t.is_delete IS NULL OR t.is_delete = 0)
+        WHERE (m.is_delete IS NULL OR m.is_delete = 0)
+        AND m.`year` IS NOT NULL
+        AND m.`year` != ''
+        AND CAST(m.`year` AS UNSIGNED) <![CDATA[>=]]> #{fromYear}
+        AND CAST(m.`year` AS UNSIGNED) <![CDATA[<=]]> #{toYear}
+        AND m.achievement_status != 'DRAFT'
+        GROUP BY CAST(m.`year` AS UNSIGNED), t.type_code, t.type_name
+        ORDER BY CAST(m.`year` AS UNSIGNED), t.type_code
+    </select>
+    <select id="pageList4admin" resultMap="AchListVOMap">
+            SELECT
+            m.document_id                 AS documentId,
+            m.title              AS title,
+            t.type_name          AS typeName,
+            m.achievement_status AS auditStatus,
+            m.authors          AS authors,
+            /*,
+            p.project_name       AS projectName,*/
+            m.summary            AS summary,
+            m.created_at         AS createdAt,
+            m.visibility_range      AS visibilityRange
+            FROM achievement_mains m
+
+            LEFT JOIN achievement_mains_achievement_type_id_lnk mt
+            ON mt.achievement_main_id = m.id
+            LEFT JOIN achievement_types t
+            ON t.id = mt.achievement_type_id
+
+            /*LEFT JOIN admin_users au
+            ON au.id = m.created_by_id
+
+            LEFT JOIN projects p
+            ON p.id = m.project_id*/
+
+            WHERE m.is_delete = 0
+            AND m.published_at IS NOT NULL
+
+            <!-- 只查 ALL 可见
+            AND m.visibility_range = 'public'
+            AND m.achievement_status = 'APPROVED'-->
+            <if test="dto.typeId != null">
+                AND mt.achievement_type_id = #{dto.typeId}
+            </if>
+            <if test="dto.typeCode != null and dto.typeCode != ''">
+                AND t.type_code = #{dto.typeCode}
+            </if>
+            <!-- 成果物年份范围：按 m.year（String）字段，区间 [yearStart, yearEnd] -->
+            <if test="dto.yearStart != null and dto.yearStart != '' and dto.yearEnd != null and dto.yearEnd != ''">
+                AND m.`year` IS NOT NULL
+                AND CAST(m.`year` AS UNSIGNED) <![CDATA[ >= ]]> CAST(#{dto.yearStart} AS UNSIGNED)
+                AND CAST(m.`year` AS UNSIGNED) <![CDATA[ <= ]]> CAST(#{dto.yearEnd} AS UNSIGNED)
+            </if>
+
+            <!-- 可选：只传 start 或只传 end 时也能用 -->
+            <if test="(dto.yearStart != null and dto.yearStart != '') and (dto.yearEnd == null or dto.yearEnd == '')">
+                AND m.`year` IS NOT NULL
+                AND CAST(m.`year` AS UNSIGNED) <![CDATA[ >= ]]> CAST(#{dto.yearStart} AS UNSIGNED)
+            </if>
+
+            <if test="(dto.yearEnd != null and dto.yearEnd != '') and (dto.yearStart == null or dto.yearStart == '')">
+                AND m.`year` IS NOT NULL
+                AND CAST(m.`year` AS UNSIGNED) <![CDATA[ <= ]]> CAST(#{dto.yearEnd} AS UNSIGNED)
+            </if>
+
+
+            ORDER BY m.created_at DESC
+    </select>
+
 
 </mapper>
 
