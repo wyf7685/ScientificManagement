@@ -2,17 +2,11 @@ package com.achievement.service.impl;
 
 import com.achievement.annotation.CurrentUser;
 import com.achievement.client.StrapiClient;
-import com.achievement.domain.dto.AchFieldRow;
-import com.achievement.domain.dto.AchListDTO;
-import com.achievement.domain.dto.AchListDTO2;
-import com.achievement.domain.dto.AchMainBaseRow;
+import com.achievement.domain.dto.*;
 import com.achievement.domain.po.AchievementMains;
 import com.achievement.domain.po.AchievementTypes;
 import com.achievement.domain.po.BusinessUser;
-import com.achievement.domain.vo.AchDetailVO;
-import com.achievement.domain.vo.AchFieldVO;
-import com.achievement.domain.vo.AchListVO;
-import com.achievement.domain.vo.UserStatVo;
+import com.achievement.domain.vo.*;
 import com.achievement.mapper.AchievementMainsMapper;
 import com.achievement.service.IAchievementMainsService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -20,14 +14,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.achievement.constant.AchievementStatusConstant.APPROVED;
 
@@ -41,6 +33,7 @@ import static com.achievement.constant.AchievementStatusConstant.APPROVED;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMapper, AchievementMains> implements IAchievementMainsService {
     private static final String ACHIEVEMENT_FILE_COLLECTION = "achievement-files";
 
@@ -56,6 +49,7 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
         }
         //MybatisPlus的分页查询
         Page<AchListVO> page = new Page<>(pageNum, pageSize);
+        page.setOptimizeCountSql(false);  // 关键：关闭 count SQL 优化解析
         return baseMapper.pageList(page, achListDTO);
     }
     @Override
@@ -68,6 +62,7 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
         achListDTO.setCreatorId(userId);
         //MybatisPlus的分页查询
         Page<AchListVO> page = new Page<>(pageNum, pageSize);
+        page.setOptimizeCountSql(false);  // 关键：关闭 count SQL 优化解析
         return baseMapper.pageList(page, achListDTO);
     }
 
@@ -77,7 +72,7 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
         if (base == null) {
             throw new RuntimeException("成果物不存在或已删除");
         }
-
+        log.info("用户查询成果物详情，achDocId={}", achDocId);
         List<AchFieldRow> rows = Collections.emptyList();
         if (base.getMainId() != null && base.getTypeId() != null) {
             rows = baseMapper.selectFieldRows(base.getMainId(), base.getTypeId());
@@ -158,6 +153,7 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
             }
             //MybatisPlus的分页查询
             Page<AchListVO> page = new Page<>(pageNum, pageSize);
+            page.setOptimizeCountSql(false);  // 关键：关闭 count SQL 优化解析
             return baseMapper.pageList2(page, achListDTO);
     }
 
@@ -179,6 +175,103 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
         vo.setPaperCount(paperCount == null ? 0 : paperCount);
         vo.setPatentCount(patentCount == null ? 0 : patentCount);
         return vo;
+    }
+
+    @Override
+    public TypeYearTrendVo typeYearTrend(TrendQueryDTO dto) {
+        // 1) 计算年份范围：优先用 fromYear/toYear，其次用 range(3y/5y)
+        LocalDate now = LocalDate.now();
+        int toYear = (dto.getToYear() != null) ? dto.getToYear() : now.getYear();
+
+        int fromYear;
+        if (dto.getFromYear() != null) {
+            fromYear = dto.getFromYear();
+        } else {
+            int span = "3y".equalsIgnoreCase(dto.getRange()) ? 3 : 5;
+            fromYear = toYear - (span - 1);
+        }
+
+        int years = toYear - fromYear + 1;
+        if (years <= 0) years = 1;
+
+        // 2) 查库：year + type + total + approved
+        List<TypeYearTrendRow> rows = mainsMapper.countTypeYearTrend(fromYear, toYear);
+
+        // 3) timeline 补齐
+        List<String> timeline = new ArrayList<>();
+        for (int y = fromYear; y <= toYear; y++) {
+            timeline.add(String.valueOf(y));
+        }
+
+        // 4) 聚合：typeCode -> series（并补齐每年）
+        Map<String, TypeYearTrendSeries> typeMap = new LinkedHashMap<>();
+
+        if (rows != null) {
+            for (TypeYearTrendRow r : rows) {
+                if (r == null || r.getYear() == null) continue;
+
+                String typeCode = r.getTypeCode() == null ? "" : r.getTypeCode().trim();
+                if (typeCode.isEmpty()) typeCode = "UNKNOWN";
+
+                String typeName = r.getTypeName() == null ? "" : r.getTypeName().trim();
+                if (typeName.isEmpty()) typeName = typeCode;
+
+                // ✅ lambda 里只用 k（final），不要引用外部会变化的 typeName
+                int finalYears = years;
+                TypeYearTrendSeries s = typeMap.computeIfAbsent(typeCode, k -> {
+                    TypeYearTrendSeries ns = new TypeYearTrendSeries();
+                    ns.setTypeCode(k);
+                    ns.setTotal(initZeros(finalYears));
+                    ns.setApproved(initZeros(finalYears));
+                    return ns;
+                });
+
+                // ✅ typeName 放到 lambda 外设置（避免“有效 final”问题）
+                if (s.getTypeName() == null || s.getTypeName().isEmpty()) {
+                    s.setTypeName(typeName);
+                }
+
+                int idx = r.getYear() - fromYear;
+                if (idx >= 0 && idx < years) {
+                    s.getTotal().set(idx, safeInt(r.getTotalCount()));
+                    s.getApproved().set(idx, safeInt(r.getApprovedCount()));
+                }
+            }
+        }
+
+        // 5) 总计两条线：所有类型加总
+        List<Integer> totalCounts = initZeros(years);
+        List<Integer> approvedCounts = initZeros(years);
+        for (TypeYearTrendSeries s : typeMap.values()) {
+            for (int i = 0; i < years; i++) {
+                totalCounts.set(i, totalCounts.get(i) + safeInt(s.getTotal().get(i)));
+                approvedCounts.set(i, approvedCounts.get(i) + safeInt(s.getApproved().get(i)));
+            }
+        }
+
+        // 6) 输出
+        TypeYearTrendVo vo = new TypeYearTrendVo();
+        vo.setTimeline(timeline);
+        vo.setSeries(new ArrayList<>(typeMap.values()));
+        vo.setTotalCounts(totalCounts);
+        vo.setApprovedCounts(approvedCounts);
+        return vo;
+    }
+
+
+
+    private List<Integer> initZeros(int n) {
+        List<Integer> list = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) list.add(0);
+        return list;
+    }
+
+    private int safeInt(Integer v) {
+        return v == null ? 0 : v;
+    }
+
+    private int safeInt(Object v) {
+        return (v instanceof Integer) ? (Integer) v : 0;
     }
 
     private Object pickValueByType(AchFieldRow r) {
@@ -210,12 +303,35 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
         Integer monthNew = mainsMapper.countMonthNewByUser(userId, start, end);
         Integer paperCount = mainsMapper.countByTypeCodeForUser(userId, "paper");
         Integer patentCount = mainsMapper.countByTypeCodeForUser(userId, "patent");
+        // ===== 近年趋势：默认近 5 年（含今年）=====
+        int years = 5;
+        int fromYear = now.getYear() - (years - 1);
+        int toYear = now.getYear();
+
+        // 一次性查出这几年每年的数量（可能缺年）
+        List<YearTrendItem> dbTrend = mainsMapper.countYearlyTrendByUser(userId, fromYear, toYear);
+
+        // 补齐缺失年份（保证前端 xAxis 连续）
+        Map<Integer, Integer> year2count = new HashMap<>();
+        if (dbTrend != null) {
+            for (YearTrendItem it : dbTrend) {
+                year2count.put(it.getYear(), it.getCount() == null ? 0 : it.getCount());
+            }
+        }
+        List<YearTrendItem> fullTrend = new ArrayList<>();
+        for (int y = fromYear; y <= toYear; y++) {
+            YearTrendItem item = new YearTrendItem();
+            item.setYear(y);
+            item.setCount(year2count.getOrDefault(y, 0));
+            fullTrend.add(item);
+        }
 
         UserStatVo vo = new UserStatVo();
         vo.setTotalResults(total == null ? 0 : total);
         vo.setMonthlyNew(monthNew == null ? 0 : monthNew);
         vo.setPaperCount(paperCount == null ? 0 : paperCount);
         vo.setPatentCount(patentCount == null ? 0 : patentCount);
+        vo.setYearlyTrend(fullTrend);
         return vo;
     }
 
@@ -266,7 +382,18 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
                 .count();
         return count;
     }*/
-
+    @Override
+    public Page<AchListVO> pageList4Admin(AchListDTO2 achListDTO) {
+        int pageNum  = (achListDTO.getPageNum()  == null || achListDTO.getPageNum()  < 1)  ? 1  : achListDTO.getPageNum();
+        int pageSize = (achListDTO.getPageSize() == null || achListDTO.getPageSize() < 1) ? 10 : achListDTO.getPageSize();
+        if (pageSize > 100) {
+            pageSize = 100; // 防止一次性查太多
+        }
+        //MybatisPlus的分页查询
+        Page<AchListVO> page = new Page<>(pageNum, pageSize);
+        page.setOptimizeCountSql(false);  // 关键：关闭 count SQL 优化解析
+        return baseMapper.pageList4admin(page, achListDTO);
+    }
     @Override
     public Long countByTypeId(Long typeId) {
 

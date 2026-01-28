@@ -3,6 +3,7 @@ package com.achievement.controller;
 
 import com.achievement.annotation.CurrentUser;
 import com.achievement.domain.dto.AchListDTO;
+import com.achievement.domain.dto.AchListDTO2;
 import com.achievement.domain.po.BusinessUser;
 import com.achievement.domain.vo.AchDetailVO;
 import com.achievement.domain.vo.AchListVO;
@@ -70,6 +71,7 @@ public class AchievementManageController {
     @Operation(description = "查询成果物详情接口")
     @GetMapping("/detail")
     public Result <AchDetailVO> detail(@RequestParam String achDocId){
+        log.info("查询成果物详情，achDocId={}", achDocId);
         return Result.success(achievementMainsService.selectDetail(achDocId));
     }
     /*
@@ -139,5 +141,11 @@ public class AchievementManageController {
     @PutMapping("/delete/{achievementDocId}")
     public Result<JsonNode> delete(@PathVariable String achievementDocId) {
         return Result.success(achievementAdminService.deleteAchievement(achievementDocId));
+    }
+
+    @Operation(description = "管理员分页查询所有可见成果物列表接口")
+    @PostMapping("/pageListAllVisible")
+    public Result<Page<AchListVO>> pageListAllVisible(@RequestBody AchListDTO2 achListDTO){
+        return Result.success(achievementMainsService.pageList4Admin(achListDTO));
     }
 }

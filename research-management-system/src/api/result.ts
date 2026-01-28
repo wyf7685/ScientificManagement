@@ -66,11 +66,18 @@ function mapListItem(item: any) {
     id: item.documentId || item.id,
     status: mapStatus(item.auditStatus || item.status),
     type: item.typeName || item.type,
-    authors: item.authorName ? [item.authorName] : item.creatorName ? [item.creatorName] : [],
+
+    // ZZQ改 : 关键：优先使用后端的 authors 数组
+    authors: Array.isArray(item.authors)
+      ? item.authors
+      : (item.authorName ? [item.authorName] : item.creatorName ? [item.creatorName] : []),
+
     visibility: item.visibilityRange || item.visibility,
     createdBy: item.createdBy || item.creatorName
   }
+  // ZZQ改
 }
+
 
 function mapReviewHistoryItem(item: any) {
   return {
@@ -134,12 +141,25 @@ function buildAchListPayload(params?: QueryParams, useTypeCode = false, onlyUnas
   const payload: any = {
     pageNum: params?.page,
     pageSize: params?.pageSize,
-    mainTitle: params?.keyword,
+    // 成果名称
+    title: params?.title,
+    // 关键词
+    keyword: params?.keyword,
     status,
     projectId: params?.projectId,
-    onlyUnassigned
+    onlyUnassigned,
+  // ✅ 新增：作者
+    author: (params as any)?.author
   }
-  
+
+  // ZZQ改 ：✅ 追加：年份范围（页面传的是 yearRange: [start,end]）
+  const yr: any = (params as any)?.yearRange
+  if (Array.isArray(yr) && yr.length === 2) {
+    payload.yearStart = String(yr[0] ?? '')
+    payload.yearEnd = String(yr[1] ?? '')
+  }
+  // ZZQ改 
+
   // 根据useTypeCode参数决定使用typeCode还是typeId
   if (useTypeCode) {
     payload.typeCode = params?.typeId ?? params?.type
@@ -221,7 +241,15 @@ export async function getVisibleResults(params?: QueryParams): Promise<StrapiPag
   })
   return normalizePageResult(res, mapListItem)
 }
-
+// 获取成果列表（管理员口径，包含所有可见成果）
+export async function getVisibleResults4Admin(params?: QueryParams): Promise<StrapiPaginatedResponse<any>> {
+  const res = await request({
+    url: '/admin/achievement/pageListAllVisible',
+    method: 'post',
+    data: buildAchListPayload(params, true) // 使用typeCode
+  })
+  return normalizePageResult(res, mapListItem)
+}
 // 导出成果列表
 export function exportResults(params?: QueryParams): Promise<Blob> {
   return request({
@@ -245,12 +273,15 @@ export async function getMyResults(params?: QueryParams, useTypeCode = false): P
 // 获取成果详情
 export async function getResult(id: string): Promise<StrapiSingleResponse<any>> {
   const res = await request({
-    url: '/user/achievement/detail',
+    url: '/user/achievement/detail', // ✅ 详情页统一走这个
     method: 'get',
     params: { achDocId: id }
   })
   return { data: mapDetailItem(res?.data || {}) }
 }
+
+
+
 
 // 申请查看成果全文
 export function requestResultAccess(id: string, data: Record<string, any>): Promise<ApiResponse<any>> {

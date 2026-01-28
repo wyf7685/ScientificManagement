@@ -8,20 +8,41 @@
         </div>
         <el-tag effect="plain" type="info" class="panel-total">匹配 {{ pagination.total }} 条</el-tag>
       </div>
-
+      
       <el-form :model="searchForm" label-width="90px" class="search-form">
         <el-row :gutter="18" class="form-grid">
           <el-col :xs="24" :md="12" :lg="12">
+            <el-form-item label="成果名称">
+              <el-input
+              v-model="searchForm.title"
+              placeholder="输入成果名称/标题"
+              clearable 
+              @keyup.enter="handleSearch"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :md="12" :lg="12">
             <el-form-item label="关键词">
-              <el-input v-model="searchForm.keyword" placeholder="搜索标题、作者、摘要" clearable />
+              <el-input v-model="searchForm.keyword" placeholder="搜索关键词" clearable @keyup.enter="handleSearch"/>
             </el-form-item>
           </el-col>
           <el-col :xs="24" :md="12" :lg="6">
             <el-form-item label="成果类型">
-              <el-select v-model="searchForm.type" placeholder="全部类型" clearable>
-                <el-option label="论文" value="paper" />
-                <el-option label="专利" value="patent" />
-                <el-option label="软著" value="software" />
+              <el-select
+                v-model="searchForm.type"
+                placeholder="全部类型"
+                clearable
+                filterable
+                :loading="typeLoading"
+              >
+              <!-- 如果你希望“全部类型”也作为选项显示，可以保留这行；不需要就删掉 -->
+                <el-option label="全部类型" :value="''" />
+                <el-option
+                  v-for="t in resultTypes"
+                  :key="t.type_code"
+                  :label="t.type_name"
+                  :value="t.type_code"
+                />
               </el-select>
             </el-form-item>
           </el-col>
@@ -138,6 +159,7 @@ import { InfoFilled, Search as SearchIcon, RefreshRight as RefreshIcon, Download
 import { useUserStore } from '@/stores/user'
 import { getVisibleResults, getResults, getMyResults, exportResults } from '@/api/result'
 import { getProjects } from '@/api/project'
+import { getResultTypes } from '@/api/result' 
 
 const router = useRouter()
 const route = useRoute()
@@ -148,7 +170,11 @@ const projects = ref([])
 const exporting = ref(false)
 const canExport = computed(() => userStore.isAdmin)
 
+const resultTypes = ref<AchievementType[]>([])
+const typeLoading = ref(false)
+
 const searchForm = reactive({
+  title: '',
   keyword: '',
   type: '',
   yearRange: [],
@@ -162,13 +188,40 @@ const pagination = reactive({
   total: 0
 })
 
+interface AchievementType {
+  id?: number
+  documentId?: string
+  type_code: string
+  type_name: string
+  description?: string
+  is_delete?: number
+}
+
 onMounted(() => {
   initFromQuery()
   loadProjects()
+  loadResultTypes()
   handleSearch()
 })
 
+async function loadResultTypes() {
+  typeLoading.value = true
+  try {
+    const res = await getResultTypes()
+    const list = res?.data ?? []
+    // 过滤掉删除的
+    resultTypes.value = list.filter((t: AchievementType) => (t.is_delete ?? 0) === 0)
+  } catch (e) {
+    ElMessage.error('加载成果类型失败')
+    resultTypes.value = []
+  } finally {
+    typeLoading.value = false
+  }
+}
+
 async function handleSearch() {
+  // console.log('title(model)=', JSON.stringify(searchForm.title))
+  // console.log('keyword(model)=', JSON.stringify(searchForm.keyword))
   loading.value = true
   try {
     const params = {
@@ -194,6 +247,7 @@ async function handleSearch() {
 
 function handleReset() {
   Object.assign(searchForm, {
+    title: '',
     keyword: '',
     type: '',
     yearRange: null,
@@ -224,6 +278,7 @@ function getProjectLabel(project) {
 
 function getSearchParams() {
   const params: Record<string, any> = {
+    title: searchForm.title,
     keyword: searchForm.keyword,
     type: searchForm.type,
     author: searchForm.author,

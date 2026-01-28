@@ -23,6 +23,7 @@
               <div class="card-actions">
                 <el-radio-group v-model="distributionDimension" size="small">
                   <el-radio-button label="type">类型</el-radio-button>
+                  <!--目前无法实现下面部分，作为后续功能开发预留-->
                   <el-radio-button label="indexLevel">收录级别</el-radio-button>
                   <el-radio-button label="department">部门</el-radio-button>
                   <el-radio-button label="team">团队</el-radio-button>
@@ -37,13 +38,14 @@
         <el-card class="chart-card">
           <template #header>
             <div class="card-header">
-              <span>堆叠趋势 + 引用</span>
+              <span>成果年度趋势</span>
               <div class="card-actions">
                 <el-radio-group v-model="trendDimension" size="small">
                   <el-radio-button label="type">类型</el-radio-button>
+                  <!--目前无法实现下面部分，作为后续功能开发预留-->
                   <el-radio-button label="indexLevel">收录级别</el-radio-button>
                   <el-radio-button label="department">部门</el-radio-button>
-                  <el-radio-button label="team">团队</el-radio-button>
+                  <el-radio-button label="team">团队</el-radio-button> 
                 </el-radio-group>
                 <el-radio-group v-model="trendRange" size="small" class="range-radio">
                   <el-radio-button label="3y">近3年</el-radio-button>
@@ -71,7 +73,12 @@
           <el-table :data="recentResults" v-loading="loading" size="default">
             <el-table-column prop="title" label="成果名称" min-width="240" show-overflow-tooltip />
             <el-table-column prop="type" label="类型" width="120" />
-            <el-table-column prop="author" label="作者" width="140" show-overflow-tooltip />
+            <!-- <el-table-column prop="author" label="作者" width="140" show-overflow-tooltip /> -->
+            <el-table-column label="作者" width="180" show-overflow-tooltip>
+              <template #default="{ row }">
+                {{ Array.isArray(row.authors) && row.authors.length ? row.authors.join(', ') : '未知作者' }}
+              </template>
+            </el-table-column>
             <el-table-column prop="department" label="所属部门" width="160" show-overflow-tooltip />
             <el-table-column prop="createdAt" label="入库时间" width="160" />
           </el-table>
@@ -108,6 +115,11 @@ const distributionChartInstance = ref<echarts.ECharts | null>(null)
 const stackedChartInstance = ref<echarts.ECharts | null>(null)
 
 const colorPalette = ['#1d5bff', '#4c7eff', '#00c892', '#ff9d3c', '#7c3aed', '#0ea5e9', '#f97316']
+
+const totalCounts = ref<number[]>([])
+const approvedCounts = ref<number[]>([])
+const stackedUnsupported = ref(false)
+
 
 const stats = ref([
   {
@@ -252,19 +264,42 @@ async function loadDistribution() {
 }
 
 async function loadStackedTrend() {
+  stackedUnsupported.value = trendDimension.value !== 'type'
+
+  // 只支持 type，其它先不请求后端
+  if (stackedUnsupported.value) {
+    stackedTimeline.value = []
+    stackedSeries.value = []
+    totalCounts.value = []
+    approvedCounts.value = []
+    renderStackedChart()
+    return
+  }
+
   try {
     const res = await getStackedTrend({
       dimension: trendDimension.value,
       range: trendRange.value
     })
-    stackedTimeline.value = res?.data?.timeline || []
-    stackedSeries.value = res?.data?.stacks || []
-    citationSeries.value = res?.data?.citations || []
+
+    const data = res?.data || {}
+    stackedTimeline.value = data.timeline || []
+
+    stackedSeries.value = (data.series || []).map((s: any) => ({
+      name: s.typeName || s.typeCode || '未知类型',
+      data: Array.isArray(s.total) ? s.total : []
+    }))
+
+    totalCounts.value = Array.isArray(data.totalCounts) ? data.totalCounts : []
+    approvedCounts.value = Array.isArray(data.approvedCounts) ? data.approvedCounts : []
+
     renderStackedChart()
   } catch (error) {
     console.error('加载趋势数据失败:', error)
   }
 }
+
+
 
 function renderDistributionChart() {
   if (!distributionChartRef.value) return
@@ -318,44 +353,91 @@ function renderStackedChart() {
     stackedChartInstance.value = echarts.init(stackedChartRef.value)
   }
 
-  const barSeries = (stackedSeries.value || []).map((item, index) => ({
-    name: item.name,
-    type: 'bar',
-    stack: 'total',
-    barMaxWidth: 38,
-    emphasis: { focus: 'series' },
-    itemStyle: { color: colorPalette[index % colorPalette.length] },
-    data: item.data || []
-  }))
+  const hasData =
+    !stackedUnsupported.value &&
+    stackedTimeline.value?.length > 0 &&
+    stackedSeries.value?.length > 0
 
-  const lineSeries = {
-    name: '引用',
-    type: 'line',
-    yAxisIndex: 1,
-    smooth: true,
-    symbol: 'circle',
-    symbolSize: 8,
-    itemStyle: { color: '#ff6b00' },
-    lineStyle: { color: '#ff6b00', width: 3 },
-    data: citationSeries.value || []
-  }
+  const barSeries = hasData
+    ? (stackedSeries.value || []).map((item, index) => ({
+        name: item.name,
+        type: 'bar',
+        stack: 'total',
+        barMaxWidth: 38,
+        emphasis: { focus: 'series' },
+        itemStyle: { color: colorPalette[index % colorPalette.length] },
+        data: item.data || []
+      }))
+    : []
 
+  const lineTotal = hasData
+    ? {
+        name: '总提交',
+        type: 'line',
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 7,
+        data: totalCounts.value || []
+      }
+    : null
+
+  const lineApproved = hasData
+    ? {
+        name: '已通过',
+        type: 'line',
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 7,
+        data: approvedCounts.value || []
+      }
+    : null
+
+  stackedChartInstance.value.clear()
   stackedChartInstance.value.setOption(
     {
       color: colorPalette,
-      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-      legend: { bottom: 10 },
+
+      tooltip: hasData
+        ? {
+            trigger: 'item',
+            formatter: (p: any) => {
+              const year = p?.name ?? ''
+              const seriesName = p?.seriesName ?? ''
+              const val = Number(p?.value ?? 0)
+              return `${year}<br/>${p.marker}${seriesName}：${val}`
+            }
+          }
+        : { show: false },
+
+      legend: { bottom: 10, show: hasData },
+
+      graphic: hasData
+        ? []
+        : [
+            {
+              type: 'text',
+              left: 'center',
+              top: 'middle',
+              style: {
+                text: stackedUnsupported.value ? '该维度暂不支持' : '暂无数据',
+                fill: '#94a3b8',
+                fontSize: 14
+              }
+            }
+          ],
+
       grid: { left: '3%', right: '4%', bottom: 55, containLabel: true },
-      xAxis: { type: 'category', data: stackedTimeline.value },
-      yAxis: [
-        { type: 'value', name: '数量' },
-        { type: 'value', name: '引用', splitLine: { show: false } }
-      ],
-      series: [...barSeries, lineSeries]
+
+      xAxis: { type: 'category', data: hasData ? stackedTimeline.value : [] },
+      yAxis: { type: 'value', name: '数量' },
+
+      series: hasData ? [...barSeries, lineTotal!, lineApproved!] : []
     },
     true
   )
 }
+
+
 
 function handleResize() {
   distributionChartInstance.value?.resize()

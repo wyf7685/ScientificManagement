@@ -1,8 +1,10 @@
 package com.achievement.controller.stat;
 
 import com.achievement.annotation.CurrentUser;
+import com.achievement.domain.dto.TrendQueryDTO;
 import com.achievement.domain.po.BusinessUser;
 import com.achievement.domain.vo.TypeCountVO;
+import com.achievement.domain.vo.TypeYearTrendVo;
 import com.achievement.domain.vo.UserStatVo;
 import com.achievement.result.Result;
 import com.achievement.service.AchievementStatService;
@@ -64,5 +66,11 @@ public class AdminStatController {
         public Result<UserStatVo> userAchStat(){
             UserStatVo statVo  = mainsService.countstatistics();
             return Result.success(statVo);
+    }
+    @Operation(description = "统计系统的数据,包含范围内的所有用户审核通过的成果物数量、和提交审核的成果物数量")
+    @GetMapping("/results/stacked-trend")
+    public Result<TypeYearTrendVo> stackTrend(TrendQueryDTO trendQueryDTO){
+        TypeYearTrendVo typeYearTrendVo = mainsService.typeYearTrend(trendQueryDTO);
+        return Result.success(typeYearTrendVo);
     }
 }

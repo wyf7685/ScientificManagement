@@ -205,7 +205,6 @@ type ResultDetail = ResearchResult & {
   content?: string
 }
 const result = ref<ResultDetail | null>(null)
-
 const applyDialogVisible = ref(false)
 const applyReason = ref('')
 

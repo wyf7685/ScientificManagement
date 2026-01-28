@@ -21,10 +21,11 @@
         </el-form-item>
         <el-form-item label="年份范围">
           <el-select v-model="filters.year" placeholder="全部" style="width: 120px">
+            <el-option label="全部" value="all" />
             <el-option label="近1年" value="1y" />
             <el-option label="近3年" value="3y" />
             <el-option label="近5年" value="5y" />
-            <el-option label="全部" value="all" />
+            
           </el-select>
         </el-form-item>
         <el-form-item label="排序方式">
@@ -94,17 +95,18 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { getVisibleResults } from '@/api/result'
+import { getVisibleResults, getVisibleResults4Admin } from '@/api/result.ts'
+import { useUserStore } from '@/stores/user' 
 import ResultCard from './components/ResultCard.vue'
 
 const router = useRouter()
 const loading = ref(false)
 const resultList = ref<any[]>([])
-
+const userStore = useUserStore()
 // 筛选条件
 const filters = reactive({
   type: '',
-  year: '1y',
+  year: 'all',
   sortBy: 'latest'
 })
 
@@ -116,17 +118,21 @@ const pagination = reactive({
 })
 
 onMounted(() => {
+  userStore.initUserInfo()
   loadResults()
 })
 
 async function loadResults() {
   loading.value = true
   try {
-    const res = await getVisibleResults({
+    const api = userStore.isAdmin ? getVisibleResults4Admin : getVisibleResults
+
+    const res = await api({
       ...buildQueryParams(),
       page: pagination.page,
       pageSize: pagination.pageSize
     })
+
     const { data } = res || {}
     resultList.value = data?.list || (Array.isArray(data) ? data : [])
     pagination.total = data?.total || resultList.value.length
@@ -137,6 +143,7 @@ async function loadResults() {
     loading.value = false
   }
 }
+
 
 function handleSearch() {
   pagination.page = 1

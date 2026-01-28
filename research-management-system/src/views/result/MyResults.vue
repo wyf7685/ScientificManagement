@@ -4,18 +4,19 @@
       <!-- 筛选区 -->
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="全部状态" clearable>
-            <el-option label="草稿" value="draft" />
-            <el-option label="待审核" value="pending" />
-            <el-option label="审核中" value="reviewing" />
-            <el-option label="已驳回" value="rejected" />
-            <el-option label="已发布" value="published" />
+          <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 160px">
+            <el-option label="全部" :value="ResultStatus.ALL" />
+            <el-option :label="'草稿'" :value="ResultStatus.DRAFT" />
+            <el-option :label="'待审核'" :value="ResultStatus.PENDING" />
+            <el-option :label="'审核中'" :value="ResultStatus.REVIEWING" />
+            <el-option :label="'已驳回'" :value="ResultStatus.REJECTED" />
+            <el-option :label="'已发布'" :value="ResultStatus.PUBLISHED" />
           </el-select>
         </el-form-item>
         <el-form-item label="关键词">
           <el-input
             v-model="searchForm.keyword"
-            placeholder="搜索标题、作者"
+            placeholder="搜索关键词"
             clearable
             @keyup.enter="handleSearch"
           />
@@ -165,6 +166,7 @@ const STATUS_TYPE_MAP = {
 }
 
 const STATUS_TEXT_MAP = {
+  [ResultStatus.ALL]: '全部',
   [ResultStatus.DRAFT]: '草稿',
   [ResultStatus.PENDING]: '待审核',
   [ResultStatus.REVIEWING]: '审核中',
@@ -180,7 +182,7 @@ const VISIBILITY_TEXT_MAP = {
 }
 
 const searchForm = reactive({
-  status: '',
+  status: ResultStatus.ALL,
   keyword: '',
   projectId: ''
 })
@@ -199,11 +201,15 @@ onMounted(() => {
 async function handleSearch() {
   loading.value = true
   try {
-    const res = await getMyResults({
-      ...searchForm,
-      page: pagination.page,
-      pageSize: pagination.pageSize
-    })
+    const params = {
+  ...searchForm,
+  status: searchForm.status === ResultStatus.ALL ? '' : searchForm.status,
+  projectId: searchForm.projectId === ResultStatus.ALL ? '' : searchForm.projectId,
+  page: pagination.page,
+  pageSize: pagination.pageSize
+}
+
+const res = await getMyResults(params)
     const { data } = res || {}
     tableData.value = data?.list || []
     pagination.total = data?.total || 0
@@ -215,7 +221,7 @@ async function handleSearch() {
 }
 
 function handleReset() {
-  searchForm.status = ''
+  searchForm.status = ResultStatus.ALL
   searchForm.keyword = ''
   searchForm.projectId = ''
   pagination.page = 1
