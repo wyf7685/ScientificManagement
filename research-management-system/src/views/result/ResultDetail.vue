@@ -1,173 +1,276 @@
 <template>
-  <div class="result-detail">
-    <!-- 返回按钮 -->
-    <div class="back-navigation">
-      <el-button @click="handleBack">
-        <el-icon><ArrowLeft /></el-icon>
-        返回
-      </el-button>
+  <div class="result-detail-container">
+    <!-- 顶部导航栏 -->
+    <div class="top-nav">
+      <div class="nav-back" @click="handleBack">
+        <el-icon class="back-icon"><ArrowLeft /></el-icon>
+        <span>返回列表</span>
+      </div>
     </div>
 
-    <el-card v-loading="loading">
-      <template #header>
-        <div class="card-header">
-        <div class="card-title-wrap">
-          <h2>{{ result?.title }}</h2>
-          <div class="card-actions">
-            <el-tag :type="getStatusType(result?.status)">
-              {{ getStatusText(result?.status) }}
-            </el-tag>
-            <el-tag v-if="result?.source" effect="plain" size="small" :type="sourceTagType(result?.source)">
-              {{ sourceText(result?.source) }}
-            </el-tag>
-            <el-button
-              text
-              size="small"
-              :loading="loading"
-              @click="loadDetail"
-            >
-                <el-icon><Refresh /></el-icon>
-                刷新状态
-              </el-button>
+    <div v-loading="loading" class="content-wrapper">
+      <!-- 头部核心信息区 -->
+      <header class="detail-header" v-if="result">
+        <div class="header-main">
+          <div class="title-row">
+            <h1 class="page-title">{{ result.title }}</h1>
+            <div class="status-badges">
+              <el-tag :type="getStatusType(result.status)" effect="dark" class="status-tag">
+                {{ getStatusText(result.status) }}
+              </el-tag>
+              <el-tag 
+                v-if="result.source" 
+                :type="sourceTagType(result.source)" 
+                effect="plain" 
+                class="source-tag"
+              >
+                {{ sourceText(result.source) }}
+              </el-tag>
+            </div>
+          </div>
+          
+          <div class="meta-row">
+            <div class="meta-item" v-if="result.authors?.length">
+              <el-icon><User /></el-icon>
+              <span class="meta-label">作者：</span>
+              <span class="meta-value">{{ result.authors.join(', ') }}</span>
+            </div>
+            <div class="meta-item" v-if="result.year">
+              <el-icon><Calendar /></el-icon>
+              <span class="meta-label">年份：</span>
+              <span class="meta-value">{{ result.year }}</span>
+            </div>
+            <div class="meta-item">
+              <el-icon><View /></el-icon>
+              <span class="meta-label">可见性：</span>
+              <span class="meta-value">{{ getVisibilityText(result.visibility) }}</span>
             </div>
           </div>
         </div>
-      </template>
-
-      <div
-        v-if="result"
-        class="access-banner"
-        :class="{
-          'access-banner--ok': hasFullAccess,
-          'access-banner--warning': !hasFullAccess
-        }"
-      >
-        <div class="banner-main">
-          <div class="banner-title">{{ accessTitle }}</div>
-          <div class="banner-desc">{{ accessDesc }}</div>
-        </div>
-        <div class="banner-actions">
-          <el-tag v-if="hasFullAccess" type="success">已授权</el-tag>
-          <el-tag v-else-if="isPending" type="warning">审核中</el-tag>
-          <el-tag v-else-if="isRejected" type="danger">已拒绝</el-tag>
-          <el-button
-            v-if="!hasFullAccess && canRequestAccess"
-            type="primary"
-            size="small"
-            :loading="applying"
-            @click="openApplyDialog"
-          >
-            {{ isRejected ? '重新申请' : '申请查看全文' }}
+        
+        <div class="header-actions">
+          <el-button circle plain @click="loadDetail" :loading="loading">
+            <el-icon><Refresh /></el-icon>
           </el-button>
         </div>
-      </div>
+      </header>
 
-      <el-descriptions v-if="result" :column="2" border>
-        <el-descriptions-item label="成果类型">
-          {{ result.type }}
-        </el-descriptions-item>
-        <el-descriptions-item label="来源">
-          <el-tag :type="sourceTagType(result.source)" size="small">
-            {{ sourceText(result.source) }}
-          </el-tag>
-          <span v-if="result.sourceStage" class="inline-text">· 来源阶段：{{ stageText(result.sourceStage) }}</span>
-        </el-descriptions-item>
-        <el-descriptions-item label="年份">
-          {{ result.year }}
-        </el-descriptions-item>
-        <el-descriptions-item label="项目阶段">
-          {{ phaseText(result.projectPhase) || '—' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="所属项目" :span="2">
-          <template v-if="result.projectName">
-            {{ result.projectName }} ({{ result.projectCode }})
-            <el-button type="primary" link @click="goProjectFilter(result)">
-              查看该项目下成果
-            </el-button>
+      <!-- 主要内容布局：左侧详情，右侧属性 -->
+      <div class="layout-grid" v-if="result">
+        <!-- 左侧：主要内容区域 -->
+        <div class="main-column">
+          <!-- 权限横幅 -->
+          <div
+            class="access-banner"
+            :class="{
+              'access-banner--ok': hasFullAccess,
+              'access-banner--warning': !hasFullAccess
+            }"
+          >
+            <div class="banner-icon">
+              <el-icon v-if="hasFullAccess" class="icon-ok"><Unlock /></el-icon>
+              <el-icon v-else class="icon-lock"><Lock /></el-icon>
+            </div>
+            <div class="banner-content">
+              <div class="banner-title">{{ accessTitle }}</div>
+              <div class="banner-desc">{{ accessDesc }}</div>
+            </div>
+            <div class="banner-actions">
+              <el-button
+                v-if="!hasFullAccess && canRequestAccess"
+                type="primary"
+                round
+                :loading="applying"
+                @click="openApplyDialog"
+              >
+                {{ isRejected ? '重新申请' : '申请查看全文' }}
+              </el-button>
+              <el-tag v-else-if="isPending" type="warning" effect="dark">审核中</el-tag>
+              <el-tag v-else-if="isRejected" type="danger" effect="dark">已拒绝</el-tag>
+            </div>
+          </div>
+
+          <!-- 摘要卡片 -->
+          <section class="content-card abstract-section">
+            <div class="section-header">
+              <h3 class="section-title">摘要</h3>
+            </div>
+            <div class="section-body abstract-text">
+              {{ result.abstract || '暂无摘要' }}
+            </div>
+          </section>
+
+          <!-- 动态块级字段 (RichText, Textarea) -->
+          <template v-if="blockFields.length > 0">
+            <section v-for="field in blockFields" :key="field.id" class="content-card">
+              <div class="section-header">
+                <h3 class="section-title">{{ field.label }}</h3>
+              </div>
+              
+              <div v-if="hasFullAccess" class="section-body paper-content">
+                <div v-if="getFieldValueRaw(field)">
+                  <div v-if="field.isHtml" v-html="getFieldValueRaw(field)" class="rich-text-display"></div>
+                  <div v-else class="text-display">{{ getFieldValueRaw(field) }}</div>
+                </div>
+                <div v-else class="empty-text">暂无{{ field.label }}</div>
+              </div>
+              <div v-else class="restricted-placeholder">
+                <el-icon class="lock-icon"><Lock /></el-icon>
+                <p>该内容受限，请申请查看全文。</p>
+              </div>
+            </section>
           </template>
-          <span v-else class="text-muted">无所属/其他</span>
-        </el-descriptions-item>
-        <el-descriptions-item label="作者" :span="2">
-          {{ result.authors?.join(', ') }}
-        </el-descriptions-item>
-        <el-descriptions-item label="关键词" :span="2">
-          <el-tag v-for="kw in result.keywords" :key="kw" style="margin-right: 8px">
-            {{ kw }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="摘要" :span="2">
-          {{ result.abstract }}
-        </el-descriptions-item>
-        <el-descriptions-item label="同步时间">
-          {{ result.syncTime || result.updatedAt || '—' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="可见范围">
-          {{ getVisibilityText(result.visibility) }}
-        </el-descriptions-item>
-        <el-descriptions-item label="创建时间">
-          {{ result.createdAt }}
-        </el-descriptions-item>
-      </el-descriptions>
+          
+          <!-- 默认正文 (兼容旧数据) -->
+          <section v-else-if="result?.content" class="content-card">
+            <div class="section-header">
+              <h3 class="section-title">正文内容</h3>
+            </div>
+            <div v-if="hasFullAccess" class="section-body paper-content">
+               <div class="text-display">{{ result.content }}</div>
+            </div>
+            <div v-else class="restricted-placeholder">
+              <el-icon class="lock-icon"><Lock /></el-icon>
+              <p>正文内容受限，请申请查看全文。</p>
+            </div>
+          </section>
 
-      <el-divider />
-
-      <div class="content-section" v-if="result">
-        <div class="content-header">
-          <h3>正文内容</h3>
+          <!-- 附件区 -->
+          <section class="content-card attachments-section">
+            <div class="section-header">
+              <h3 class="section-title">附件材料</h3>
+              <el-tag v-if="result.attachments?.length" type="info" round size="small">
+                {{ result.attachments.length }} 个文件
+              </el-tag>
+            </div>
+            
+            <div v-if="hasFullAccess">
+              <el-empty v-if="!result.attachments?.length" description="暂无附件" :image-size="60" />
+              <div v-else class="attachment-grid">
+                <div v-for="file in result.attachments" :key="file.id" class="attachment-item" @click="downloadFile(file)">
+                  <div class="file-icon">
+                    <el-icon><Document /></el-icon>
+                  </div>
+                  <div class="file-info">
+                    <div class="file-name" :title="file.name">{{ file.name }}</div>
+                    <div class="file-size">{{ formatFileSize(file.size) }}</div>
+                  </div>
+                  <div class="file-action">
+                    <el-icon><Download /></el-icon>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else class="restricted-placeholder">
+              <p>附件不可见，请先申请访问权限。</p>
+            </div>
+          </section>
         </div>
-        <div v-if="hasFullAccess" class="content-body">
-          <div v-if="result.content">
-            {{ result.content }}
+
+        <!-- 右侧：属性侧边栏 -->
+        <aside class="side-column">
+          <!-- 基础信息卡片 -->
+          <div class="side-card">
+            <h4 class="side-title">基本信息</h4>
+            <div class="props-list">
+              <div class="prop-item">
+                <span class="prop-label">成果类型</span>
+                <span class="prop-value">{{ result.type }}</span>
+              </div>
+              <div class="prop-item">
+                <span class="prop-label">项目阶段</span>
+                <span class="prop-value">{{ phaseText(result.projectPhase) || '-' }}</span>
+              </div>
+              <div class="prop-item" v-if="result.sourceStage">
+                <span class="prop-label">来源阶段</span>
+                <span class="prop-value">{{ stageText(result.sourceStage) }}</span>
+              </div>
+              <div class="prop-item">
+                <span class="prop-label">更新时间</span>
+                <span class="prop-value date-text">{{ result.syncTime || result.updatedAt }}</span>
+              </div>
+            </div>
           </div>
-          <div v-else class="text-muted">暂无正文内容</div>
-        </div>
-        <div v-else class="restricted-block">
-          <p>当前仅展示摘要，正文内容已隐藏。如需查看请提交申请，管理员审核通过后可查看全文。</p>
-        </div>
-      </div>
 
-      <div class="attachments">
-        <h3>附件列表</h3>
-        <el-empty v-if="hasFullAccess && !result?.attachments?.length" description="暂无附件" />
-        <div v-else-if="hasFullAccess" class="attachment-list">
-          <div v-for="file in result.attachments" :key="file.id" class="attachment-item">
-            <el-icon><Document /></el-icon>
-            <span class="filename">{{ file.name }}</span>
-            <span class="filesize">{{ formatFileSize(file.size) }}</span>
-            <el-button type="primary" link @click="downloadFile(file)">下载</el-button>
+          <!-- 动态行内字段 -->
+          <div class="side-card" v-if="inlineFields.length">
+            <h4 class="side-title">扩展属性</h4>
+            <div class="props-list">
+              <template v-for="field in inlineFields" :key="field.id">
+                <div class="prop-item">
+                  <span class="prop-label">{{ field.label }}</span>
+                  <span class="prop-value">{{ getFieldValueDisplay(field) }}</span>
+                </div>
+              </template>
+            </div>
           </div>
-        </div>
-        <div v-else class="restricted-block">
-          附件因权限限制暂不可查看，请提交申请后等待管理员审核。
-        </div>
-      </div>
-    </el-card>
 
+          <!-- 关联项目 -->
+          <div class="side-card project-card">
+            <h4 class="side-title">所属项目</h4>
+            <div v-if="result.projectName" class="project-info">
+              <div class="project-name">{{ result.projectName }}</div>
+              <div class="project-code">{{ result.projectCode }}</div>
+              <el-button type="primary" link size="small" @click="goProjectFilter(result)">
+                查看该项目成果 <el-icon><ArrowRight /></el-icon>
+              </el-button>
+            </div>
+            <div v-else class="text-muted">无关联项目</div>
+          </div>
+
+          <!-- 关键词 -->
+          <div class="side-card" v-if="result.keywords?.length">
+            <h4 class="side-title">关键词</h4>
+            <div class="tags-cloud">
+              <el-tag 
+                v-for="kw in result.keywords" 
+                :key="kw" 
+                class="keyword-tag" 
+                type="info" 
+                effect="light"
+              >
+                {{ kw }}
+              </el-tag>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- 申请弹窗 -->
     <el-dialog
       v-model="applyDialogVisible"
       title="申请查看全文"
-      width="480px"
+      width="500px"
+      align-center
+      class="apply-dialog"
     >
-      <el-form label-width="88px">
-        <el-form-item label="申请理由" required>
-          <el-input
-            v-model="applyReason"
-            type="textarea"
-            :rows="4"
-            placeholder="请简要说明申请原因，例如科研协同、复用参考等"
-          />
-        </el-form-item>
-      </el-form>
-      <p class="dialog-tip">提交后由科研管理员审核，请耐心等待并可稍后刷新状态。</p>
+      <div class="dialog-body-custom">
+        <p class="dialog-instruction">请详细说明您申请查看该成果全文的理由，通过审核后将开放正文及附件下载权限。</p>
+        <el-form label-position="top">
+          <el-form-item label="申请理由" required>
+            <el-input
+              v-model="applyReason"
+              type="textarea"
+              :rows="4"
+              placeholder="例如：需参考该成果进行后续研发..."
+              maxlength="200"
+              show-word-limit
+            />
+          </el-form-item>
+        </el-form>
+      </div>
       <template #footer>
-        <el-button @click="applyDialogVisible = false">取消</el-button>
-        <el-button
-          type="primary"
-          :loading="applying"
-          @click="handleSubmitAccessRequest"
-        >
-          提交申请
-        </el-button>
+        <div class="dialog-footer">
+          <el-button @click="applyDialogVisible = false">取消</el-button>
+          <el-button
+            type="primary"
+            :loading="applying"
+            @click="handleSubmitAccessRequest"
+          >
+            提交申请
+          </el-button>
+        </div>
       </template>
     </el-dialog>
   </div>
@@ -177,8 +280,12 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { ArrowLeft, Document, Refresh } from '@element-plus/icons-vue'
-import { getResult, requestResultAccess } from '@/api/result'
+import { 
+  ArrowLeft, Document, Refresh, User, Calendar, 
+  View, Lock, Unlock, Download, ArrowRight 
+} from '@element-plus/icons-vue'
+import { getResult, requestResultAccess, getFieldDefsByType } from '@/api/result'
+import { mapFieldType, FrontendFieldType } from '@/config/dynamicFields'
 import {
   AccessPermissionStatus,
   AccessRequestStatus,
@@ -203,10 +310,13 @@ type ResultDetail = ResearchResult & {
   rejectedReason?: string
   lastRequestAt?: string
   content?: string
+  typeId?: string
+  metadata?: Record<string, any>
 }
 const result = ref<ResultDetail | null>(null)
 const applyDialogVisible = ref(false)
 const applyReason = ref('')
+const dynamicFields = ref<any[]>([])
 
 const STATUS_TYPE_MAP = {
   [ResultStatus.DRAFT]: 'info',
@@ -255,13 +365,9 @@ const VISIBILITY_TEXT_MAP = {
 const hasFullAccess = computed(() => {
   const current = result.value
   if (!current) return false
-  // 管理员和科研管理角色默认可查看全部内容
   if (userStore.isAdmin) return true
-
-  // 兼容历史数据：未返回权限字段时视为有权限
   const noAccessFields = !current.permissionStatus && !current.accessRequestStatus
   if (noAccessFields) return true
-
   return (
     current.permissionStatus === AccessPermissionStatus.FULL ||
     current.accessRequestStatus === AccessRequestStatus.APPROVED
@@ -275,32 +381,56 @@ const canRequestAccess = computed(() => {
   const current = result.value
   if (!current) return false
   if (hasFullAccess.value || isPending.value) return false
-  // canRequestAccess 为 false 时禁止重新申请
   if (current.canRequestAccess === false) return false
   return true
 })
 
 const accessTitle = computed(() => {
-  if (hasFullAccess.value) return '已获得全文访问权限'
-  if (isPending.value) return '申请已提交，等待管理员审核'
-  if (isRejected.value) return '申请已被拒绝，可补充理由后重新申请'
-  return '当前仅可查看摘要'
+  if (hasFullAccess.value) return '已授权访问'
+  if (isPending.value) return '权限审核中'
+  if (isRejected.value) return '申请被拒绝'
+  return '访问受限'
 })
 
 const accessDesc = computed(() => {
   if (!result.value) return ''
-  if (hasFullAccess.value) return '可以查看正文及附件。'
+  if (hasFullAccess.value) return '您拥有查看正文及下载附件的完整权限。'
   if (isPending.value) {
     return result.value.lastRequestAt
-      ? `提交时间：${result.value.lastRequestAt}`
-      : '管理员审核后会通知你，可稍后刷新状态。'
+      ? `您于 ${result.value.lastRequestAt} 提交了申请，请耐心等待管理员审核。`
+      : '管理员正在审核您的申请。'
   }
   if (isRejected.value) {
     return result.value.rejectedReason
       ? `拒绝原因：${result.value.rejectedReason}`
-      : '可补充更详细的申请理由后重新提交。'
+      : '您可以补充理由后再次申请。'
   }
-  return '出于权限控制，当前仅展示摘要，正文和附件已隐藏。如需查看请提交申请。'
+  return '当前仅展示摘要信息。如需查看完整研究内容及附件，请提交访问申请。'
+})
+
+const transformedFields = computed(() => {
+  if (!dynamicFields.value.length) return []
+  return dynamicFields.value.map(field => ({
+    id: field.field_code,
+    name: field.field_code,
+    label: field.field_name,
+    type: mapFieldType(field.field_type),
+    isHtml: field.field_type === 'RICHTEXT', 
+    order: field.order || 0,
+    span: 1
+  })).sort((a, b) => (a.order || 0) - (b.order || 0))
+})
+
+const inlineFields = computed(() => {
+  return transformedFields.value.filter(f => 
+    f.type !== FrontendFieldType.TEXTAREA 
+  )
+})
+
+const blockFields = computed(() => {
+  return transformedFields.value.filter(f => 
+    f.type === FrontendFieldType.TEXTAREA 
+  )
 })
 
 onMounted(async () => {
@@ -318,11 +448,39 @@ async function loadDetail() {
 
     const res = await getResult(resultId)
     result.value = res?.data
+
+    if (result.value?.typeId) {
+      await loadDynamicFields(result.value.typeId)
+    }
   } catch (error) {
     ElMessage.error('加载详情失败')
   } finally {
     loading.value = false
   }
+}
+
+async function loadDynamicFields(typeId: string) {
+  try {
+    const res = await getFieldDefsByType(typeId)
+    dynamicFields.value = res?.data || []
+  } catch (error) {
+    console.error('加载动态字段定义失败', error)
+  }
+}
+
+function getFieldValueRaw(field: any) {
+  if (!result.value?.metadata) return ''
+  return result.value.metadata[field.name]
+}
+
+function getFieldValueDisplay(field: any) {
+  const val = getFieldValueRaw(field)
+  if (val === undefined || val === null || val === '') return '—'
+  
+  if (field.type === 'switch' || field.type === 'checkbox') {
+    return val ? '是' : '否'
+  }
+  return val
 }
 
 function getStatusType(status) {
@@ -423,166 +581,407 @@ async function handleSubmitAccessRequest() {
 }
 
 function handleBack() {
-  // 检查浏览器历史记录长度
-  // 如果 history.length <= 1，说明这是新打开的标签页，没有可返回的历史
   if (window.history.length <= 1) {
     // 尝试关闭当前标签页
     window.close()
     // 由于浏览器安全限制，window.close() 可能失败
-    // 如果用户还在页面上，100ms 后根据角色跳转到合适的页面
     setTimeout(() => {
-      // 根据用户角色智能返回
       if (userStore.isExpert) {
-        // 专家用户优先返回审核页面
         router.push('/expert/reviews')
       } else if (userStore.isAdmin || userStore.isManager) {
-        // 管理员返回管理页面
         router.push('/admin/results')
       } else {
-        // 普通用户返回个人成果页面
         router.push('/results/my')
       }
     }, 100)
   } else {
-    // 有历史记录，使用浏览器后退
     router.back()
   }
 }
 </script>
 
 <style scoped>
-.back-navigation {
-  margin-bottom: 16px;
+.result-detail-container {
+  min-height: 100vh;
+  background-color: #f8fafc; /* 浅灰底色 */
+  padding-bottom: 40px;
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.card-header .card-title-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 12px;
-}
-
-.card-header h2 {
-  margin: 0;
-  font-size: 20px;
-}
-
-.card-actions {
+.top-nav {
+  height: 56px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
-  gap: 8px;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.access-banner {
+.nav-back {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.nav-back:hover {
+  color: #0f172a;
+}
+
+.back-icon {
+  font-size: 16px;
+  margin-right: 4px;
+}
+
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Header */
+.detail-header {
+  margin-bottom: 24px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.status-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.meta-row {
+  display: flex;
+  gap: 24px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.meta-value {
+  color: #334155;
+  font-weight: 500;
+}
+
+/* Layout */
+.layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Main Column Base Style */
+.main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Cards */
+.content-card, .side-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* 轻微阴影 */
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.content-card {
+  padding: 24px;
+}
+
+.side-card {
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.section-header {
   margin-bottom: 16px;
-  background: #f9fafb;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.section-title::before {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 16px;
+  background: #3b82f6; /* Primary Color */
+  border-radius: 2px;
+  margin-right: 8px;
+}
+
+.side-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 16px 0;
+}
+
+/* Access Banner */
+.access-banner {
+  display: flex;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  align-items: center;
+  margin-bottom: 0px; /* main column uses gap */
+  border: 1px solid transparent;
 }
 
 .access-banner--ok {
-  background: #f0fdf4;
+  background: linear-gradient(to right, #ecfdf5, #f0fdf4);
   border-color: #bbf7d0;
 }
 
 .access-banner--warning {
-  background: #f5f7ff;
-  border-color: #e0e7ff;
+  background: linear-gradient(to right, #fff7ed, #fffbeb);
+  border-color: #fed7aa;
 }
 
-.banner-main {
+.banner-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.icon-ok { color: #10b981; }
+.icon-lock { color: #f97316; }
+
+.banner-content {
   flex: 1;
 }
 
 .banner-title {
-  font-weight: 700;
-  color: #111827;
+  font-weight: 600;
+  color: #1e293b;
   margin-bottom: 4px;
 }
 
 .banner-desc {
-  color: #6b7280;
   font-size: 13px;
-  line-height: 1.5;
+  color: #64748b;
 }
 
-.banner-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.content-section {
-  margin-bottom: 16px;
-}
-
-.attachments {
-  margin-top: 20px;
-}
-
-.attachments h3 {
-  margin-bottom: 16px;
-}
-
-.content-body {
-  padding: 12px;
+/* Content Styles */
+.abstract-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #334155;
   background: #f8fafc;
-  border-radius: 6px;
-  line-height: 1.6;
-  color: #1f2937;
-  white-space: pre-line;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px dashed #cbd5e1;
 }
 
-.restricted-block {
-  padding: 12px;
-  border: 1px dashed #d1d5db;
-  border-radius: 6px;
-  color: #6b7280;
-  background: #f9fafb;
-  line-height: 1.6;
+.text-display, .rich-text-display {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #1e293b;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
-.attachment-list {
+.empty-text {
+  color: #94a3b8;
+  font-style: italic;
+  padding: 20px 0;
+  text-align: center;
+}
+
+/* Restricted Placeholder */
+.restricted-placeholder {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #f8fafc;
+  border-radius: 8px;
+  color: #94a3b8;
   gap: 12px;
+}
+
+.lock-icon {
+  font-size: 32px;
+  color: #cbd5e1;
+}
+
+/* Attachments */
+.attachment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
 }
 
 .attachment-item {
   display: flex;
   align-items: center;
-  gap: 12px;
   padding: 12px;
-  background: #f5f6fa;
-  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fff;
 }
 
-.filename {
+.attachment-item:hover {
+  border-color: #bbf7d0; /* Highlight color */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.file-icon {
+  font-size: 24px;
+  color: #3b82f6;
+  margin-right: 12px;
+}
+
+.file-info {
   flex: 1;
+  overflow: hidden;
+}
+
+.file-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-size {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.file-action {
+  color: #cbd5e1;
+  transition: color 0.2s;
+}
+
+.attachment-item:hover .file-action {
+  color: #3b82f6;
+}
+
+/* Sidebar Properties */
+.props-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.prop-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* 允许顶部对齐，适应长文本 */
   font-size: 14px;
 }
 
-.filesize {
-  color: #909399;
-  font-size: 12px;
+.prop-label {
+  color: #64748b;
+  flex-shrink: 0;
+  min-width: 70px;
 }
 
-.dialog-tip {
-  margin: 8px 0 0;
-  color: #909399;
-  font-size: 13px;
+.prop-value {
+  color: #0f172a;
+  font-weight: 500;
+  text-align: right;
+  word-break: break-word; /* 防止长词撑开 */
+  padding-left: 12px;
+}
+
+.project-info {
+  background: #f1f5f9;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.project-name {
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.project-code {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 8px;
+  font-family: monospace;
+}
+
+.tags-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.keyword-tag {
+  border: none;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.dialog-instruction {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 20px;
 }
 </style>

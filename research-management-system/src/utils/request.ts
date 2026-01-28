@@ -10,78 +10,83 @@ declare module 'axios' {
   export interface AxiosRequestConfig {
     skipAuth?: boolean
     mock?: boolean // 新增：允许单个请求控制是否使用 Mock
+    silent?: boolean // 新增：静默模式，不弹出全局错误提示
   }
 }
 
 const isMockEnabled = import.meta.env.VITE_USE_MOCK === 'true'
 
 const service = axios.create({
- baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
- timeout: 15000,
- headers: {
-  'Content-Type': 'application/json'
- }
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 })
 
 // 请求拦截器
 service.interceptors.request.use(
- (config) => {
-  // 跳过认证头逻辑
-  if (config.skipAuth) {
-   return config
-  }
+  (config) => {
+    // 跳过认证头逻辑
+    if (config.skipAuth) {
+      return config
+    }
 
-  const userStore = useUserStore()
-  const { token } = storeToRefs(userStore)
-  if (token.value) {
-    config.headers = {
-     ...(config.headers as any),
-     Authorization: `Bearer ${token.value}`
-    } as any
+    const userStore = useUserStore()
+    const { token } = storeToRefs(userStore)
+    if (token.value) {
+      config.headers = {
+        ...(config.headers as any),
+        Authorization: `Bearer ${token.value}`
+      } as any
+    }
+    return config
+  },
+  (error) => {
+    console.error('请求错误:', error)
+    return Promise.reject(error)
   }
-  return config
- },
- (error) => {
-  console.error('请求错误:', error)
-  return Promise.reject(error)
- }
 )
 
 // 响应拦截器
 service.interceptors.response.use(
- (response) => handleBusinessResponse(response), // 【修改 1】：传入完整的 response 对象
- (error) => {
-  console.error('响应错误:', error)
+  (response) => handleBusinessResponse(response), // 【修改 1】：传入完整的 response 对象
+  (error) => {
+    console.error('响应错误:', error)
 
-  if (error.response) {
-   switch (error.response.status) {
-    case 401: {
-     ElMessage.error('登录已过期，请重新登录')
-     const userStore = useUserStore()
-     userStore.logout()
-     router.push('/login')
-     break
+    if (error.config?.silent) {
+      return Promise.reject(error)
     }
-    case 403:
-     ElMessage.error('没有权限访问')
-     break
-    case 404:
-     ElMessage.error('请求的资源不存在')
-     break
-    case 500:
-     ElMessage.error('服务器错误，请稍后重试')
-     break
-    default:
-     ElMessage.error(error.response.data?.message || '请求失败')
-   }
-  } else if (error.request) {
-   ElMessage.error('网络错误，请检查网络连接')
-  } else {
-   ElMessage.error('请求配置错误')
-  }
 
-  return Promise.reject(error)
- }
+    if (error.response) {
+      switch (error.response.status) {
+        case 401: {
+          ElMessage.error('登录已过期，请重新登录')
+          const userStore = useUserStore()
+          userStore.logout()
+          router.push('/login')
+          break
+        }
+        case 403:
+          ElMessage.error('没有权限访问')
+          break
+        case 404:
+          ElMessage.error('请求的资源不存在')
+          break
+        case 500:
+          ElMessage.error('服务器错误，请稍后重试')
+          break
+        default:
+          ElMessage.error(error.response.data?.message || '请求失败')
+      }
+    } else if (error.request) {
+      ElMessage.error('网络错误，请检查网络连接')
+    } else {
+      ElMessage.error('请求配置错误')
+    }
+
+    return Promise.reject(error)
+  }
 )
 
 // 【修改 2】：接收完整的 response 对象

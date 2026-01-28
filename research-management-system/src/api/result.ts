@@ -40,7 +40,7 @@ function mapStatusToBackend(status?: string) {
   const normalized = status.toString().toLowerCase()
   const map: Record<string, string> = {
     pending: 'PENDING',
-    reviewing: 'UNDER_REVIEW', 
+    reviewing: 'UNDER_REVIEW',
     published: 'APPROVED',
     rejected: 'REJECTED',
     revision: 'NEEDS_MODIFICATION'
@@ -99,7 +99,7 @@ function mapDetailItem(item: any) {
       metadata[field.fieldCode] = field.value
     }
   })
-  
+
   // 解析附件:后端返回Strapi格式{data:[{id,attributes:{files:{data:[...]}}}]}
   let attachments = []
   if (item?.attachments?.data) {
@@ -114,7 +114,7 @@ function mapDetailItem(item: any) {
       }))
     }) : []
   }
-  
+
   return {
     ...item,
     id: item.documentId || item.id,
@@ -148,7 +148,7 @@ function buildAchListPayload(params?: QueryParams, useTypeCode = false, onlyUnas
     status,
     projectId: params?.projectId,
     onlyUnassigned,
-  // ✅ 新增：作者
+    // ✅ 新增：作者
     author: (params as any)?.author
   }
 
@@ -166,7 +166,7 @@ function buildAchListPayload(params?: QueryParams, useTypeCode = false, onlyUnas
   } else {
     payload.typeId = params?.typeId ?? params?.type
   }
-  
+
   return payload
 }
 
@@ -304,7 +304,7 @@ export async function getResultAccessRequests(params?: QueryParams): Promise<Str
 
 // 审核成果访问申请
 export function reviewResultAccessRequest(
-  id: string, 
+  id: string,
   data: { action: 'approve' | 'reject'; comment?: string }
 ): Promise<ApiResponse<any>> {
   return request({
@@ -492,12 +492,12 @@ export function uploadAttachment(file: File): Promise<ApiResponse<any>> {
 
 // 成果类型
 export interface AchievementType {
- id?: number
- documentId?: string
- type_code: string
- type_name: string
- description?: string
- is_delete?: number
+  id?: number
+  documentId?: string
+  type_code: string
+  type_name: string
+  description?: string
+  is_delete?: number
 }
 
 // 成果字段定义
@@ -510,7 +510,7 @@ export interface AchievementFieldDef {
   is_required: number // 0 或 1
   description?: string
   is_delete?: number
-  achievement_type?: string | number | object 
+  achievement_type?: string | number | object
 }
 
 // ==================== 成果类型API ====================
@@ -565,7 +565,8 @@ export function getFieldDefsByType(typeDocumentId: string): Promise<any> {
   return request({
     url: '/achievementType/detail',
     method: 'get',
-    params: { typeDocId: typeDocumentId }
+    params: { typeDocId: typeDocumentId },
+    silent: true
   }).then((res: any) => {
     const fields = res?.data?.fieldDefinitions || []
     const normalized = fields.map((field: any) => ({
@@ -587,7 +588,7 @@ export function createFieldDef(data: AchievementFieldDef): Promise<any> {
     achievement_type_id: data.achievement_type,
     achievement_type: undefined
   } as Partial<AchievementFieldDef>
-    
+
   return request({
     url: '/achievementFieldDef/create',
     method: 'post',
@@ -602,7 +603,7 @@ export function updateFieldDef(documentId: string, data: Partial<AchievementFiel
     achievement_type_id: data.achievement_type,
     achievement_type: undefined
   } as Partial<AchievementFieldDef>
-    
+
   return request({
     url: `/achievementFieldDef/defs/${documentId}`,
     method: 'put',
