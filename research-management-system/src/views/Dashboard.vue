@@ -91,7 +91,7 @@
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Document, Tickets, TrophyBase, TrendCharts } from '@element-plus/icons-vue'
-import { getMyStatistics, getMyResults, getTypePie } from '@/api/result'
+import { getMyStatistics, getMyResults, getTypePie4User } from '@/api/result'
 import * as echarts from 'echarts'
 import { ResultStatus } from '@/types'
 
@@ -182,7 +182,7 @@ async function loadData() {
     const [statsRes, resultsRes, typePieRes] = await Promise.all([
       getMyStatistics(),
       getMyResults({ page: 1, pageSize: 5 }),
-      getTypePie()
+      getTypePie4User()
     ])
     statistics.value = statsRes?.data || {}
     greetingName.value = statsRes?.data?.owner || '科研者'

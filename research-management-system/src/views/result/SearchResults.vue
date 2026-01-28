@@ -157,7 +157,7 @@ import { ElMessage } from 'element-plus'
 import dayjs from 'dayjs'
 import { InfoFilled, Search as SearchIcon, RefreshRight as RefreshIcon, Download as DownloadIcon } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
-import { getVisibleResults, getResults, getMyResults, exportResults } from '@/api/result'
+import { getVisibleResults, selectResults, getMyResults, exportResults } from '@/api/result'
 import { getProjects } from '@/api/project'
 import { getResultTypes } from '@/api/result' 
 
@@ -232,8 +232,8 @@ async function handleSearch() {
     
     // 管理员使用管理员接口，普通用户使用用户端检索接口
     const res = userStore.isAdmin 
-      ? await getResults(params, true)
-      : await getMyResults(params, true)
+      ? await selectResults(params, true)
+      : await getVisibleResults(params, true)
 
     const { data } = res || {}
     tableData.value = data?.list || []
