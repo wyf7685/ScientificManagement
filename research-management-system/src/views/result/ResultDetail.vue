@@ -525,7 +525,47 @@ function formatFileSize(bytes) {
 }
 
 function downloadFile(file) {
-  window.open(file.url, '_blank')
+  if (!file?.url) {
+    ElMessage.error('无效的下载链接')
+    return
+  }
+
+  // 修复：如果 URL 错误地指向了 8080 (Spring Boot)，强制转为相对路径走 Proxy
+  let downloadUrl = file.url
+  if (downloadUrl.includes(':8080/uploads/')) {
+    downloadUrl = downloadUrl.replace(/^http:\/\/[^/]+/, '')
+  }
+
+  // 使用 fetch 获取 blob，避免浏览器直接打开或处理错误
+  fetch(downloadUrl)
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
+      return res.blob()
+    })
+    .then(blob => {
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      
+      // 确保文件名有后缀
+      let filename = file.name || 'download'
+      if (file.ext && !filename.endsWith(file.ext)) {
+        filename += file.ext
+      } else if (!file.ext && !filename.includes('.')) {
+        // 兜底：如果没有扩展名且名字里也没有点，尝试根据 blob type 加后缀? 
+        // 暂时不硬猜，防止加错
+      }
+      
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    })
+    .catch(err => {
+      console.error('Download error:', err)
+      ElMessage.error('下载失败，文件可能不存在或已损坏')
+    })
 }
 
 function goProjectFilter(item) {

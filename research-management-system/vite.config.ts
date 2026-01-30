@@ -21,6 +21,11 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
+      },
+      // 代理 Strapi 上传的文件
+      '/uploads': {
+        target: 'http://localhost:1337',
+        changeOrigin: true
       }
     }
   }

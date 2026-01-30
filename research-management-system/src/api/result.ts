@@ -48,8 +48,7 @@ function mapStatusToBackend(status?: string) {
   return map[normalized] || status.toString().toUpperCase()
 }
 
-const strapiAssetBase =
-  (import.meta.env.VITE_STRAPI_BASE_URL || import.meta.env.VITE_API_BASE_URL || '').toString()
+const strapiAssetBase = (import.meta.env.VITE_STRAPI_BASE_URL || '').toString()
 
 function resolveAssetUrl(url?: string) {
   if (!url) return ''
@@ -100,20 +99,38 @@ function mapDetailItem(item: any) {
     }
   })
 
-  // 解析附件:后端返回Strapi格式{data:[{id,attributes:{files:{data:[...]}}}]}
+  // 解析附件: 后端返回格式 {data:[{id, files:[{name,url,size,mime}]}]}
+  console.log('[DEBUG] 原始 item.attachments:', JSON.stringify(item?.attachments, null, 2))
   let attachments = []
   if (item?.attachments?.data) {
-    attachments = Array.isArray(item.attachments.data) ? item.attachments.data.flatMap((fileRecord: any) => {
-      const filesData = fileRecord?.attributes?.files?.data || []
-      return filesData.map((file: any) => ({
-        id: file.id,
-        name: file.attributes?.name || '',
-        url: resolveAssetUrl(file.attributes?.url || ''),
-        size: file.attributes?.size || 0,
-        mime: file.attributes?.mime || ''
-      }))
-    }) : []
+    // 兼容 Strapi v4 两种可能的返回格式：
+    // 1. data: [ { attributes: { files: { data: [...] } } } ]
+    // 2. data: [ { files: [...] } ] (如果后端做了扁平化)
+    attachments = Array.isArray(item.attachments.data)
+      ? item.attachments.data.flatMap((fileRecord: any) => {
+        const attributes = fileRecord.attributes || fileRecord
+        // 尝试获取 files 数组，兼容 files.data 结构
+        const rawFiles = attributes.files?.data || attributes.files || []
+
+        return Array.isArray(rawFiles)
+          ? rawFiles.map((f: any) => {
+            const file = f.attributes || f
+            return {
+              id: file.id || f.id,
+              name: file.name || 'unknown',
+              ext: file.ext || (file.name ? '.' + file.name.split('.').pop() : ''), // 确保有扩展名
+              url: resolveAssetUrl(file.url || ''),
+              size: file.size || 0,
+              mime: file.mime || ''
+            }
+          })
+          : []
+      })
+      : []
   }
+  console.log('[DEBUG] 解析后的 attachments:', attachments)
+
+
 
   return {
     ...item,
