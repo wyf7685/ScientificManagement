@@ -30,7 +30,6 @@
               :value="expert.id"
             >
               <span>{{ expert.name }}</span>
-              <span style="float: right; color: #8492a6">{{ expert.department }}</span>
             </el-option>
           </el-select>
         </el-form-item>
@@ -47,7 +46,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getPendingAssignResults, assignReviewers } from '@/api/result'
-import { getExpertUsers } from '@/api/user'
+import { getExpertUsers, type KeycloakUser } from '@/api/user'
 
 const loading = ref(false)
 const expertsLoading = ref(false)
@@ -56,7 +55,7 @@ const tableData = ref([])
 const assignDialog = ref(false)
 const selectedExperts = ref([])
 const currentResult = ref(null)
-const experts = ref([])
+const experts = ref<KeycloakUser[]>([])
 
 onMounted(() => {
   loadData()
@@ -118,7 +117,7 @@ async function confirmAssign() {
       reviewerIds: selectedExperts.value,
       reviewerNames: selectedExpertNames
     })
-    
+
     ElMessage.success('分配成功')
     assignDialog.value = false
     loadData() // 重新加载数据

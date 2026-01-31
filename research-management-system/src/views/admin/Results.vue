@@ -118,7 +118,7 @@
             <el-option
               v-for="user in expertList"
               :key="user.id"
-              :label="`${user.name} (${user.department || '无部门'})`"
+              :label="`${user.name}`"
               :value="user.id"
             />
           </el-select>
@@ -138,7 +138,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowDown } from '@element-plus/icons-vue'
 import { getResults, deleteResult, assignReviewers, markFormatChecked, markFormatRejected } from '@/api/result'
-import { getExpertUsers } from '@/api/user'
+import { getExpertUsers, type KeycloakUser } from '@/api/user'
 import { ResultStatus } from '@/types'
 
 const router = useRouter()
@@ -148,7 +148,7 @@ const assignDialogVisible = ref(false)
 const assigning = ref(false)
 const formatChecking = ref(false)
 const currentAssignId = ref('')
-const expertList = ref<any[]>([])
+const expertList = ref<KeycloakUser[]>([])
 const assignForm = reactive({
   reviewerIds: [] as number[]
 })

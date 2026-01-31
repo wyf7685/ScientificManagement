@@ -1,8 +1,6 @@
 package com.achievement.controller.stat;
 
-import com.achievement.annotation.CurrentUser;
 import com.achievement.domain.dto.TrendQueryDTO;
-import com.achievement.domain.po.BusinessUser;
 import com.achievement.domain.vo.TypeCountVO;
 import com.achievement.domain.vo.TypeYearTrendVo;
 import com.achievement.domain.vo.UserStatVo;

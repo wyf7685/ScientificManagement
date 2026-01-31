@@ -1,11 +1,8 @@
 package com.achievement.service.impl;
 
-import com.achievement.annotation.CurrentUser;
 import com.achievement.client.StrapiClient;
 import com.achievement.domain.dto.*;
 import com.achievement.domain.po.AchievementMains;
-import com.achievement.domain.po.AchievementTypes;
-import com.achievement.domain.po.BusinessUser;
 import com.achievement.domain.vo.*;
 import com.achievement.mapper.AchievementMainsMapper;
 import com.achievement.service.IAchievementMainsService;
@@ -53,7 +50,7 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
         return baseMapper.pageList(page, achListDTO);
     }
     @Override
-    public Page<AchListVO> pageList4User(AchListDTO achListDTO,Integer userId){// 兜底：防止 null / 非法值（即使没有校验或校验被改了，其实也安全）
+    public Page<AchListVO> pageList4User(AchListDTO achListDTO, Integer userId){// 兜底：防止 null / 非法值（即使没有校验或校验被改了，其实也安全）
         int pageNum  = (achListDTO.getPageNum()  == null || achListDTO.getPageNum()  < 1)  ? 1  : achListDTO.getPageNum();
         int pageSize = (achListDTO.getPageSize() == null || achListDTO.getPageSize() < 1) ? 10 : achListDTO.getPageSize();
         if (pageSize > 100) {
@@ -270,9 +267,9 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
         return v == null ? 0 : v;
     }
 
-    private int safeInt(Object v) {
-        return (v instanceof Integer) ? (Integer) v : 0;
-    }
+    // private int safeInt(Object v) {
+    //     return (v instanceof Integer) ? (Integer) v : 0;
+    // }
 
     private Object pickValueByType(AchFieldRow r) {
         if (r.getFieldType() == null) return r.getTextValue();
@@ -285,8 +282,6 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
             default -> r.getTextValue();
         };
     }
-
-
 
     @Override
     public UserStatVo countByUserId(Integer userId) {

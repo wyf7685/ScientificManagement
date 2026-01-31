@@ -3,7 +3,7 @@ package com.achievement.controller;
 import com.achievement.annotation.CurrentUser;
 import com.achievement.domain.dto.AccessRequestQueryDTO;
 import com.achievement.domain.dto.AccessRequestReviewDTO;
-import com.achievement.domain.po.BusinessUser;
+import com.achievement.domain.dto.KeycloakUser;
 import com.achievement.domain.vo.AccessRequestVO;
 import com.achievement.result.Result;
 import com.achievement.service.IAccessRequestService;
@@ -34,8 +34,8 @@ public class AccessRequestController {
     @GetMapping
     public Result<Page<AccessRequestVO>> getAccessRequests(
             AccessRequestQueryDTO queryDTO,
-            @CurrentUser BusinessUser currentUser) {
-        if (!"admin".equals(currentUser.getRole()) && !"manager".equals(currentUser.getRole())) {
+            @CurrentUser KeycloakUser currentUser) {
+        if (!currentUser.hasAnyRole("admin", "manager")) {
             throw new RuntimeException("无权限查看访问申请");
         }
         Page<AccessRequestVO> result = accessRequestService.pageAccessRequests(queryDTO);
@@ -50,14 +50,14 @@ public class AccessRequestController {
     public Result<AccessRequestVO> reviewAccessRequest(
             @PathVariable("id") String requestId,
             @Validated @RequestBody AccessRequestReviewDTO reviewDTO,
-            @CurrentUser BusinessUser currentUser) {
+            @CurrentUser KeycloakUser currentUser) {
 
-        if (!"admin".equals(currentUser.getRole()) && !"manager".equals(currentUser.getRole())) {
+        if (!currentUser.hasAnyRole("admin", "manager")) {
             throw new RuntimeException("无权限审核访问申请");
         }
 
         AccessRequestVO result = accessRequestService.reviewAccessRequest(
-                requestId, reviewDTO, currentUser.getId());
+                requestId, reviewDTO, currentUser);
         return Result.success(result);
     }
 }

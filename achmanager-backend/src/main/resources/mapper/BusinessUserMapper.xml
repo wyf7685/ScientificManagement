@@ -5,22 +5,7 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.achievement.domain.po.BusinessUser">
         <id column="id" property="id" />
-        <result column="document_id" property="documentId" />
-        <result column="username" property="username" />
-        <result column="email" property="email" />
-        <result column="name" property="name" />
-        <result column="department" property="department" />
-        <result column="role" property="role" />
-        <result column="phone" property="phone" />
-        <result column="is_active" property="isActive" />
-        <result column="last_login_at" property="lastLoginAt" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
-        <result column="published_at" property="publishedAt" />
-        <result column="created_by_id" property="createdById" />
-        <result column="updated_by_id" property="updatedById" />
-        <result column="locale" property="locale" />
-        <result column="is_delete" property="isDelete" />
+        <result column="keycloak_user_id" property="keycloakUserId" />
     </resultMap>
 
 </mapper>

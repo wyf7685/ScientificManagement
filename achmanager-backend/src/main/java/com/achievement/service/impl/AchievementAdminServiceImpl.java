@@ -32,7 +32,7 @@ public class AchievementAdminServiceImpl implements IAchievementAdminService {
     private final ObjectMapper objectMapper;
 
     @Override
-    public JsonNode createAchievement(Map<String, Object> req,Integer userId) {
+    public JsonNode createAchievement(Map<String, Object> req, Integer userId) {
         MainAndFields mainAndFields = parseMainAndFields(req);
         Map<String, Object> mainReq = mainAndFields.mainReq;
         List<Map<String, Object>> fields = mainAndFields.fields;
@@ -45,7 +45,7 @@ public class AchievementAdminServiceImpl implements IAchievementAdminService {
         @SuppressWarnings("unchecked")
         Map<String, Object> data = (Map<String, Object>) dataAny;
 
-// 字段在 Strapi 里是 Text，传字符串更稳
+        // 字段在 Strapi 里是 Text，传字符串更稳
         data.put("created_by_user_id", String.valueOf(userId));
 
         log.info("创建成果物，创建人 userId={}", userId);
@@ -87,7 +87,7 @@ public class AchievementAdminServiceImpl implements IAchievementAdminService {
 
     @Override
     @SuppressWarnings("unchecked")
-    public JsonNode createAchievementWithFiles(Map<String, Object> req, MultipartFile[] files,Integer userId) {
+    public JsonNode createAchievementWithFiles(Map<String, Object> req, MultipartFile[] files, Integer userId) {
         if (files == null || files.length == 0) {
             return createAchievement(req,userId);
         }
@@ -504,7 +504,6 @@ public class AchievementAdminServiceImpl implements IAchievementAdminService {
             this.body = body;
         }
 
-        @SuppressWarnings("unchecked")
         private boolean isAllValueEmpty() {
             Object dataObj = body.get("data");
             if (!(dataObj instanceof Map<?, ?> data)) {

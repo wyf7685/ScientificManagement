@@ -1,10 +1,8 @@
 package com.achievement.service.impl;
 
-import com.achievement.domain.po.AchievementMains;
 import com.achievement.domain.vo.TypeCountVO;
 import com.achievement.mapper.AchievementMainsMapper;
 import com.achievement.service.AchievementStatService;
-import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

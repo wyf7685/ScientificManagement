@@ -1299,33 +1299,9 @@ COMMIT;
 DROP TABLE IF EXISTS `business_users`;
 CREATE TABLE `business_users` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `document_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Strapi文档ID',
-  `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用户名（登录用）',
-  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '邮箱',
-  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '真实姓名',
-  `department` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '部门',
-  `role` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '角色：researcher/expert/manager/admin',
-  `phone` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '联系电话',
-  `is_active` tinyint(1) DEFAULT '1' COMMENT '是否激活',
-  `last_login_at` datetime(6) DEFAULT NULL COMMENT '最后登录时间',
-  `created_at` datetime(6) DEFAULT NULL,
-  `updated_at` datetime(6) DEFAULT NULL,
-  `published_at` datetime(6) DEFAULT NULL,
-  `created_by_id` int unsigned DEFAULT NULL,
-  `updated_by_id` int unsigned DEFAULT NULL,
-  `locale` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `is_delete` int DEFAULT '0' COMMENT '软删除标记',
+  `keycloak_user_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Keycloak 用户 UUID',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `uk_username` (`username`) USING BTREE,
-  UNIQUE KEY `uk_email` (`email`) USING BTREE,
-  KEY `idx_role` (`role`) USING BTREE,
-  KEY `idx_department` (`department`) USING BTREE,
-  KEY `idx_is_active` (`is_active`) USING BTREE,
-  KEY `business_users_documents_idx` (`document_id`,`locale`,`published_at`) USING BTREE,
-  KEY `business_users_created_by_id_fk` (`created_by_id`) USING BTREE,
-  KEY `business_users_updated_by_id_fk` (`updated_by_id`) USING BTREE,
-  CONSTRAINT `business_users_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
-  CONSTRAINT `business_users_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
+  UNIQUE KEY `uk_keycloak_user_id` (`keycloak_user_id`) USING BTREE,
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='业务用户表';
 
 -- ----------------------------

@@ -16,7 +16,28 @@ export type LoginData = {
   user: Record<string, any>
 }
 
+/**
+ * 用户简要信息
+ * 来自 Keycloak JWT Token
+ */
+export interface UserProfile {
+  /** 用户ID */
+  id: number;
+  /** 用户UUID */
+  uuid: string;
+  /** 用户名 */
+  username: string;
+  /** 真实姓名 */
+  name: string;
+  /** 邮箱 */
+  email: string;
+  /** 角色列表 */
+  roles: string[];
+}
+
+
 // 登录（标记 skipAuth：不带旧 token，也不触发全局 401 跳转）
+// TODO: 移除前端登录API&界面，使用来自 login-portal 的单点登录
 export function login(data: LoginPayload) {
   return request({
     url: '/auth/login',
@@ -39,5 +60,5 @@ export function getCurrentUser() {
   return request({
     url: '/auth/current',
     method: 'get'
-  }) as Promise<ApiResponse<Record<string, any>>>
+  }) as Promise<ApiResponse<UserProfile>>
 }

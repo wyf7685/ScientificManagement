@@ -1,6 +1,7 @@
 package com.achievement.service;
 
 import com.achievement.domain.dto.AssignReviewerDTO;
+import com.achievement.domain.dto.KeycloakUser;
 import com.achievement.domain.dto.ReviewRequestDTO;
 import com.achievement.domain.vo.ReviewBacklogVO;
 import com.achievement.domain.vo.ReviewHistoryVO;
@@ -24,19 +25,19 @@ public interface IAchievementReviewService {
      * 审核成果
      * @param achievementDocId 成果documentId
      * @param reviewRequest 审核请求
-     * @param reviewerId 审核人ID
+     * @param reviewer 审核人
      * @return 审核结果
      */
-    ReviewResultVO reviewAchievement(String achievementDocId, ReviewRequestDTO reviewRequest, Integer reviewerId);
+    ReviewResultVO reviewAchievement(String achievementDocId, ReviewRequestDTO reviewRequest, KeycloakUser reviewer);
     
     /**
      * 分配审核人
      * @param achievementDocId 成果documentId
      * @param assignReviewerDTO 分配审核人请求
-     * @param assignerId 分配人ID
+     * @param assigner 分配人
      * @return 分配结果
      */
-    ReviewResultVO assignReviewers(String achievementDocId, AssignReviewerDTO assignReviewerDTO, Integer assignerId);
+    ReviewResultVO assignReviewers(String achievementDocId, AssignReviewerDTO assignReviewerDTO, KeycloakUser assigner);
 
     /**
      * 获取审核待办列表

@@ -33,4 +33,8 @@ public class KeycloakConfig {
                 .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .build();
     }
+
+    public boolean isDefaultRole(String role) {
+        return role != null && realmDefaultRoles.contains(role);
+    }
 }
