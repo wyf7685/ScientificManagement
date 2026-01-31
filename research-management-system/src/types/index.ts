@@ -230,35 +230,35 @@ export interface Attachment {
  */
 export interface InterimResult {
   id: string
-  
+
   // 项目信息
   projectId: string
   projectName: string
   projectCode?: string
   projectPhase: string
-  
+
   // 成果物信息
   name: string
   type: InterimResultType
   typeLabel: string
   description?: string
-  
+
   // 附件
   attachments: Attachment[]
-  
+
   // 人员信息
   submitter?: string
   submitterDept?: string
-  
+
   // 时间信息
   submittedAt: string
   syncedAt: string
-  
+
   // 来源标识
   source: 'process_system' | 'contract_template' | 'signed_contract' | 'deliverable_report'
   sourceRef: string
   sourceUrl?: string
-  
+
   // 业务标识
   tags?: string[]
   status?: string
