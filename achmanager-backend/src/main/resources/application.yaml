@@ -79,3 +79,10 @@ strapi:
 easyscholar:
   base-url: https://www.easyscholar.cc/open/getPublicationRank
   secret-key: ${EASYSCHOLAR_SECRET_KEY:}
+
+keycloak:
+  auth-server-url: http://localhost:8180
+  realm: research-management
+  client-id: achmanager-backend
+  client-secret: ${KEYCLOAK_CLIENT_SECRET:}
+  realm-default-roles: default-roles-research-management|uma_authorization|offline_access
