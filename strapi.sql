@@ -11,7 +11,7 @@
  Target Server Version : 80040 (8.0.40)
  File Encoding         : 65001
 
- Date: 28/01/2026 19:46:29
+ Date: 30/01/2026 11:53:25
 */
 
 SET NAMES utf8mb4;
@@ -37,7 +37,7 @@ CREATE TABLE `abouts`  (
   INDEX `abouts_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `abouts_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `abouts_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of abouts
@@ -60,7 +60,7 @@ CREATE TABLE `abouts_cmps`  (
   INDEX `abouts_component_type_idx`(`component_type` ASC) USING BTREE,
   INDEX `abouts_entity_fk`(`entity_id` ASC) USING BTREE,
   CONSTRAINT `abouts_entity_fk` FOREIGN KEY (`entity_id`) REFERENCES `abouts` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of abouts_cmps
@@ -104,7 +104,7 @@ CREATE TABLE `achievement_access_requests`  (
   CONSTRAINT `achievement_access_requests_achievement_fk` FOREIGN KEY (`achievement_id`) REFERENCES `achievement_mains` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `achievement_access_requests_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `achievement_access_requests_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '成果访问权限申请表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '成果访问权限申请表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of achievement_access_requests
@@ -183,15 +183,15 @@ CREATE TABLE `achievement_field_defs_achievement_field_value_id_lnk`  (
   INDEX `achievement_field_defs_achievement_field_valuefeb9f_ifk`(`achievement_field_value_id` ASC) USING BTREE,
   CONSTRAINT `achievement_field_defs_achievement_field_value_feb9f_fk` FOREIGN KEY (`achievement_field_def_id`) REFERENCES `achievement_field_defs` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `achievement_field_defs_achievement_field_valuefeb9f_ifk` FOREIGN KEY (`achievement_field_value_id`) REFERENCES `achievement_field_values` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 37 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 43 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of achievement_field_defs_achievement_field_value_id_lnk
 -- ----------------------------
 INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (5, 1, 1);
-INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (19, 15, 11);
+INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (41, 15, 33);
 INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (25, 16, 17);
-INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (21, 17, 13);
+INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (39, 17, 31);
 INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (23, 18, 15);
 INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (29, 19, 21);
 INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (27, 20, 19);
@@ -204,8 +204,8 @@ INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (12, 
 INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (14, 40, 6);
 INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (16, 41, 8);
 INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (18, 42, 10);
-INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (22, 43, 14);
-INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (20, 44, 12);
+INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (40, 43, 32);
+INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (42, 44, 34);
 INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (24, 45, 16);
 INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (26, 46, 18);
 INSERT INTO `achievement_field_defs_achievement_field_value_id_lnk` VALUES (28, 47, 20);
@@ -288,7 +288,7 @@ CREATE TABLE `achievement_field_values`  (
   INDEX `achievement_field_values_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `achievement_field_values_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `achievement_field_values_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 29 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 35 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of achievement_field_values
@@ -321,6 +321,12 @@ INSERT INTO `achievement_field_values` VALUES (25, 'kw5uorw5t00fr5qp7usb2x7j', '
 INSERT INTO `achievement_field_values` VALUES (26, 'kw5uorw5t00fr5qp7usb2x7j', '2026-01-25 00:01:12.116000', '2026-01-25 00:01:12.116000', '2026-01-25 00:01:12.132000', NULL, NULL, NULL, '1', NULL, NULL, NULL, NULL, 0);
 INSERT INTO `achievement_field_values` VALUES (27, 'si6yde61gfdbrkyiwc0apv2t', '2026-01-25 00:01:50.832000', '2026-01-25 00:01:50.832000', NULL, NULL, NULL, NULL, '1', NULL, NULL, NULL, NULL, 0);
 INSERT INTO `achievement_field_values` VALUES (28, 'si6yde61gfdbrkyiwc0apv2t', '2026-01-25 00:01:50.832000', '2026-01-25 00:01:50.832000', '2026-01-25 00:01:50.842000', NULL, NULL, NULL, '1', NULL, NULL, NULL, NULL, 0);
+INSERT INTO `achievement_field_values` VALUES (29, 'ty7gxnz080duemcl2h0xnns7', '2026-01-29 10:25:13.540000', '2026-01-29 10:25:13.540000', NULL, NULL, NULL, NULL, '测试附件专利', NULL, NULL, NULL, NULL, 0);
+INSERT INTO `achievement_field_values` VALUES (30, 'ty7gxnz080duemcl2h0xnns7', '2026-01-29 10:25:13.540000', '2026-01-29 10:25:13.540000', '2026-01-29 10:25:13.563000', NULL, NULL, NULL, '测试附件专利', NULL, NULL, NULL, NULL, 0);
+INSERT INTO `achievement_field_values` VALUES (31, 'ctz18qhjkqxujmfjpbc45no4', '2026-01-29 10:25:13.608000', '2026-01-29 10:25:13.608000', NULL, NULL, NULL, NULL, '测试附件专利', NULL, NULL, NULL, NULL, 0);
+INSERT INTO `achievement_field_values` VALUES (32, 'ctz18qhjkqxujmfjpbc45no4', '2026-01-29 10:25:13.608000', '2026-01-29 10:25:13.608000', '2026-01-29 10:25:13.621000', NULL, NULL, NULL, '测试附件专利', NULL, NULL, NULL, NULL, 0);
+INSERT INTO `achievement_field_values` VALUES (33, 'jjn6uhee7p2p2chgqi622afp', '2026-01-29 14:54:42.578000', '2026-01-29 14:54:42.578000', NULL, NULL, NULL, NULL, '测试专利附件', NULL, NULL, NULL, NULL, 0);
+INSERT INTO `achievement_field_values` VALUES (34, 'jjn6uhee7p2p2chgqi622afp', '2026-01-29 14:54:42.578000', '2026-01-29 14:54:42.578000', '2026-01-29 14:54:42.601000', NULL, NULL, NULL, '测试专利附件', NULL, NULL, NULL, NULL, 0);
 
 -- ----------------------------
 -- Table structure for achievement_field_values_achievement_id_lnk
@@ -338,7 +344,7 @@ CREATE TABLE `achievement_field_values_achievement_id_lnk`  (
   INDEX `achievement_field_values_achievement_id_lnk_oifk`(`achievement_field_value_ord` ASC) USING BTREE,
   CONSTRAINT `achievement_field_values_achievement_id_lnk_fk` FOREIGN KEY (`achievement_field_value_id`) REFERENCES `achievement_field_values` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `achievement_field_values_achievement_id_lnk_ifk` FOREIGN KEY (`achievement_main_id`) REFERENCES `achievement_mains` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 30 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 36 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of achievement_field_values_achievement_id_lnk
@@ -365,6 +371,12 @@ INSERT INTO `achievement_field_values_achievement_id_lnk` VALUES (19, 19, 7, 5);
 INSERT INTO `achievement_field_values_achievement_id_lnk` VALUES (20, 20, 8, 5);
 INSERT INTO `achievement_field_values_achievement_id_lnk` VALUES (21, 21, 7, 6);
 INSERT INTO `achievement_field_values_achievement_id_lnk` VALUES (22, 22, 8, 6);
+INSERT INTO `achievement_field_values_achievement_id_lnk` VALUES (30, 29, 29, 1);
+INSERT INTO `achievement_field_values_achievement_id_lnk` VALUES (31, 30, 30, 1);
+INSERT INTO `achievement_field_values_achievement_id_lnk` VALUES (32, 31, 29, 2);
+INSERT INTO `achievement_field_values_achievement_id_lnk` VALUES (33, 32, 30, 2);
+INSERT INTO `achievement_field_values_achievement_id_lnk` VALUES (34, 33, 31, 1);
+INSERT INTO `achievement_field_values_achievement_id_lnk` VALUES (35, 34, 32, 1);
 
 -- ----------------------------
 -- Table structure for achievement_files
@@ -386,13 +398,21 @@ CREATE TABLE `achievement_files`  (
   INDEX `achievement_files_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `achievement_files_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `achievement_files_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of achievement_files
 -- ----------------------------
 INSERT INTO `achievement_files` VALUES (1, 'i4umk289y7d33r8v4759349r', 0, '2026-01-24 22:59:38.767000', '2026-01-24 22:59:38.767000', NULL, NULL, NULL, NULL);
 INSERT INTO `achievement_files` VALUES (2, 'i4umk289y7d33r8v4759349r', 0, '2026-01-24 22:59:38.767000', '2026-01-24 22:59:38.767000', '2026-01-24 22:59:38.780000', NULL, NULL, NULL);
+INSERT INTO `achievement_files` VALUES (3, 'cahvbo8ewfpjy8na29d2dgp7', 0, '2026-01-29 14:54:42.642000', '2026-01-29 14:54:42.642000', NULL, NULL, NULL, NULL);
+INSERT INTO `achievement_files` VALUES (4, 'cahvbo8ewfpjy8na29d2dgp7', 0, '2026-01-29 14:54:42.642000', '2026-01-29 14:54:42.642000', '2026-01-29 14:54:42.655000', NULL, NULL, NULL);
+INSERT INTO `achievement_files` VALUES (5, 'nn6ze0jkbxfhh7ojuz29yetx', 0, '2026-01-29 14:55:08.582000', '2026-01-29 14:55:08.582000', NULL, NULL, NULL, NULL);
+INSERT INTO `achievement_files` VALUES (6, 'nn6ze0jkbxfhh7ojuz29yetx', 0, '2026-01-29 14:55:08.582000', '2026-01-29 14:55:08.582000', '2026-01-29 14:55:08.595000', NULL, NULL, NULL);
+INSERT INTO `achievement_files` VALUES (7, 'ic0bs31fq938heppm0w5blm4', 0, '2026-01-29 14:58:06.670000', '2026-01-29 14:58:06.670000', NULL, NULL, NULL, NULL);
+INSERT INTO `achievement_files` VALUES (8, 'ic0bs31fq938heppm0w5blm4', 0, '2026-01-29 14:58:06.670000', '2026-01-29 14:58:06.670000', '2026-01-29 14:58:06.677000', NULL, NULL, NULL);
+INSERT INTO `achievement_files` VALUES (9, 'qlp8v9fwg0kti220bk9ynj87', 0, '2026-01-29 15:12:30.147000', '2026-01-29 15:12:30.147000', NULL, NULL, NULL, NULL);
+INSERT INTO `achievement_files` VALUES (10, 'qlp8v9fwg0kti220bk9ynj87', 0, '2026-01-29 15:12:30.147000', '2026-01-29 15:12:30.147000', '2026-01-29 15:12:30.155000', NULL, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for achievement_files_achievement_main_id_lnk
@@ -410,13 +430,21 @@ CREATE TABLE `achievement_files_achievement_main_id_lnk`  (
   INDEX `achievement_files_achievement_main_id_lnk_oifk`(`achievement_file_ord` ASC) USING BTREE,
   CONSTRAINT `achievement_files_achievement_main_id_lnk_fk` FOREIGN KEY (`achievement_file_id`) REFERENCES `achievement_files` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `achievement_files_achievement_main_id_lnk_ifk` FOREIGN KEY (`achievement_main_id`) REFERENCES `achievement_mains` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of achievement_files_achievement_main_id_lnk
 -- ----------------------------
 INSERT INTO `achievement_files_achievement_main_id_lnk` VALUES (1, 1, 7, 1);
 INSERT INTO `achievement_files_achievement_main_id_lnk` VALUES (2, 2, 8, 1);
+INSERT INTO `achievement_files_achievement_main_id_lnk` VALUES (3, 3, 31, 1);
+INSERT INTO `achievement_files_achievement_main_id_lnk` VALUES (4, 4, 32, 1);
+INSERT INTO `achievement_files_achievement_main_id_lnk` VALUES (5, 5, 33, 1);
+INSERT INTO `achievement_files_achievement_main_id_lnk` VALUES (6, 6, 34, 1);
+INSERT INTO `achievement_files_achievement_main_id_lnk` VALUES (7, 7, 35, 1);
+INSERT INTO `achievement_files_achievement_main_id_lnk` VALUES (8, 8, 36, 1);
+INSERT INTO `achievement_files_achievement_main_id_lnk` VALUES (9, 9, 37, 1);
+INSERT INTO `achievement_files_achievement_main_id_lnk` VALUES (10, 10, 38, 1);
 
 -- ----------------------------
 -- Table structure for achievement_mains
@@ -460,7 +488,7 @@ CREATE TABLE `achievement_mains`  (
   INDEX `idx_reviewed_at`(`reviewed_at` ASC) USING BTREE,
   CONSTRAINT `achievement_mains_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `achievement_mains_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 29 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 39 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of achievement_mains
@@ -485,6 +513,16 @@ INSERT INTO `achievement_mains` VALUES (24, 'oqp9y26v60c8bjsar4vy5xud', '2026-01
 INSERT INTO `achievement_mains` VALUES (25, 'oqp9y26v60c8bjsar4vy5xud', '2026-01-28 15:11:53.795000', '2026-01-28 19:33:40.835458', '2026-01-28 15:11:53.835000', NULL, NULL, NULL, '测试专利1.28', 'APPROVED', '', 0, NULL, NULL, NULL, 2, '李四', '审核通过', '2026-01-28 19:33:40.835458', 'public', '2026', '[\"张三\"]', '[\"1.28\"]', '', '', '1');
 INSERT INTO `achievement_mains` VALUES (26, 'l9ve08lojwwo03wp1zbtfk31', '2026-01-28 18:01:57.790000', '2026-01-28 19:39:27.338483', NULL, NULL, NULL, NULL, '李研究院测试成果物1', 'APPROVED', '测试摘要', 0, NULL, NULL, NULL, 14, '周专家', '通过', '2026-01-28 19:39:27.338483', 'public', '2026', '[\"李研究员\"]', '[\"测试关键词1\"]', '', '', '7');
 INSERT INTO `achievement_mains` VALUES (28, 'l9ve08lojwwo03wp1zbtfk31', '2026-01-28 18:01:57.790000', '2026-01-28 19:39:27.338483', '2026-01-28 19:38:00.243000', NULL, NULL, NULL, '李研究院测试成果物1', 'APPROVED', '测试摘要', 0, NULL, NULL, NULL, 14, '周专家', '通过', '2026-01-28 19:39:27.338483', 'public', '2026', '[\"李研究员\"]', '[\"测试关键词1\"]', '', '', '7');
+INSERT INTO `achievement_mains` VALUES (29, 'j6ozjbwuaxy64f5rhqqraq2u', '2026-01-29 10:25:13.448000', '2026-01-29 10:25:13.448000', NULL, NULL, NULL, NULL, '测试附件专利', 'PENDING', '测试附件专利', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'public', '2025', '[\"李研究员\"]', '[\"测试附件专利\"]', '', '', '7');
+INSERT INTO `achievement_mains` VALUES (30, 'j6ozjbwuaxy64f5rhqqraq2u', '2026-01-29 10:25:13.448000', '2026-01-29 10:25:13.448000', '2026-01-29 10:25:13.475000', NULL, NULL, NULL, '测试附件专利', 'PENDING', '测试附件专利', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'public', '2025', '[\"李研究员\"]', '[\"测试附件专利\"]', '', '', '7');
+INSERT INTO `achievement_mains` VALUES (31, 'ls4b7qsr37hcfbx6d3opiqiu', '2026-01-29 14:54:42.506000', '2026-01-29 14:54:42.506000', NULL, NULL, NULL, NULL, '测试专利附件', 'PENDING', '测试专利附件', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'public', '2026', '[\"张三\"]', '[]', '', '', '1');
+INSERT INTO `achievement_mains` VALUES (32, 'ls4b7qsr37hcfbx6d3opiqiu', '2026-01-29 14:54:42.506000', '2026-01-29 14:54:42.506000', '2026-01-29 14:54:42.530000', NULL, NULL, NULL, '测试专利附件', 'PENDING', '测试专利附件', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'public', '2026', '[\"张三\"]', '[]', '', '', '1');
+INSERT INTO `achievement_mains` VALUES (33, 'meombgg6jlasbqae6q3trv06', '2026-01-29 14:55:08.539000', '2026-01-29 14:55:08.539000', NULL, NULL, NULL, NULL, '测试专利附件2', 'PENDING', '测试专利附件2', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'private', '2026', '[\"张三\"]', '[\"测试专利附件2\"]', '', '', '1');
+INSERT INTO `achievement_mains` VALUES (34, 'meombgg6jlasbqae6q3trv06', '2026-01-29 14:55:08.539000', '2026-01-29 14:55:08.539000', '2026-01-29 14:55:08.552000', NULL, NULL, NULL, '测试专利附件2', 'PENDING', '测试专利附件2', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'private', '2026', '[\"张三\"]', '[\"测试专利附件2\"]', '', '', '1');
+INSERT INTO `achievement_mains` VALUES (35, 'wcy755x837katmlo44ica72n', '2026-01-29 14:58:06.620000', '2026-01-29 15:29:57.619802', NULL, NULL, NULL, NULL, '测试专利附件3-图片', 'APPROVED', '测试专利附件3', 0, NULL, NULL, NULL, 2, '李四', '通过', '2026-01-29 15:29:57.619802', 'public', '2026', '[\"张三\"]', '[]', '', '', '1');
+INSERT INTO `achievement_mains` VALUES (36, 'wcy755x837katmlo44ica72n', '2026-01-29 14:58:06.620000', '2026-01-29 15:29:57.619802', '2026-01-29 14:58:06.630000', NULL, NULL, NULL, '测试专利附件3-图片', 'APPROVED', '测试专利附件3', 0, NULL, NULL, NULL, 2, '李四', '通过', '2026-01-29 15:29:57.619802', 'public', '2026', '[\"张三\"]', '[]', '', '', '1');
+INSERT INTO `achievement_mains` VALUES (37, 'fh5uq1i3vpanwdvx7qouv293', '2026-01-29 15:12:30.102000', '2026-01-29 15:30:01.522421', NULL, NULL, NULL, NULL, '测试专利附件4-图片', 'APPROVED', '测试专利附件4-图片', 0, NULL, NULL, NULL, 2, '李四', '通过', '2026-01-29 15:30:01.522421', 'public', '2026', '[\"张三\"]', '[]', '', '', '1');
+INSERT INTO `achievement_mains` VALUES (38, 'fh5uq1i3vpanwdvx7qouv293', '2026-01-29 15:12:30.102000', '2026-01-29 15:30:01.522421', '2026-01-29 15:12:30.111000', NULL, NULL, NULL, '测试专利附件4-图片', 'APPROVED', '测试专利附件4-图片', 0, NULL, NULL, NULL, 2, '李四', '通过', '2026-01-29 15:30:01.522421', 'public', '2026', '[\"张三\"]', '[]', '', '', '1');
 
 -- ----------------------------
 -- Table structure for achievement_mains_achievement_type_id_lnk
@@ -502,7 +540,7 @@ CREATE TABLE `achievement_mains_achievement_type_id_lnk`  (
   INDEX `achievement_mains_achievement_type_id_lnk_oifk`(`achievement_main_ord` ASC) USING BTREE,
   CONSTRAINT `achievement_mains_achievement_type_id_lnk_fk` FOREIGN KEY (`achievement_main_id`) REFERENCES `achievement_mains` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `achievement_mains_achievement_type_id_lnk_ifk` FOREIGN KEY (`achievement_type_id`) REFERENCES `achievement_types` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 33 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 43 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of achievement_mains_achievement_type_id_lnk
@@ -527,6 +565,16 @@ INSERT INTO `achievement_mains_achievement_type_id_lnk` VALUES (27, 24, 4, 3);
 INSERT INTO `achievement_mains_achievement_type_id_lnk` VALUES (28, 25, 5, 3);
 INSERT INTO `achievement_mains_achievement_type_id_lnk` VALUES (29, 26, 4, 4);
 INSERT INTO `achievement_mains_achievement_type_id_lnk` VALUES (32, 28, 5, 4);
+INSERT INTO `achievement_mains_achievement_type_id_lnk` VALUES (33, 29, 4, 5);
+INSERT INTO `achievement_mains_achievement_type_id_lnk` VALUES (34, 30, 5, 5);
+INSERT INTO `achievement_mains_achievement_type_id_lnk` VALUES (35, 31, 4, 6);
+INSERT INTO `achievement_mains_achievement_type_id_lnk` VALUES (36, 32, 5, 6);
+INSERT INTO `achievement_mains_achievement_type_id_lnk` VALUES (37, 33, 4, 7);
+INSERT INTO `achievement_mains_achievement_type_id_lnk` VALUES (38, 34, 5, 7);
+INSERT INTO `achievement_mains_achievement_type_id_lnk` VALUES (39, 35, 4, 8);
+INSERT INTO `achievement_mains_achievement_type_id_lnk` VALUES (40, 36, 5, 8);
+INSERT INTO `achievement_mains_achievement_type_id_lnk` VALUES (41, 37, 4, 9);
+INSERT INTO `achievement_mains_achievement_type_id_lnk` VALUES (42, 38, 5, 9);
 
 -- ----------------------------
 -- Table structure for achievement_reviewer_assignments
@@ -564,7 +612,7 @@ CREATE TABLE `achievement_reviewer_assignments`  (
   CONSTRAINT `achievement_reviewer_assignments_achievement_fk` FOREIGN KEY (`achievement_id`) REFERENCES `achievement_mains` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `achievement_reviewer_assignments_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `achievement_reviewer_assignments_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '成果审核人分配表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '成果审核人分配表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of achievement_reviewer_assignments
@@ -579,6 +627,8 @@ INSERT INTO `achievement_reviewer_assignments` VALUES (8, NULL, 21, 'ahxl48skmrf
 INSERT INTO `achievement_reviewer_assignments` VALUES (9, NULL, 2, 'kashrvfxl0ohti6xt3cp96ug', 14, '周专家', 4, '赵六', 'completed', '2026-01-28 19:34:34.651974', '2026-01-28 19:34:54.452453', '2026-01-28 19:34:34.651974', '2026-01-28 19:34:54.452453', NULL, NULL, NULL, NULL, 0);
 INSERT INTO `achievement_reviewer_assignments` VALUES (10, NULL, 2, 'kashrvfxl0ohti6xt3cp96ug', 2, '李四', 4, '赵六', 'pending', '2026-01-28 19:34:34.651974', NULL, '2026-01-28 19:34:34.651974', '2026-01-28 19:34:34.651974', NULL, NULL, NULL, NULL, 0);
 INSERT INTO `achievement_reviewer_assignments` VALUES (11, NULL, 28, 'l9ve08lojwwo03wp1zbtfk31', 14, '周专家', 4, '赵六', 'completed', '2026-01-28 19:38:11.414551', '2026-01-28 19:39:27.340607', '2026-01-28 19:38:11.414551', '2026-01-28 19:39:27.340607', NULL, NULL, NULL, NULL, 0);
+INSERT INTO `achievement_reviewer_assignments` VALUES (12, NULL, 38, 'fh5uq1i3vpanwdvx7qouv293', 2, '李四', 4, '赵六', 'completed', '2026-01-29 15:29:40.295923', '2026-01-29 15:30:01.525027', '2026-01-29 15:29:40.295923', '2026-01-29 15:30:01.525027', NULL, NULL, NULL, NULL, 0);
+INSERT INTO `achievement_reviewer_assignments` VALUES (13, NULL, 36, 'wcy755x837katmlo44ica72n', 2, '李四', 4, '赵六', 'completed', '2026-01-29 15:29:45.014893', '2026-01-29 15:29:57.622380', '2026-01-29 15:29:45.014893', '2026-01-29 15:29:57.622380', NULL, NULL, NULL, NULL, 0);
 
 -- ----------------------------
 -- Table structure for achievement_reviews
@@ -614,7 +664,7 @@ CREATE TABLE `achievement_reviews`  (
   CONSTRAINT `achievement_reviews_achievement_fk` FOREIGN KEY (`achievement_id`) REFERENCES `achievement_mains` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `achievement_reviews_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `achievement_reviews_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '成果审核记录表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '成果审核记录表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of achievement_reviews
@@ -627,6 +677,8 @@ INSERT INTO `achievement_reviews` VALUES (5, NULL, 21, 'ahxl48skmrfviwtjn28t4ioe
 INSERT INTO `achievement_reviews` VALUES (6, NULL, 25, 'oqp9y26v60c8bjsar4vy5xud', 2, '李四', 'approve', '审核通过', 'UNDER_REVIEW', 'APPROVED', '2026-01-28 19:33:40.837461', '2026-01-28 19:33:40.837461', NULL, NULL, NULL, NULL, 0);
 INSERT INTO `achievement_reviews` VALUES (8, NULL, 2, 'kashrvfxl0ohti6xt3cp96ug', 14, '周专家', 'approve', '审核通过', 'UNDER_REVIEW', 'APPROVED', '2026-01-28 19:34:54.452453', '2026-01-28 19:34:54.452453', NULL, NULL, NULL, NULL, 0);
 INSERT INTO `achievement_reviews` VALUES (9, NULL, 28, 'l9ve08lojwwo03wp1zbtfk31', 14, '周专家', 'approve', '通过', 'UNDER_REVIEW', 'APPROVED', '2026-01-28 19:39:27.340607', '2026-01-28 19:39:27.340607', NULL, NULL, NULL, NULL, 0);
+INSERT INTO `achievement_reviews` VALUES (10, NULL, 36, 'wcy755x837katmlo44ica72n', 2, '李四', 'approve', '通过', 'UNDER_REVIEW', 'APPROVED', '2026-01-29 15:29:57.622380', '2026-01-29 15:29:57.622380', NULL, NULL, NULL, NULL, 0);
+INSERT INTO `achievement_reviews` VALUES (11, NULL, 38, 'fh5uq1i3vpanwdvx7qouv293', 2, '李四', 'approve', '通过', 'UNDER_REVIEW', 'APPROVED', '2026-01-29 15:30:01.525027', '2026-01-29 15:30:01.525027', NULL, NULL, NULL, NULL, 0);
 
 -- ----------------------------
 -- Table structure for achievement_types
@@ -1161,7 +1213,7 @@ CREATE TABLE `articles`  (
   INDEX `articles_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `articles_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `articles_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of articles
@@ -1183,7 +1235,7 @@ CREATE TABLE `articles_author_lnk`  (
   INDEX `articles_author_lnk_oifk`(`article_ord` ASC) USING BTREE,
   CONSTRAINT `articles_author_lnk_fk` FOREIGN KEY (`article_id`) REFERENCES `articles` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `articles_author_lnk_ifk` FOREIGN KEY (`author_id`) REFERENCES `authors` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of articles_author_lnk
@@ -1205,7 +1257,7 @@ CREATE TABLE `articles_category_lnk`  (
   INDEX `articles_category_lnk_oifk`(`article_ord` ASC) USING BTREE,
   CONSTRAINT `articles_category_lnk_fk` FOREIGN KEY (`article_id`) REFERENCES `articles` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `articles_category_lnk_ifk` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of articles_category_lnk
@@ -1228,7 +1280,7 @@ CREATE TABLE `articles_cmps`  (
   INDEX `articles_component_type_idx`(`component_type` ASC) USING BTREE,
   INDEX `articles_entity_fk`(`entity_id` ASC) USING BTREE,
   CONSTRAINT `articles_entity_fk` FOREIGN KEY (`entity_id`) REFERENCES `articles` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of articles_cmps
@@ -1255,7 +1307,7 @@ CREATE TABLE `authors`  (
   INDEX `authors_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `authors_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `authors_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of authors
@@ -1299,10 +1351,10 @@ CREATE TABLE `business_users`  (
 -- ----------------------------
 -- Records of business_users
 -- ----------------------------
-INSERT INTO `business_users` VALUES (1, 'user_001', 'researcher01', 'researcher01@edu.cn', '张三', '计算机学院', 'researcher', NULL, 1, '2026-01-28 19:37:21.085358', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', NULL, NULL, NULL, 0);
-INSERT INTO `business_users` VALUES (2, 'user_002', 'expert01', 'expert01@edu.cn', '李四', '信息学院', 'expert', NULL, 1, '2026-01-28 19:32:13.828451', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', NULL, NULL, NULL, 0);
+INSERT INTO `business_users` VALUES (1, 'user_001', 'researcher01', 'researcher01@edu.cn', '张三', '计算机学院', 'researcher', NULL, 1, '2026-01-30 09:56:42.402791', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', NULL, NULL, NULL, 0);
+INSERT INTO `business_users` VALUES (2, 'user_002', 'expert01', 'expert01@edu.cn', '李四', '信息学院', 'expert', NULL, 1, '2026-01-29 15:29:50.843474', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', NULL, NULL, NULL, 0);
 INSERT INTO `business_users` VALUES (3, 'user_003', 'manager01', 'manager01@example.com', '王五', '科研处', 'manager', NULL, 1, NULL, '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', NULL, NULL, NULL, 0);
-INSERT INTO `business_users` VALUES (4, 'user_004', 'admin01', 'admin01@edu.cn', '赵六', '管理部门', 'admin', NULL, 1, '2026-01-28 19:05:33.945219', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', NULL, NULL, NULL, 0);
+INSERT INTO `business_users` VALUES (4, 'user_004', 'admin01', 'admin01@edu.cn', '赵六', '管理部门', 'admin', NULL, 1, '2026-01-29 16:07:41.710531', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', NULL, NULL, NULL, 0);
 INSERT INTO `business_users` VALUES (5, 'user_res_02', 'researcher02', 'researcher02@edu.cn', '钱研究员', '计算机学院', 'researcher', NULL, 1, '2026-01-28 17:14:39.694918', '2026-01-28 16:02:20.000000', '2026-01-28 16:02:20.000000', '2026-01-28 16:02:20.000000', NULL, NULL, NULL, 0);
 INSERT INTO `business_users` VALUES (6, 'user_res_03', 'researcher03', 'researcher03@edu.cn', '孙研究员', '计算机学院', 'researcher', NULL, 1, NULL, '2026-01-28 16:02:20.000000', '2026-01-28 16:02:20.000000', '2026-01-28 16:02:20.000000', NULL, NULL, NULL, 0);
 INSERT INTO `business_users` VALUES (7, 'user_res_04', 'researcher04', 'researcher04@edu.cn', '李研究员', '软件工程系', 'researcher', NULL, 1, '2026-01-28 19:37:32.497351', '2026-01-28 16:02:20.000000', '2026-01-28 16:02:20.000000', '2026-01-28 16:02:20.000000', NULL, NULL, NULL, 0);
@@ -1341,7 +1393,7 @@ CREATE TABLE `categories`  (
   INDEX `categories_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `categories_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `categories_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of categories
@@ -1457,12 +1509,29 @@ CREATE TABLE `files`  (
   INDEX `files_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `files_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `files_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of files
 -- ----------------------------
 INSERT INTO `files` VALUES (1, 'nu098hk5uyg3so1e6gkaup6q', '默认模块.html', NULL, NULL, NULL, NULL, NULL, '_3568fce618', '.html', 'text/html', 1789.84, '/uploads/_3568fce618.html', NULL, 'local', NULL, '/1', '2026-01-24 22:59:38.193000', '2026-01-24 22:59:38.193000', '2026-01-24 22:59:38.193000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (2, 'f2skuylgc5k3aqpalmhri92d', '微信图片_20251125150508_81_224.jpg', NULL, NULL, 1280, 1280, '{\"large\": {\"ext\": \".jpg\", \"url\": \"/uploads/large_20251125150508_81_224_e1db58f2f8.jpg\", \"hash\": \"large_20251125150508_81_224_e1db58f2f8\", \"mime\": \"image/jpeg\", \"name\": \"large_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 48.43, \"width\": 1000, \"height\": 1000, \"sizeInBytes\": 48427}, \"small\": {\"ext\": \".jpg\", \"url\": \"/uploads/small_20251125150508_81_224_e1db58f2f8.jpg\", \"hash\": \"small_20251125150508_81_224_e1db58f2f8\", \"mime\": \"image/jpeg\", \"name\": \"small_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 17.94, \"width\": 500, \"height\": 500, \"sizeInBytes\": 17943}, \"medium\": {\"ext\": \".jpg\", \"url\": \"/uploads/medium_20251125150508_81_224_e1db58f2f8.jpg\", \"hash\": \"medium_20251125150508_81_224_e1db58f2f8\", \"mime\": \"image/jpeg\", \"name\": \"medium_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 31.89, \"width\": 750, \"height\": 750, \"sizeInBytes\": 31893}, \"thumbnail\": {\"ext\": \".jpg\", \"url\": \"/uploads/thumbnail_20251125150508_81_224_e1db58f2f8.jpg\", \"hash\": \"thumbnail_20251125150508_81_224_e1db58f2f8\", \"mime\": \"image/jpeg\", \"name\": \"thumbnail_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 3.77, \"width\": 156, \"height\": 156, \"sizeInBytes\": 3772}}', '20251125150508_81_224_e1db58f2f8', '.jpg', 'image/jpeg', 63.41, '/uploads/20251125150508_81_224_e1db58f2f8.jpg', NULL, 'local', NULL, '/1', '2026-01-29 10:07:19.024000', '2026-01-29 10:07:19.024000', '2026-01-29 10:07:19.025000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (3, 'fopypemudyo2yhagu3lmpuii', '微信图片_20251125150508_81_224.jpg', NULL, NULL, 1280, 1280, '{\"large\": {\"ext\": \".jpg\", \"url\": \"/uploads/large_20251125150508_81_224_d71f1e0d81.jpg\", \"hash\": \"large_20251125150508_81_224_d71f1e0d81\", \"mime\": \"image/jpeg\", \"name\": \"large_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 48.43, \"width\": 1000, \"height\": 1000, \"sizeInBytes\": 48427}, \"small\": {\"ext\": \".jpg\", \"url\": \"/uploads/small_20251125150508_81_224_d71f1e0d81.jpg\", \"hash\": \"small_20251125150508_81_224_d71f1e0d81\", \"mime\": \"image/jpeg\", \"name\": \"small_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 17.94, \"width\": 500, \"height\": 500, \"sizeInBytes\": 17943}, \"medium\": {\"ext\": \".jpg\", \"url\": \"/uploads/medium_20251125150508_81_224_d71f1e0d81.jpg\", \"hash\": \"medium_20251125150508_81_224_d71f1e0d81\", \"mime\": \"image/jpeg\", \"name\": \"medium_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 31.89, \"width\": 750, \"height\": 750, \"sizeInBytes\": 31893}, \"thumbnail\": {\"ext\": \".jpg\", \"url\": \"/uploads/thumbnail_20251125150508_81_224_d71f1e0d81.jpg\", \"hash\": \"thumbnail_20251125150508_81_224_d71f1e0d81\", \"mime\": \"image/jpeg\", \"name\": \"thumbnail_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 3.77, \"width\": 156, \"height\": 156, \"sizeInBytes\": 3772}}', '20251125150508_81_224_d71f1e0d81', '.jpg', 'image/jpeg', 63.41, '/uploads/20251125150508_81_224_d71f1e0d81.jpg', NULL, 'local', NULL, '/1', '2026-01-29 10:09:13.046000', '2026-01-29 10:09:13.046000', '2026-01-29 10:09:13.047000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (4, 'wdsxfc006xdw0exaxx0yfsu3', '微信图片_20251125150508_81_224.jpg', NULL, NULL, 1280, 1280, '{\"large\": {\"ext\": \".jpg\", \"url\": \"/uploads/large_20251125150508_81_224_61bf0164e0.jpg\", \"hash\": \"large_20251125150508_81_224_61bf0164e0\", \"mime\": \"image/jpeg\", \"name\": \"large_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 48.43, \"width\": 1000, \"height\": 1000, \"sizeInBytes\": 48427}, \"small\": {\"ext\": \".jpg\", \"url\": \"/uploads/small_20251125150508_81_224_61bf0164e0.jpg\", \"hash\": \"small_20251125150508_81_224_61bf0164e0\", \"mime\": \"image/jpeg\", \"name\": \"small_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 17.94, \"width\": 500, \"height\": 500, \"sizeInBytes\": 17943}, \"medium\": {\"ext\": \".jpg\", \"url\": \"/uploads/medium_20251125150508_81_224_61bf0164e0.jpg\", \"hash\": \"medium_20251125150508_81_224_61bf0164e0\", \"mime\": \"image/jpeg\", \"name\": \"medium_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 31.89, \"width\": 750, \"height\": 750, \"sizeInBytes\": 31893}, \"thumbnail\": {\"ext\": \".jpg\", \"url\": \"/uploads/thumbnail_20251125150508_81_224_61bf0164e0.jpg\", \"hash\": \"thumbnail_20251125150508_81_224_61bf0164e0\", \"mime\": \"image/jpeg\", \"name\": \"thumbnail_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 3.77, \"width\": 156, \"height\": 156, \"sizeInBytes\": 3772}}', '20251125150508_81_224_61bf0164e0', '.jpg', 'image/jpeg', 63.41, '/uploads/20251125150508_81_224_61bf0164e0.jpg', NULL, 'local', NULL, '/1', '2026-01-29 10:10:05.011000', '2026-01-29 10:10:05.011000', '2026-01-29 10:10:05.012000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (5, 'layvvd2f26u0b742sq04e33u', '微信图片_20251125150508_81_224.jpg', NULL, NULL, 1280, 1280, '{\"large\": {\"ext\": \".jpg\", \"url\": \"/uploads/large_20251125150508_81_224_91ff366198.jpg\", \"hash\": \"large_20251125150508_81_224_91ff366198\", \"mime\": \"image/jpeg\", \"name\": \"large_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 48.43, \"width\": 1000, \"height\": 1000, \"sizeInBytes\": 48427}, \"small\": {\"ext\": \".jpg\", \"url\": \"/uploads/small_20251125150508_81_224_91ff366198.jpg\", \"hash\": \"small_20251125150508_81_224_91ff366198\", \"mime\": \"image/jpeg\", \"name\": \"small_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 17.94, \"width\": 500, \"height\": 500, \"sizeInBytes\": 17943}, \"medium\": {\"ext\": \".jpg\", \"url\": \"/uploads/medium_20251125150508_81_224_91ff366198.jpg\", \"hash\": \"medium_20251125150508_81_224_91ff366198\", \"mime\": \"image/jpeg\", \"name\": \"medium_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 31.89, \"width\": 750, \"height\": 750, \"sizeInBytes\": 31893}, \"thumbnail\": {\"ext\": \".jpg\", \"url\": \"/uploads/thumbnail_20251125150508_81_224_91ff366198.jpg\", \"hash\": \"thumbnail_20251125150508_81_224_91ff366198\", \"mime\": \"image/jpeg\", \"name\": \"thumbnail_微信图片_20251125150508_81_224.jpg\", \"path\": null, \"size\": 3.77, \"width\": 156, \"height\": 156, \"sizeInBytes\": 3772}}', '20251125150508_81_224_91ff366198', '.jpg', 'image/jpeg', 63.41, '/uploads/20251125150508_81_224_91ff366198.jpg', NULL, 'local', NULL, '/1', '2026-01-29 10:16:53.090000', '2026-01-29 10:16:53.090000', '2026-01-29 10:16:53.091000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (6, 'g59zju3tu45zmftbjuns4jra', '微信图片_20251205100631_2811_168.jpg', NULL, NULL, 1179, 1669, '{\"large\": {\"ext\": \".jpg\", \"url\": \"/uploads/large_20251205100631_2811_168_af910de313.jpg\", \"hash\": \"large_20251205100631_2811_168_af910de313\", \"mime\": \"image/jpeg\", \"name\": \"large_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 149.18, \"width\": 706, \"height\": 1000, \"sizeInBytes\": 149179}, \"small\": {\"ext\": \".jpg\", \"url\": \"/uploads/small_20251205100631_2811_168_af910de313.jpg\", \"hash\": \"small_20251205100631_2811_168_af910de313\", \"mime\": \"image/jpeg\", \"name\": \"small_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 42.14, \"width\": 353, \"height\": 500, \"sizeInBytes\": 42138}, \"medium\": {\"ext\": \".jpg\", \"url\": \"/uploads/medium_20251205100631_2811_168_af910de313.jpg\", \"hash\": \"medium_20251205100631_2811_168_af910de313\", \"mime\": \"image/jpeg\", \"name\": \"medium_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 91.1, \"width\": 530, \"height\": 750, \"sizeInBytes\": 91095}, \"thumbnail\": {\"ext\": \".jpg\", \"url\": \"/uploads/thumbnail_20251205100631_2811_168_af910de313.jpg\", \"hash\": \"thumbnail_20251205100631_2811_168_af910de313\", \"mime\": \"image/jpeg\", \"name\": \"thumbnail_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 4.73, \"width\": 110, \"height\": 156, \"sizeInBytes\": 4727}}', '20251205100631_2811_168_af910de313', '.jpg', 'image/jpeg', 314.95, '/uploads/20251205100631_2811_168_af910de313.jpg', NULL, 'local', NULL, '/1', '2026-01-29 10:22:24.570000', '2026-01-29 10:22:24.570000', '2026-01-29 10:22:24.570000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (7, 'wi6xd85ygttykc0e252rh3mg', '微信图片_20251205100631_2811_168.jpg', NULL, NULL, 1179, 1669, '{\"large\": {\"ext\": \".jpg\", \"url\": \"/uploads/large_20251205100631_2811_168_7379360370.jpg\", \"hash\": \"large_20251205100631_2811_168_7379360370\", \"mime\": \"image/jpeg\", \"name\": \"large_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 149.18, \"width\": 706, \"height\": 1000, \"sizeInBytes\": 149179}, \"small\": {\"ext\": \".jpg\", \"url\": \"/uploads/small_20251205100631_2811_168_7379360370.jpg\", \"hash\": \"small_20251205100631_2811_168_7379360370\", \"mime\": \"image/jpeg\", \"name\": \"small_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 42.14, \"width\": 353, \"height\": 500, \"sizeInBytes\": 42138}, \"medium\": {\"ext\": \".jpg\", \"url\": \"/uploads/medium_20251205100631_2811_168_7379360370.jpg\", \"hash\": \"medium_20251205100631_2811_168_7379360370\", \"mime\": \"image/jpeg\", \"name\": \"medium_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 91.1, \"width\": 530, \"height\": 750, \"sizeInBytes\": 91095}, \"thumbnail\": {\"ext\": \".jpg\", \"url\": \"/uploads/thumbnail_20251205100631_2811_168_7379360370.jpg\", \"hash\": \"thumbnail_20251205100631_2811_168_7379360370\", \"mime\": \"image/jpeg\", \"name\": \"thumbnail_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 4.73, \"width\": 110, \"height\": 156, \"sizeInBytes\": 4727}}', '20251205100631_2811_168_7379360370', '.jpg', 'image/jpeg', 314.95, '/uploads/20251205100631_2811_168_7379360370.jpg', NULL, 'local', NULL, '/1', '2026-01-29 10:25:08.132000', '2026-01-29 10:25:08.132000', '2026-01-29 10:25:08.134000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (8, 'yor3szxjbmg9kwbtu1sumnms', '微信图片_20251205100631_2811_168.jpg', NULL, NULL, 1179, 1669, '{\"large\": {\"ext\": \".jpg\", \"url\": \"/uploads/large_20251205100631_2811_168_08447e2692.jpg\", \"hash\": \"large_20251205100631_2811_168_08447e2692\", \"mime\": \"image/jpeg\", \"name\": \"large_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 149.18, \"width\": 706, \"height\": 1000, \"sizeInBytes\": 149179}, \"small\": {\"ext\": \".jpg\", \"url\": \"/uploads/small_20251205100631_2811_168_08447e2692.jpg\", \"hash\": \"small_20251205100631_2811_168_08447e2692\", \"mime\": \"image/jpeg\", \"name\": \"small_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 42.14, \"width\": 353, \"height\": 500, \"sizeInBytes\": 42138}, \"medium\": {\"ext\": \".jpg\", \"url\": \"/uploads/medium_20251205100631_2811_168_08447e2692.jpg\", \"hash\": \"medium_20251205100631_2811_168_08447e2692\", \"mime\": \"image/jpeg\", \"name\": \"medium_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 91.1, \"width\": 530, \"height\": 750, \"sizeInBytes\": 91095}, \"thumbnail\": {\"ext\": \".jpg\", \"url\": \"/uploads/thumbnail_20251205100631_2811_168_08447e2692.jpg\", \"hash\": \"thumbnail_20251205100631_2811_168_08447e2692\", \"mime\": \"image/jpeg\", \"name\": \"thumbnail_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 4.73, \"width\": 110, \"height\": 156, \"sizeInBytes\": 4727}}', '20251205100631_2811_168_08447e2692', '.jpg', 'image/jpeg', 314.95, '/uploads/20251205100631_2811_168_08447e2692.jpg', NULL, 'local', NULL, '/1', '2026-01-29 10:29:50.994000', '2026-01-29 10:29:50.994000', '2026-01-29 10:29:50.994000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (9, 'tz8p2nhf36hlg9imnc5w6m2f', '微信图片_20251205100631_2811_168.jpg', NULL, NULL, 1179, 1669, '{\"large\": {\"ext\": \".jpg\", \"url\": \"/uploads/large_20251205100631_2811_168_50d3ce5286.jpg\", \"hash\": \"large_20251205100631_2811_168_50d3ce5286\", \"mime\": \"image/jpeg\", \"name\": \"large_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 149.18, \"width\": 706, \"height\": 1000, \"sizeInBytes\": 149179}, \"small\": {\"ext\": \".jpg\", \"url\": \"/uploads/small_20251205100631_2811_168_50d3ce5286.jpg\", \"hash\": \"small_20251205100631_2811_168_50d3ce5286\", \"mime\": \"image/jpeg\", \"name\": \"small_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 42.14, \"width\": 353, \"height\": 500, \"sizeInBytes\": 42138}, \"medium\": {\"ext\": \".jpg\", \"url\": \"/uploads/medium_20251205100631_2811_168_50d3ce5286.jpg\", \"hash\": \"medium_20251205100631_2811_168_50d3ce5286\", \"mime\": \"image/jpeg\", \"name\": \"medium_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 91.1, \"width\": 530, \"height\": 750, \"sizeInBytes\": 91095}, \"thumbnail\": {\"ext\": \".jpg\", \"url\": \"/uploads/thumbnail_20251205100631_2811_168_50d3ce5286.jpg\", \"hash\": \"thumbnail_20251205100631_2811_168_50d3ce5286\", \"mime\": \"image/jpeg\", \"name\": \"thumbnail_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 4.73, \"width\": 110, \"height\": 156, \"sizeInBytes\": 4727}}', '20251205100631_2811_168_50d3ce5286', '.jpg', 'image/jpeg', 314.95, '/uploads/20251205100631_2811_168_50d3ce5286.jpg', NULL, 'local', NULL, '/1', '2026-01-29 14:47:02.884000', '2026-01-29 14:47:02.884000', '2026-01-29 14:47:02.886000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (10, 'f7oztuuxchxu9smmo9g3rn2b', '微信图片_20251205100631_2811_168.jpg', NULL, NULL, 1179, 1669, '{\"large\": {\"ext\": \".jpg\", \"url\": \"/uploads/large_20251205100631_2811_168_18dbacd939.jpg\", \"hash\": \"large_20251205100631_2811_168_18dbacd939\", \"mime\": \"image/jpeg\", \"name\": \"large_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 149.18, \"width\": 706, \"height\": 1000, \"sizeInBytes\": 149179}, \"small\": {\"ext\": \".jpg\", \"url\": \"/uploads/small_20251205100631_2811_168_18dbacd939.jpg\", \"hash\": \"small_20251205100631_2811_168_18dbacd939\", \"mime\": \"image/jpeg\", \"name\": \"small_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 42.14, \"width\": 353, \"height\": 500, \"sizeInBytes\": 42138}, \"medium\": {\"ext\": \".jpg\", \"url\": \"/uploads/medium_20251205100631_2811_168_18dbacd939.jpg\", \"hash\": \"medium_20251205100631_2811_168_18dbacd939\", \"mime\": \"image/jpeg\", \"name\": \"medium_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 91.1, \"width\": 530, \"height\": 750, \"sizeInBytes\": 91095}, \"thumbnail\": {\"ext\": \".jpg\", \"url\": \"/uploads/thumbnail_20251205100631_2811_168_18dbacd939.jpg\", \"hash\": \"thumbnail_20251205100631_2811_168_18dbacd939\", \"mime\": \"image/jpeg\", \"name\": \"thumbnail_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 4.73, \"width\": 110, \"height\": 156, \"sizeInBytes\": 4727}}', '20251205100631_2811_168_18dbacd939', '.jpg', 'image/jpeg', 314.95, '/uploads/20251205100631_2811_168_18dbacd939.jpg', NULL, 'local', NULL, '/1', '2026-01-29 14:50:13.771000', '2026-01-29 14:50:13.771000', '2026-01-29 14:50:13.772000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (11, 'l8xsbarfz4a6by9svmtlsl1u', '默认模块.html', NULL, NULL, NULL, NULL, NULL, '_a9ca9beee1', '.html', 'text/html', 1789.84, '/uploads/_a9ca9beee1.html', NULL, 'local', NULL, '/1', '2026-01-29 14:54:42.404000', '2026-01-29 14:54:42.404000', '2026-01-29 14:54:42.404000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (12, 'wvk2e8c4qup0ckb6pn7g3jpx', '个人总结报告-软件2302-朱子齐-2312190116.doc', NULL, NULL, NULL, NULL, NULL, '2302_2312190116_92893cbcd2', '.doc', 'application/msword', 2030.38, '/uploads/2302_2312190116_92893cbcd2.doc', NULL, 'local', NULL, '/1', '2026-01-29 14:55:08.503000', '2026-01-29 14:55:08.503000', '2026-01-29 14:55:08.503000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (13, 'v9bjl0kdo7r8d4ped1pc2uag', '微信图片_20251205100631_2811_168.jpg', NULL, NULL, 1179, 1669, '{\"large\": {\"ext\": \".jpg\", \"url\": \"/uploads/large_20251205100631_2811_168_74ffd21544.jpg\", \"hash\": \"large_20251205100631_2811_168_74ffd21544\", \"mime\": \"image/jpeg\", \"name\": \"large_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 149.18, \"width\": 706, \"height\": 1000, \"sizeInBytes\": 149179}, \"small\": {\"ext\": \".jpg\", \"url\": \"/uploads/small_20251205100631_2811_168_74ffd21544.jpg\", \"hash\": \"small_20251205100631_2811_168_74ffd21544\", \"mime\": \"image/jpeg\", \"name\": \"small_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 42.14, \"width\": 353, \"height\": 500, \"sizeInBytes\": 42138}, \"medium\": {\"ext\": \".jpg\", \"url\": \"/uploads/medium_20251205100631_2811_168_74ffd21544.jpg\", \"hash\": \"medium_20251205100631_2811_168_74ffd21544\", \"mime\": \"image/jpeg\", \"name\": \"medium_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 91.1, \"width\": 530, \"height\": 750, \"sizeInBytes\": 91095}, \"thumbnail\": {\"ext\": \".jpg\", \"url\": \"/uploads/thumbnail_20251205100631_2811_168_74ffd21544.jpg\", \"hash\": \"thumbnail_20251205100631_2811_168_74ffd21544\", \"mime\": \"image/jpeg\", \"name\": \"thumbnail_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 4.73, \"width\": 110, \"height\": 156, \"sizeInBytes\": 4727}}', '20251205100631_2811_168_74ffd21544', '.jpg', 'image/jpeg', 314.95, '/uploads/20251205100631_2811_168_74ffd21544.jpg', NULL, 'local', NULL, '/1', '2026-01-29 14:55:41.052000', '2026-01-29 14:55:41.052000', '2026-01-29 14:55:41.053000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (14, 'oz6stddt5a8254tbb7ki329g', '微信图片_20251205100631_2811_168.jpg', NULL, NULL, 1179, 1669, '{\"large\": {\"ext\": \".jpg\", \"url\": \"/uploads/large_20251205100631_2811_168_64b0ce86f4.jpg\", \"hash\": \"large_20251205100631_2811_168_64b0ce86f4\", \"mime\": \"image/jpeg\", \"name\": \"large_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 149.18, \"width\": 706, \"height\": 1000, \"sizeInBytes\": 149179}, \"small\": {\"ext\": \".jpg\", \"url\": \"/uploads/small_20251205100631_2811_168_64b0ce86f4.jpg\", \"hash\": \"small_20251205100631_2811_168_64b0ce86f4\", \"mime\": \"image/jpeg\", \"name\": \"small_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 42.14, \"width\": 353, \"height\": 500, \"sizeInBytes\": 42138}, \"medium\": {\"ext\": \".jpg\", \"url\": \"/uploads/medium_20251205100631_2811_168_64b0ce86f4.jpg\", \"hash\": \"medium_20251205100631_2811_168_64b0ce86f4\", \"mime\": \"image/jpeg\", \"name\": \"medium_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 91.1, \"width\": 530, \"height\": 750, \"sizeInBytes\": 91095}, \"thumbnail\": {\"ext\": \".jpg\", \"url\": \"/uploads/thumbnail_20251205100631_2811_168_64b0ce86f4.jpg\", \"hash\": \"thumbnail_20251205100631_2811_168_64b0ce86f4\", \"mime\": \"image/jpeg\", \"name\": \"thumbnail_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 4.73, \"width\": 110, \"height\": 156, \"sizeInBytes\": 4727}}', '20251205100631_2811_168_64b0ce86f4', '.jpg', 'image/jpeg', 314.95, '/uploads/20251205100631_2811_168_64b0ce86f4.jpg', NULL, 'local', NULL, '/1', '2026-01-29 14:57:56.528000', '2026-01-29 14:57:56.528000', '2026-01-29 14:57:56.528000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (15, 'ygjckgkhyydm69aoq0le8ml1', '微信图片_20251113101035_7_1503.png', NULL, NULL, 1179, 2556, '{\"large\": {\"ext\": \".png\", \"url\": \"/uploads/large_20251113101035_7_1503_c2545e12db.png\", \"hash\": \"large_20251113101035_7_1503_c2545e12db\", \"mime\": \"image/png\", \"name\": \"large_微信图片_20251113101035_7_1503.png\", \"path\": null, \"size\": 92.02, \"width\": 461, \"height\": 1000, \"sizeInBytes\": 92018}, \"small\": {\"ext\": \".png\", \"url\": \"/uploads/small_20251113101035_7_1503_c2545e12db.png\", \"hash\": \"small_20251113101035_7_1503_c2545e12db\", \"mime\": \"image/png\", \"name\": \"small_微信图片_20251113101035_7_1503.png\", \"path\": null, \"size\": 33.17, \"width\": 231, \"height\": 500, \"sizeInBytes\": 33169}, \"medium\": {\"ext\": \".png\", \"url\": \"/uploads/medium_20251113101035_7_1503_c2545e12db.png\", \"hash\": \"medium_20251113101035_7_1503_c2545e12db\", \"mime\": \"image/png\", \"name\": \"medium_微信图片_20251113101035_7_1503.png\", \"path\": null, \"size\": 60.64, \"width\": 346, \"height\": 750, \"sizeInBytes\": 60636}, \"thumbnail\": {\"ext\": \".png\", \"url\": \"/uploads/thumbnail_20251113101035_7_1503_c2545e12db.png\", \"hash\": \"thumbnail_20251113101035_7_1503_c2545e12db\", \"mime\": \"image/png\", \"name\": \"thumbnail_微信图片_20251113101035_7_1503.png\", \"path\": null, \"size\": 5.98, \"width\": 72, \"height\": 156, \"sizeInBytes\": 5982}}', '20251113101035_7_1503_c2545e12db', '.png', 'image/png', 62.89, '/uploads/20251113101035_7_1503_c2545e12db.png', NULL, 'local', NULL, '/1', '2026-01-29 14:58:06.581000', '2026-01-29 14:58:06.581000', '2026-01-29 14:58:06.581000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (16, 'netezfxzl0nv7x1k1ycajumh', '微信图片_20251205100631_2811_168.jpg', NULL, NULL, 1179, 1669, '{\"large\": {\"ext\": \".jpg\", \"url\": \"/uploads/large_20251205100631_2811_168_c4b7e84f10.jpg\", \"hash\": \"large_20251205100631_2811_168_c4b7e84f10\", \"mime\": \"image/jpeg\", \"name\": \"large_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 149.18, \"width\": 706, \"height\": 1000, \"sizeInBytes\": 149179}, \"small\": {\"ext\": \".jpg\", \"url\": \"/uploads/small_20251205100631_2811_168_c4b7e84f10.jpg\", \"hash\": \"small_20251205100631_2811_168_c4b7e84f10\", \"mime\": \"image/jpeg\", \"name\": \"small_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 42.14, \"width\": 353, \"height\": 500, \"sizeInBytes\": 42138}, \"medium\": {\"ext\": \".jpg\", \"url\": \"/uploads/medium_20251205100631_2811_168_c4b7e84f10.jpg\", \"hash\": \"medium_20251205100631_2811_168_c4b7e84f10\", \"mime\": \"image/jpeg\", \"name\": \"medium_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 91.1, \"width\": 530, \"height\": 750, \"sizeInBytes\": 91095}, \"thumbnail\": {\"ext\": \".jpg\", \"url\": \"/uploads/thumbnail_20251205100631_2811_168_c4b7e84f10.jpg\", \"hash\": \"thumbnail_20251205100631_2811_168_c4b7e84f10\", \"mime\": \"image/jpeg\", \"name\": \"thumbnail_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 4.73, \"width\": 110, \"height\": 156, \"sizeInBytes\": 4727}}', '20251205100631_2811_168_c4b7e84f10', '.jpg', 'image/jpeg', 314.95, '/uploads/20251205100631_2811_168_c4b7e84f10.jpg', NULL, 'local', NULL, '/1', '2026-01-29 14:58:37.831000', '2026-01-29 14:58:37.831000', '2026-01-29 14:58:37.831000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (17, 'x0xjrxos1jicpyowpfs9ixnc', '微信图片_20251205100631_2811_168.jpg', NULL, NULL, 1179, 1669, '{\"large\": {\"ext\": \".jpg\", \"url\": \"/uploads/large_20251205100631_2811_168_296a35bb60.jpg\", \"hash\": \"large_20251205100631_2811_168_296a35bb60\", \"mime\": \"image/jpeg\", \"name\": \"large_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 149.18, \"width\": 706, \"height\": 1000, \"sizeInBytes\": 149179}, \"small\": {\"ext\": \".jpg\", \"url\": \"/uploads/small_20251205100631_2811_168_296a35bb60.jpg\", \"hash\": \"small_20251205100631_2811_168_296a35bb60\", \"mime\": \"image/jpeg\", \"name\": \"small_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 42.14, \"width\": 353, \"height\": 500, \"sizeInBytes\": 42138}, \"medium\": {\"ext\": \".jpg\", \"url\": \"/uploads/medium_20251205100631_2811_168_296a35bb60.jpg\", \"hash\": \"medium_20251205100631_2811_168_296a35bb60\", \"mime\": \"image/jpeg\", \"name\": \"medium_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 91.1, \"width\": 530, \"height\": 750, \"sizeInBytes\": 91095}, \"thumbnail\": {\"ext\": \".jpg\", \"url\": \"/uploads/thumbnail_20251205100631_2811_168_296a35bb60.jpg\", \"hash\": \"thumbnail_20251205100631_2811_168_296a35bb60\", \"mime\": \"image/jpeg\", \"name\": \"thumbnail_微信图片_20251205100631_2811_168.jpg\", \"path\": null, \"size\": 4.73, \"width\": 110, \"height\": 156, \"sizeInBytes\": 4727}}', '20251205100631_2811_168_296a35bb60', '.jpg', 'image/jpeg', 314.95, '/uploads/20251205100631_2811_168_296a35bb60.jpg', NULL, 'local', NULL, '/1', '2026-01-29 15:12:18.728000', '2026-01-29 15:12:18.728000', '2026-01-29 15:12:18.728000', NULL, NULL, NULL);
+INSERT INTO `files` VALUES (18, 'fnw11grf6fofnimaemogtlg3', '部署文档.pdf', NULL, NULL, NULL, NULL, NULL, '_2f19ea15a0', '.pdf', 'application/pdf', 291.32, '/uploads/_2f19ea15a0.pdf', NULL, 'local', NULL, '/1', '2026-01-29 15:12:30.067000', '2026-01-29 15:12:30.067000', '2026-01-29 15:12:30.067000', NULL, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for files_folder_lnk
@@ -1480,12 +1549,29 @@ CREATE TABLE `files_folder_lnk`  (
   INDEX `files_folder_lnk_oifk`(`file_ord` ASC) USING BTREE,
   CONSTRAINT `files_folder_lnk_fk` FOREIGN KEY (`file_id`) REFERENCES `files` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `files_folder_lnk_ifk` FOREIGN KEY (`folder_id`) REFERENCES `upload_folders` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of files_folder_lnk
 -- ----------------------------
 INSERT INTO `files_folder_lnk` VALUES (1, 1, 1, 1);
+INSERT INTO `files_folder_lnk` VALUES (2, 2, 1, 2);
+INSERT INTO `files_folder_lnk` VALUES (3, 3, 1, 3);
+INSERT INTO `files_folder_lnk` VALUES (4, 4, 1, 4);
+INSERT INTO `files_folder_lnk` VALUES (5, 5, 1, 5);
+INSERT INTO `files_folder_lnk` VALUES (6, 6, 1, 6);
+INSERT INTO `files_folder_lnk` VALUES (7, 7, 1, 7);
+INSERT INTO `files_folder_lnk` VALUES (8, 8, 1, 8);
+INSERT INTO `files_folder_lnk` VALUES (9, 9, 1, 9);
+INSERT INTO `files_folder_lnk` VALUES (10, 10, 1, 10);
+INSERT INTO `files_folder_lnk` VALUES (11, 11, 1, 11);
+INSERT INTO `files_folder_lnk` VALUES (12, 12, 1, 12);
+INSERT INTO `files_folder_lnk` VALUES (13, 13, 1, 13);
+INSERT INTO `files_folder_lnk` VALUES (14, 14, 1, 14);
+INSERT INTO `files_folder_lnk` VALUES (15, 15, 1, 15);
+INSERT INTO `files_folder_lnk` VALUES (16, 16, 1, 16);
+INSERT INTO `files_folder_lnk` VALUES (17, 17, 1, 17);
+INSERT INTO `files_folder_lnk` VALUES (18, 18, 1, 18);
 
 -- ----------------------------
 -- Table structure for files_related_mph
@@ -1503,13 +1589,21 @@ CREATE TABLE `files_related_mph`  (
   INDEX `files_related_mph_oidx`(`order` ASC) USING BTREE,
   INDEX `files_related_mph_idix`(`related_id` ASC) USING BTREE,
   CONSTRAINT `files_related_mph_fk` FOREIGN KEY (`file_id`) REFERENCES `files` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of files_related_mph
 -- ----------------------------
 INSERT INTO `files_related_mph` VALUES (1, 1, 1, 'api::achievement-file.achievement-file', 'files', 1);
 INSERT INTO `files_related_mph` VALUES (2, 1, 2, 'api::achievement-file.achievement-file', 'files', 1);
+INSERT INTO `files_related_mph` VALUES (3, 11, 3, 'api::achievement-file.achievement-file', 'files', 1);
+INSERT INTO `files_related_mph` VALUES (4, 11, 4, 'api::achievement-file.achievement-file', 'files', 1);
+INSERT INTO `files_related_mph` VALUES (5, 12, 5, 'api::achievement-file.achievement-file', 'files', 1);
+INSERT INTO `files_related_mph` VALUES (6, 12, 6, 'api::achievement-file.achievement-file', 'files', 1);
+INSERT INTO `files_related_mph` VALUES (7, 15, 7, 'api::achievement-file.achievement-file', 'files', 1);
+INSERT INTO `files_related_mph` VALUES (8, 15, 8, 'api::achievement-file.achievement-file', 'files', 1);
+INSERT INTO `files_related_mph` VALUES (9, 18, 9, 'api::achievement-file.achievement-file', 'files', 1);
+INSERT INTO `files_related_mph` VALUES (10, 18, 10, 'api::achievement-file.achievement-file', 'files', 1);
 
 -- ----------------------------
 -- Table structure for globals
@@ -1532,7 +1626,7 @@ CREATE TABLE `globals`  (
   INDEX `globals_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `globals_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `globals_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of globals
@@ -1555,7 +1649,7 @@ CREATE TABLE `globals_cmps`  (
   INDEX `globals_component_type_idx`(`component_type` ASC) USING BTREE,
   INDEX `globals_entity_fk`(`entity_id` ASC) USING BTREE,
   CONSTRAINT `globals_entity_fk` FOREIGN KEY (`entity_id`) REFERENCES `globals` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of globals_cmps
@@ -1939,7 +2033,7 @@ CREATE TABLE `strapi_api_tokens`  (
 INSERT INTO `strapi_api_tokens` VALUES (1, 'o0m3ilbveiav8slt8xkkycar', 'Read Only', 'A default API token with read-only permissions, only used for accessing resources', 'read-only', 'e31c2a13acaf7f0a22cb0ac8e434c179921a51c60392aa2896ff90dd44c5353a9df5eb03ab7daad2e0f916b101eada73d42a847d46b483884e9ebe53d57ff96d', 'v1:3c8d99f8cfab3c800b8819170bb92645:0bb29446a82103589b0816d2ad986b0445538613a3c12ec0fcde779ea7a3226f475c55ed3d7cd24158ab3e8534b3e49ae1c574da1e6f89b69eebe6244455a0bffb754007761af2335dfac684d297e112090d7db34cce6f61569da052733a9fdeb6bfef5a5447bcac6c3ca40422f675114ff1bebe22d28139c08336bb734352bba6cf13b90322c90f834558ce3906ae217046c3f23ea0744e133c0c4f14576c56f0e9a71221fc670a534235801f45bef6cdbc227515017333c190f726124c4c06e043012eeb94d59adf3e4e3a6c4bcb176b5599285d6370b1a00d45957da333fdd1cf796e0fca21d9d6c73360deedeaf5ddb1044d679a94ff9506bdd43bbae12b:390fff1a13ef3cb26afb93e5f2eefa67', NULL, NULL, NULL, '2025-10-20 14:31:35.418000', '2025-10-20 14:31:35.418000', '2025-10-20 14:31:35.418000', NULL, NULL, NULL);
 INSERT INTO `strapi_api_tokens` VALUES (2, 'ecavb3y1n53cam2pldvv6y5y', 'Full Access', 'A default API token with full access permissions, used for accessing or modifying resources', 'full-access', 'dcdcf20eab6fa269b09e1e319e82b421db529cd7b8907b153c6d88a7def6e31496b8f938736224aca2d111fd5d6033bdd7b3d4ceb8cc48528fcaff7683296557', 'v1:7610ca17668b3ffd6080ed7d74d8f733:b97ec6f4dc6dd2e9a75a3b40c7c8c5b933634c591f62501e017ba0e88f81a49dd56371cb7ee382ebcffae1c1aac633e6ad3f3e321b5ead0f86c5c51166d903bd8e4d5ac2ad3a82acfbe4e83e3c5a8e5b74531e904a114d6d3d1435fa5dcbaaaaaab1a12671e6a947279c74964f14f1d2183711c6a990dd9e2d64018e221b20c642b0a53da2bc93a7d798439198694681f44b1519af4a36bbbe9e187ba42d5c868ec2a9c2c625092d83375db1550dcd173d4cd719c8a18aa09afcce7ae877b9ec0effcd8673eae8c4d203d47d4a33c570f192abdbe49001cec51b77e0677d9129835f37e30caddab10fee724e5fe990b67d45fcbda4da275029fe49ab187b9795:d7dd72383ac854d71948920846399130', NULL, NULL, NULL, '2025-10-20 14:31:35.423000', '2025-10-20 14:31:35.423000', '2025-10-20 14:31:35.423000', NULL, NULL, NULL);
 INSERT INTO `strapi_api_tokens` VALUES (3, 't6j97jif7np2mg29z9f62gcx', 'wjh', '', 'full-access', 'cc086419e252ebabee1c5d6f21cf662243c1a0a094936c5cbb870ee12d831a75514f39dd97145448c660399ac9568d78940fd7c3fb8aa04eb9c3972d3e28ac56', 'v1:67437dab67542bd05c104fee0ec6e5c7:77ed1e21a296995a609bfeef36481eae10b0882da520839fd52f0ede65261a59a5072261b27a2600c1e0afca13f893f8549541b8de3361dc90c1ffc9a6510af67788519079a68de9a2b6f909a65b1b65b0c69c1890390af804522e7d0f64a18cdcf4c28c4a54d74c04bca254464297aac01a9fba74f36c9ff88fb814f2d238e2df0830255ee5f1c209b89bff25cae262cf8bf3bea6709c9c3f37940e60f88b3612cabf8f8723b7cf890f7ddcbc1684fd23e3caa83fd40b2a7f6b2b1e66d1b28d8c87ffb200ae7c0889fc2dc5c01f4ae7bf0f53a0461cb680e887d20c0a8c72c511581d09a4cf049cbe4f2ea02327e4e66a65b38826ed11625028d49346409bf0:14813edeb4f1db96725e6a31b904d08c', '2026-01-23 13:44:48.812000', NULL, NULL, '2025-12-30 23:44:12.112000', '2026-01-23 13:44:48.812000', '2025-12-30 23:44:12.112000', NULL, NULL, NULL);
-INSERT INTO `strapi_api_tokens` VALUES (4, 'addn2kliia4wdteowbt3tw2l', '朱子齐', '', 'full-access', 'aecd62173b21bffba52ea289af302d6a334fdc0d14d0f91fe17b700b9f39f682d13b196966f6ab9c61c385a99f684b981fdf22221d57ba7b6934d7e83217f889', 'v1:7aa9bf63e72d6fd86757c52599d4b0c3:1def2663f26fb9e12307740b166c3eff4a019ac40451cc3f501c746a819636f7809c859d895d063f42d1bf5e7f01a80b4aa2b6244d51340b21303e5776165596c48539f4d2f11c5365b678c30e5cff6b7d6b1bf24c9f571307d31db6fd336c24489e7ac0e4d7ab8cabe9fd932822f0ade67defb0e8f3945ee12581c802f3ec461fecbeb48a7a5df688c0529ba0930d08a252db6531d232a54bf56dc49a327d18150082631a3e9452e1e25b650e36c4f7b8358f555d393c828691b6896cc443f5c7ed21c5e03a6ab62ed22842f1d13a577df8bf10ec04b75828e7acc987b794ae0873de9f79037f9d791746d0ede353904dce223ae1427633daa733af71f0b60d:217242c1a59632904c89899910a7227b', '2026-01-28 19:37:44.462000', NULL, NULL, '2026-01-24 22:44:24.455000', '2026-01-28 19:37:44.463000', '2026-01-24 22:44:24.455000', NULL, NULL, NULL);
+INSERT INTO `strapi_api_tokens` VALUES (4, 'addn2kliia4wdteowbt3tw2l', '朱子齐', '', 'full-access', 'aecd62173b21bffba52ea289af302d6a334fdc0d14d0f91fe17b700b9f39f682d13b196966f6ab9c61c385a99f684b981fdf22221d57ba7b6934d7e83217f889', 'v1:7aa9bf63e72d6fd86757c52599d4b0c3:1def2663f26fb9e12307740b166c3eff4a019ac40451cc3f501c746a819636f7809c859d895d063f42d1bf5e7f01a80b4aa2b6244d51340b21303e5776165596c48539f4d2f11c5365b678c30e5cff6b7d6b1bf24c9f571307d31db6fd336c24489e7ac0e4d7ab8cabe9fd932822f0ade67defb0e8f3945ee12581c802f3ec461fecbeb48a7a5df688c0529ba0930d08a252db6531d232a54bf56dc49a327d18150082631a3e9452e1e25b650e36c4f7b8358f555d393c828691b6896cc443f5c7ed21c5e03a6ab62ed22842f1d13a577df8bf10ec04b75828e7acc987b794ae0873de9f79037f9d791746d0ede353904dce223ae1427633daa733af71f0b60d:217242c1a59632904c89899910a7227b', '2026-01-29 15:52:55.382000', NULL, NULL, '2026-01-24 22:44:24.455000', '2026-01-29 15:52:55.390000', '2026-01-24 22:44:24.455000', NULL, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for strapi_audit_logs
@@ -1963,7 +2057,7 @@ CREATE TABLE `strapi_audit_logs`  (
   INDEX `strapi_audit_logs_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `strapi_audit_logs_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `strapi_audit_logs_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of strapi_audit_logs
@@ -1983,7 +2077,7 @@ CREATE TABLE `strapi_audit_logs_user_lnk`  (
   INDEX `strapi_audit_logs_user_lnk_ifk`(`user_id` ASC) USING BTREE,
   CONSTRAINT `strapi_audit_logs_user_lnk_fk` FOREIGN KEY (`audit_log_id`) REFERENCES `strapi_audit_logs` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `strapi_audit_logs_user_lnk_ifk` FOREIGN KEY (`user_id`) REFERENCES `admin_users` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of strapi_audit_logs_user_lnk
@@ -2039,7 +2133,7 @@ INSERT INTO `strapi_core_store_settings` VALUES (31, 'plugin_content_manager_con
 INSERT INTO `strapi_core_store_settings` VALUES (32, 'plugin_upload_settings', '{\"sizeOptimization\":true,\"responsiveDimensions\":true,\"autoOrientation\":false,\"aiMetadata\":true}', 'object', NULL, NULL);
 INSERT INTO `strapi_core_store_settings` VALUES (33, 'core_persisted_tables', '[{\"name\":\"strapi_history_versions\"}]', 'object', NULL, NULL);
 INSERT INTO `strapi_core_store_settings` VALUES (34, 'plugin_upload_view_configuration', '{\"pageSize\":10,\"sort\":\"createdAt:DESC\"}', 'object', NULL, NULL);
-INSERT INTO `strapi_core_store_settings` VALUES (35, 'plugin_upload_metrics', '{\"weeklySchedule\":\"20 3 10 * * 4\",\"lastWeeklyUpdate\":1769047400783}', 'object', NULL, NULL);
+INSERT INTO `strapi_core_store_settings` VALUES (35, 'plugin_upload_metrics', '{\"weeklySchedule\":\"20 3 10 * * 4\",\"lastWeeklyUpdate\":1769652200738}', 'object', NULL, NULL);
 INSERT INTO `strapi_core_store_settings` VALUES (36, 'plugin_i18n_default_locale', '\"en\"', 'string', NULL, NULL);
 INSERT INTO `strapi_core_store_settings` VALUES (37, 'plugin_users-permissions_grant', '{\"email\":{\"icon\":\"envelope\",\"enabled\":true},\"discord\":{\"icon\":\"discord\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"callbackUrl\":\"api/auth/discord/callback\",\"scope\":[\"identify\",\"email\"]},\"facebook\":{\"icon\":\"facebook-square\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"callbackUrl\":\"api/auth/facebook/callback\",\"scope\":[\"email\"]},\"google\":{\"icon\":\"google\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"callbackUrl\":\"api/auth/google/callback\",\"scope\":[\"email\"]},\"github\":{\"icon\":\"github\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"callbackUrl\":\"api/auth/github/callback\",\"scope\":[\"user\",\"user:email\"]},\"microsoft\":{\"icon\":\"windows\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"callbackUrl\":\"api/auth/microsoft/callback\",\"scope\":[\"user.read\"]},\"twitter\":{\"icon\":\"twitter\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"callbackUrl\":\"api/auth/twitter/callback\"},\"instagram\":{\"icon\":\"instagram\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"callbackUrl\":\"api/auth/instagram/callback\",\"scope\":[\"user_profile\"]},\"vk\":{\"icon\":\"vk\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"callbackUrl\":\"api/auth/vk/callback\",\"scope\":[\"email\"]},\"twitch\":{\"icon\":\"twitch\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"callbackUrl\":\"api/auth/twitch/callback\",\"scope\":[\"user:read:email\"]},\"linkedin\":{\"icon\":\"linkedin\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"callbackUrl\":\"api/auth/linkedin/callback\",\"scope\":[\"r_liteprofile\",\"r_emailaddress\"]},\"cognito\":{\"icon\":\"aws\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"subdomain\":\"my.subdomain.com\",\"callback\":\"api/auth/cognito/callback\",\"scope\":[\"email\",\"openid\",\"profile\"]},\"reddit\":{\"icon\":\"reddit\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"callback\":\"api/auth/reddit/callback\",\"scope\":[\"identity\"]},\"auth0\":{\"icon\":\"\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"subdomain\":\"my-tenant.eu\",\"callback\":\"api/auth/auth0/callback\",\"scope\":[\"openid\",\"email\",\"profile\"]},\"cas\":{\"icon\":\"book\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"callback\":\"api/auth/cas/callback\",\"scope\":[\"openid email\"],\"subdomain\":\"my.subdomain.com/cas\"},\"patreon\":{\"icon\":\"\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"callback\":\"api/auth/patreon/callback\",\"scope\":[\"identity\",\"identity[email]\"]},\"keycloak\":{\"icon\":\"\",\"enabled\":false,\"key\":\"\",\"secret\":\"\",\"subdomain\":\"myKeycloakProvider.com/realms/myrealm\",\"callback\":\"api/auth/keycloak/callback\",\"scope\":[\"openid\",\"email\",\"profile\"]}}', 'object', NULL, NULL);
 INSERT INTO `strapi_core_store_settings` VALUES (38, 'plugin_users-permissions_email', '{\"reset_password\":{\"display\":\"Email.template.reset_password\",\"icon\":\"sync\",\"options\":{\"from\":{\"name\":\"Administration Panel\",\"email\":\"no-reply@strapi.io\"},\"response_email\":\"\",\"object\":\"Reset password\",\"message\":\"<p>We heard that you lost your password. Sorry about that!</p>\\n\\n<p>But don’t worry! You can use the following link to reset your password:</p>\\n<p><%= URL %>?code=<%= TOKEN %></p>\\n\\n<p>Thanks.</p>\"}},\"email_confirmation\":{\"display\":\"Email.template.email_confirmation\",\"icon\":\"check-square\",\"options\":{\"from\":{\"name\":\"Administration Panel\",\"email\":\"no-reply@strapi.io\"},\"response_email\":\"\",\"object\":\"Account confirmation\",\"message\":\"<p>Thank you for registering!</p>\\n\\n<p>You have to confirm your email address. Please click on the link below.</p>\\n\\n<p><%= URL %>?confirmation=<%= CODE %></p>\\n\\n<p>Thanks.</p>\"}}}', 'object', NULL, NULL);
@@ -2172,7 +2266,7 @@ CREATE TABLE `strapi_release_actions`  (
   INDEX `strapi_release_actions_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `strapi_release_actions_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `strapi_release_actions_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of strapi_release_actions
@@ -2194,7 +2288,7 @@ CREATE TABLE `strapi_release_actions_release_lnk`  (
   INDEX `strapi_release_actions_release_lnk_oifk`(`release_action_ord` ASC) USING BTREE,
   CONSTRAINT `strapi_release_actions_release_lnk_fk` FOREIGN KEY (`release_action_id`) REFERENCES `strapi_release_actions` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `strapi_release_actions_release_lnk_ifk` FOREIGN KEY (`release_id`) REFERENCES `strapi_releases` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of strapi_release_actions_release_lnk
@@ -2224,7 +2318,7 @@ CREATE TABLE `strapi_releases`  (
   INDEX `strapi_releases_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `strapi_releases_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `strapi_releases_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of strapi_releases
@@ -2258,7 +2352,7 @@ CREATE TABLE `strapi_sessions`  (
   INDEX `strapi_sessions_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `strapi_sessions_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `strapi_sessions_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 26 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 31 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of strapi_sessions
@@ -2288,6 +2382,11 @@ INSERT INTO `strapi_sessions` VALUES (22, 'uxlwxoxgwtjmur7dopwt5g79', '1', '466d
 INSERT INTO `strapi_sessions` VALUES (23, 'bnelnrvrxmdumhi7v9002myi', '1', '6b1a6a335738b66c0476a1c088161b8c', '3fcf71379cc6d378e7c5eb973e30dd6c', 'e0945217-4521-451e-a727-a92d5d49dcf9', 'admin', '2026-01-25 00:44:10.731000', '2026-02-23 22:44:10.731000', 'rotated', 'session', '2026-01-24 22:44:10.731000', '2026-01-24 23:52:12.304000', '2026-01-24 22:44:10.732000', NULL, NULL, NULL);
 INSERT INTO `strapi_sessions` VALUES (24, 'em8tp7dztuxxiqdngifuhb04', '1', '3fcf71379cc6d378e7c5eb973e30dd6c', NULL, 'e0945217-4521-451e-a727-a92d5d49dcf9', 'admin', '2026-01-25 01:52:12.292000', '2026-02-23 22:44:10.731000', 'active', 'session', '2026-01-24 23:52:12.293000', '2026-01-24 23:52:12.293000', '2026-01-24 23:52:12.294000', NULL, NULL, NULL);
 INSERT INTO `strapi_sessions` VALUES (25, 'a3jxjta336vs3sr4xqp40q9p', '1', '2823e92ca98c981f59143ce25236b49a', NULL, 'e0945217-4521-451e-a727-a92d5d49dcf9', 'admin', '2026-01-28 17:01:27.545000', '2026-02-27 15:01:27.545000', 'active', 'session', '2026-01-28 15:01:27.545000', '2026-01-28 15:01:27.545000', '2026-01-28 15:01:27.546000', NULL, NULL, NULL);
+INSERT INTO `strapi_sessions` VALUES (26, 'qq1gajyjswad2ogzbt5vuyo7', '1', '90fe4e5ed1a19d78bddda17481a1f352', NULL, 'e0945217-4521-451e-a727-a92d5d49dcf9', 'admin', '2026-01-29 12:32:56.176000', '2026-02-28 10:32:56.176000', 'active', 'session', '2026-01-29 10:32:56.176000', '2026-01-29 10:32:56.176000', '2026-01-29 10:32:56.177000', NULL, NULL, NULL);
+INSERT INTO `strapi_sessions` VALUES (27, 'nrrzrpx6v82z0tc81pcrghr9', '1', 'edb4f5a6d4fad742b96093c78df40289', NULL, 'e0945217-4521-451e-a727-a92d5d49dcf9', 'admin', '2026-01-29 12:32:56.252000', '2026-02-28 10:32:56.252000', 'active', 'session', '2026-01-29 10:32:56.252000', '2026-01-29 10:32:56.252000', '2026-01-29 10:32:56.252000', NULL, NULL, NULL);
+INSERT INTO `strapi_sessions` VALUES (28, 'xa64s0kxyxgclbbjq50oxd8b', '1', '63c8db9840e105ff649f2b660721a022', '95be421d8daee806d2a57e449210c327', 'e0945217-4521-451e-a727-a92d5d49dcf9', 'admin', '2026-01-29 17:24:02.755000', '2026-02-28 15:24:02.755000', 'rotated', 'session', '2026-01-29 15:24:02.755000', '2026-01-29 16:08:18.045000', '2026-01-29 15:24:02.755000', NULL, NULL, NULL);
+INSERT INTO `strapi_sessions` VALUES (29, 'hb98smgwg1zo9i07x1task7f', '1', '95be421d8daee806d2a57e449210c327', NULL, 'e0945217-4521-451e-a727-a92d5d49dcf9', 'admin', '2026-01-29 18:08:18.001000', '2026-02-28 15:24:02.755000', 'active', 'session', '2026-01-29 16:08:18.003000', '2026-01-29 16:08:18.003000', '2026-01-29 16:08:18.015000', NULL, NULL, NULL);
+INSERT INTO `strapi_sessions` VALUES (30, 'mbxb2f99mrdtxs9zl0oq13sw', '1', 'f451bec38391f884cb1f3231e9baa76d', NULL, 'e0945217-4521-451e-a727-a92d5d49dcf9', 'admin', '2026-01-30 11:52:20.924000', '2026-03-01 09:52:20.924000', 'active', 'session', '2026-01-30 09:52:20.925000', '2026-01-30 09:52:20.925000', '2026-01-30 09:52:20.926000', NULL, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for strapi_transfer_token_permissions
@@ -2309,7 +2408,7 @@ CREATE TABLE `strapi_transfer_token_permissions`  (
   INDEX `strapi_transfer_token_permissions_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `strapi_transfer_token_permissions_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `strapi_transfer_token_permissions_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of strapi_transfer_token_permissions
@@ -2331,7 +2430,7 @@ CREATE TABLE `strapi_transfer_token_permissions_token_lnk`  (
   INDEX `strapi_transfer_token_permissions_token_lnk_oifk`(`transfer_token_permission_ord` ASC) USING BTREE,
   CONSTRAINT `strapi_transfer_token_permissions_token_lnk_fk` FOREIGN KEY (`transfer_token_permission_id`) REFERENCES `strapi_transfer_token_permissions` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `strapi_transfer_token_permissions_token_lnk_ifk` FOREIGN KEY (`transfer_token_id`) REFERENCES `strapi_transfer_tokens` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of strapi_transfer_token_permissions_token_lnk
@@ -2362,7 +2461,7 @@ CREATE TABLE `strapi_transfer_tokens`  (
   INDEX `strapi_transfer_tokens_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `strapi_transfer_tokens_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `strapi_transfer_tokens_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of strapi_transfer_tokens
@@ -2380,7 +2479,7 @@ CREATE TABLE `strapi_webhooks`  (
   `events` json NULL,
   `enabled` tinyint(1) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of strapi_webhooks
@@ -2407,7 +2506,7 @@ CREATE TABLE `strapi_workflows`  (
   INDEX `strapi_workflows_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `strapi_workflows_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `strapi_workflows_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of strapi_workflows
@@ -2427,7 +2526,7 @@ CREATE TABLE `strapi_workflows_stage_required_to_publish_lnk`  (
   INDEX `strapi_workflows_stage_required_to_publish_lnk_ifk`(`workflow_stage_id` ASC) USING BTREE,
   CONSTRAINT `strapi_workflows_stage_required_to_publish_lnk_fk` FOREIGN KEY (`workflow_id`) REFERENCES `strapi_workflows` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `strapi_workflows_stage_required_to_publish_lnk_ifk` FOREIGN KEY (`workflow_stage_id`) REFERENCES `strapi_workflows_stages` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of strapi_workflows_stage_required_to_publish_lnk
@@ -2454,7 +2553,7 @@ CREATE TABLE `strapi_workflows_stages`  (
   INDEX `strapi_workflows_stages_updated_by_id_fk`(`updated_by_id` ASC) USING BTREE,
   CONSTRAINT `strapi_workflows_stages_created_by_id_fk` FOREIGN KEY (`created_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `strapi_workflows_stages_updated_by_id_fk` FOREIGN KEY (`updated_by_id`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of strapi_workflows_stages
@@ -2476,7 +2575,7 @@ CREATE TABLE `strapi_workflows_stages_permissions_lnk`  (
   INDEX `strapi_workflows_stages_permissions_lnk_ofk`(`permission_ord` ASC) USING BTREE,
   CONSTRAINT `strapi_workflows_stages_permissions_lnk_fk` FOREIGN KEY (`workflow_stage_id`) REFERENCES `strapi_workflows_stages` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `strapi_workflows_stages_permissions_lnk_ifk` FOREIGN KEY (`permission_id`) REFERENCES `admin_permissions` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of strapi_workflows_stages_permissions_lnk
@@ -2498,7 +2597,7 @@ CREATE TABLE `strapi_workflows_stages_workflow_lnk`  (
   INDEX `strapi_workflows_stages_workflow_lnk_oifk`(`workflow_stage_ord` ASC) USING BTREE,
   CONSTRAINT `strapi_workflows_stages_workflow_lnk_fk` FOREIGN KEY (`workflow_stage_id`) REFERENCES `strapi_workflows_stages` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `strapi_workflows_stages_workflow_lnk_ifk` FOREIGN KEY (`workflow_id`) REFERENCES `strapi_workflows` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of strapi_workflows_stages_workflow_lnk
@@ -2781,7 +2880,7 @@ CREATE TABLE `upload_folders_parent_lnk`  (
   INDEX `upload_folders_parent_lnk_oifk`(`folder_ord` ASC) USING BTREE,
   CONSTRAINT `upload_folders_parent_lnk_fk` FOREIGN KEY (`folder_id`) REFERENCES `upload_folders` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `upload_folders_parent_lnk_ifk` FOREIGN KEY (`inv_folder_id`) REFERENCES `upload_folders` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of upload_folders_parent_lnk

@@ -203,7 +203,13 @@ export function getTypePie(creatorId?: number): Promise<ApiResponse<any>> {
     params: creatorId ? { creatorId } : undefined
   })
 }
-
+export function getTypePie4User(creatorId?: number): Promise<ApiResponse<any>> {
+  return request({
+    url: '/user/stat/typePie',
+    method: 'get',
+    params: creatorId ? { creatorId } : undefined
+  })
+}
 // 获取高级分布数据
 export function getAdvancedDistribution(params?: QueryParams): Promise<ApiResponse<any>> {
   return request({
