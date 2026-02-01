@@ -1,176 +1,210 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { useUserStore } from '@/stores/user'
-import { UserRole } from '@/types'
+import { useUserStore } from "@/stores/user";
+import { UserRole } from "@/types";
+import { storeToRefs } from "pinia";
+import { createRouter, createWebHistory } from "vue-router";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // 登录回调（从 login-portal 重定向）
     {
-      path: '/login',
-      name: 'Login',
-      component: () => import('@/views/Login.vue'),
-      meta: { requiresAuth: false }
+      path: "/login",
+      name: "Login",
+      component: () => import("@/views/Login.vue"),
+      meta: { requiresAuth: false },
     },
     {
-      path: '/',
-      component: () => import('@/layouts/MainLayout.vue'),
-      redirect: '/dashboard',
+      path: "/",
+      component: () => import("@/layouts/MainLayout.vue"),
+      redirect: "/dashboard",
       meta: { requiresAuth: true },
       children: [
         // 普通用户路由
         {
-          path: '/dashboard',
-          name: 'Dashboard',
-          component: () => import('@/views/Dashboard.vue'),
-          meta: { title: '个人概览', roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN, UserRole.MANAGER] }
+          path: "/dashboard",
+          name: "Dashboard",
+          component: () => import("@/views/Dashboard.vue"),
+          meta: {
+            title: "个人概览",
+            roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN],
+          },
         },
         {
-          path: '/results/create',
-          name: 'CreateResult',
-          component: () => import('@/views/result/CreateResult.vue'),
-          meta: { title: '创建成果物', roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN, UserRole.MANAGER] }
+          path: "/results/create",
+          name: "CreateResult",
+          component: () => import("@/views/result/CreateResult.vue"),
+          meta: {
+            title: "创建成果物",
+            roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN],
+          },
         },
         {
-          path: '/results/my',
-          name: 'MyResults',
-          component: () => import('@/views/result/MyResults.vue'),
-          meta: { title: '个人成果物', roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN, UserRole.MANAGER] }
+          path: "/results/my",
+          name: "MyResults",
+          component: () => import("@/views/result/MyResults.vue"),
+          meta: {
+            title: "个人成果物",
+            roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN],
+          },
         },
         {
-          path: '/results/list',
-          name: 'ResultsList',
-          component: () => import('@/views/result/ResultsList.vue'),
-          meta: { title: '科研成果', roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN, UserRole.MANAGER] }
+          path: "/results/list",
+          name: "ResultsList",
+          component: () => import("@/views/result/ResultsList.vue"),
+          meta: {
+            title: "科研成果",
+            roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN],
+          },
         },
         {
-          path: '/results/search',
-          name: 'SearchResults',
-          component: () => import('@/views/result/SearchResults.vue'),
-          meta: { title: '成果检索', roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN, UserRole.MANAGER] }
+          path: "/results/search",
+          name: "SearchResults",
+          component: () => import("@/views/result/SearchResults.vue"),
+          meta: {
+            title: "成果检索",
+            roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN],
+          },
         },
         {
-          path: '/results/:id',
-          name: 'ResultDetail',
-          component: () => import('@/views/result/ResultDetail.vue'),
-          meta: { title: '成果详情', roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN, UserRole.MANAGER] }
+          path: "/results/:id",
+          name: "ResultDetail",
+          component: () => import("@/views/result/ResultDetail.vue"),
+          meta: {
+            title: "成果详情",
+            roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN],
+          },
         },
         {
-          path: '/results/:id/edit',
-          name: 'EditResult',
-          component: () => import('@/views/result/EditResult.vue'),
-          meta: { title: '编辑成果', roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN, UserRole.MANAGER] }
+          path: "/results/:id/edit",
+          name: "EditResult",
+          component: () => import("@/views/result/EditResult.vue"),
+          meta: {
+            title: "编辑成果",
+            roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN],
+          },
         },
         {
-          path: '/insights/demands',
-          name: 'DemandInsights',
-          component: () => import('@/views/insights/DemandInsights.vue'),
-          meta: { title: '需求洞察', roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN, UserRole.MANAGER] }
+          path: "/insights/demands",
+          name: "DemandInsights",
+          component: () => import("@/views/insights/DemandInsights.vue"),
+          meta: {
+            title: "需求洞察",
+            roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN],
+          },
         },
         // 专家路由
         {
-          path: '/expert/reviews',
-          name: 'ExpertReviews',
-          component: () => import('@/views/expert/Reviews.vue'),
-          meta: { title: '成果审核', roles: [UserRole.EXPERT, UserRole.ADMIN] }
+          path: "/expert/reviews",
+          name: "ExpertReviews",
+          component: () => import("@/views/expert/Reviews.vue"),
+          meta: { title: "成果审核", roles: [UserRole.EXPERT, UserRole.ADMIN] },
         },
         // 管理员路由
         {
-          path: '/admin/dashboard',
-          name: 'AdminDashboard',
-          component: () => import('@/views/admin/Dashboard.vue'),
-          meta: { title: '科研看台', roles: [UserRole.ADMIN, UserRole.MANAGER] }
+          path: "/admin/dashboard",
+          name: "AdminDashboard",
+          component: () => import("@/views/admin/Dashboard.vue"),
+          meta: { title: "科研看台", roles: [UserRole.ADMIN] },
         },
         {
-          path: '/admin/results',
-          name: 'AdminResults',
-          component: () => import('@/views/admin/Results.vue'),
-          meta: { title: '成果管理', roles: [UserRole.ADMIN, UserRole.MANAGER] }
+          path: "/admin/results",
+          name: "AdminResults",
+          component: () => import("@/views/admin/Results.vue"),
+          meta: { title: "成果管理", roles: [UserRole.ADMIN] },
         },
         {
-          path: '/admin/access-requests',
-          name: 'AccessRequests',
-          component: () => import('@/views/admin/AccessRequests.vue'),
-          meta: { title: '权限审核', roles: [UserRole.ADMIN, UserRole.MANAGER] }
+          path: "/admin/access-requests",
+          name: "AccessRequests",
+          component: () => import("@/views/admin/AccessRequests.vue"),
+          meta: { title: "权限审核", roles: [UserRole.ADMIN] },
         },
         {
-          path: '/admin/review-assign',
-          name: 'ReviewAssign',
-          component: () => import('@/views/admin/ReviewAssign.vue'),
-          meta: { title: '审核分配', roles: [UserRole.ADMIN, UserRole.MANAGER] }
+          path: "/admin/review-assign",
+          name: "ReviewAssign",
+          component: () => import("@/views/admin/ReviewAssign.vue"),
+          meta: { title: "审核分配", roles: [UserRole.ADMIN] },
         },
         {
-          path: '/admin/result-types',
-          name: 'ResultTypes',
-          component: () => import('@/views/admin/ResultTypes.vue'),
-          meta: { title: '成果类型配置', roles: [UserRole.ADMIN] }
+          path: "/admin/result-types",
+          name: "ResultTypes",
+          component: () => import("@/views/admin/ResultTypes.vue"),
+          meta: { title: "成果类型配置", roles: [UserRole.ADMIN] },
         },
         {
-          path: '/admin/system-settings',
-          name: 'SystemSettings',
-          component: () => import('@/views/admin/SystemSettings.vue'),
-          meta: { title: '系统设置', roles: [UserRole.ADMIN, UserRole.MANAGER] }
+          path: "/admin/system-settings",
+          name: "SystemSettings",
+          component: () => import("@/views/admin/SystemSettings.vue"),
+          meta: { title: "系统设置", roles: [UserRole.ADMIN] },
         },
         {
-          path: '/admin/research-insights',
-          name: 'ResearchInsights',
-          component: () => import('@/views/admin/ResearchInsights.vue'),
-          meta: { title: '研究洞察', roles: [UserRole.ADMIN, UserRole.MANAGER] }
+          path: "/admin/research-insights",
+          name: "ResearchInsights",
+          component: () => import("@/views/admin/ResearchInsights.vue"),
+          meta: { title: "研究洞察", roles: [UserRole.ADMIN] },
         },
         {
-          path: '/admin/interim-results',
-          name: 'InterimResults',
-          component: () => import('@/views/admin/InterimResults.vue'),
-          meta: { title: '过程成果', roles: [UserRole.ADMIN, UserRole.MANAGER] }
-        }
-      ]
+          path: "/admin/interim-results",
+          name: "InterimResults",
+          component: () => import("@/views/admin/InterimResults.vue"),
+          meta: { title: "过程成果", roles: [UserRole.ADMIN] },
+        },
+      ],
     },
     {
-      path: '/403',
-      name: 'Forbidden',
-      component: () => import('@/views/error/403.vue'),
-      meta: { requiresAuth: false }
+      path: "/403",
+      name: "Forbidden",
+      component: () => import("@/views/error/403.vue"),
+      meta: { requiresAuth: false },
     },
     {
-      path: '/:pathMatch(.*)*',
-      name: 'NotFound',
-      component: () => import('@/views/error/404.vue'),
-      meta: { requiresAuth: false }
-    }
-  ]
-})
+      path: "/:pathMatch(.*)*",
+      name: "NotFound",
+      component: () => import("@/views/error/404.vue"),
+      meta: { requiresAuth: false },
+    },
+  ],
+});
+
+/**
+ * 跳转回 login-portal
+ */
+function redirectToLoginPortal(redirectUri: string) {
+  window.location.href = `${import.meta.env.VITE_LOGIN_PORTAL_URL}?redirect=${encodeURIComponent(redirectUri)}`;
+}
 
 // 路由守卫
 router.beforeEach((to, from, next) => {
-  const userStore = useUserStore()
-  const { token, userInfo, isLoggedIn } = storeToRefs(userStore)
-  
+  const userStore = useUserStore();
+  const { accessToken, userInfo, isLoggedIn } = storeToRefs(userStore);
+
   // 初始化用户信息 (从 localStorage 恢复)
-  if (!userInfo.value && token.value) {
-    userStore.initUserInfo()
+  if (!userInfo.value && accessToken.value) {
+    userStore.initUserInfo();
   }
 
   // 需要登录的页面
   if (to.meta.requiresAuth !== false) {
     if (!isLoggedIn.value) {
-      next({ path: '/login', query: { redirect: to.fullPath } })
-      return
+      // next({ path: "/login", query: { redirect: to.fullPath } });
+      redirectToLoginPortal(window.location.origin + to.fullPath);
+      return;
     }
 
     // 检查角色权限 - 确保 userInfo 已加载
     if (to.meta.roles && Array.isArray(to.meta.roles)) {
       // 等待 userInfo 加载完成
       if (!userInfo.value) {
-        console.warn('用户信息未加载,拒绝访问:', to.path)
-        next({ path: '/login', query: { redirect: to.fullPath } })
-        return
+        console.warn("用户信息未加载,拒绝访问:", to.path);
+        // next({ path: "/login", query: { redirect: to.fullPath } });
+        redirectToLoginPortal(window.location.origin + to.fullPath);
+        return;
       }
 
-      const hasPermission = userStore.hasRole(to.meta.roles)
+      const hasPermission = userStore.hasRole(to.meta.roles);
       if (!hasPermission) {
-        console.warn('权限不足,用户角色:', userInfo.value?.role, '需要角色:', to.meta.roles)
-        next('/403')
-        return
+        console.warn("权限不足,用户角色:", userInfo.value?.roles, "需要角色:", to.meta.roles);
+        next("/403");
+        return;
       }
     }
   }
@@ -181,7 +215,7 @@ router.beforeEach((to, from, next) => {
   //   return
   // }
 
-  next()
-})
+  next();
+});
 
-export default router
+export default router;

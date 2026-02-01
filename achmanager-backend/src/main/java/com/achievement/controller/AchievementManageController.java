@@ -68,7 +68,7 @@ public class AchievementManageController {
     @Operation(description = "分页查询成果物列表接口")
     @PostMapping("/pageList")
     public Result<Page<AchListVO>> pageList(@RequestBody AchListDTO achListDTO, @CurrentUser KeycloakUser currentUser) {
-        if (!currentUser.hasRole("admin")) {
+        if (!currentUser.hasRole("research_admin")) {
             return Result.error("无权限：仅管理员可访问");
         }
         return Result.success(achievementMainsService.pageList(achListDTO));

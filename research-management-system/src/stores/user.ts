@@ -1,182 +1,235 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
-import { UserRole } from '@/types'
-import { errorLogger, AppError, ErrorType } from '@/utils/errorHandler'
+import type { UserProfile } from "@/api/auth";
+import { AppError, errorLogger, ErrorType } from "@/utils/errorHandler";
+import { ElMessage } from "element-plus";
+import { defineStore } from "pinia";
+import { computed, ref } from "vue";
 
-const TOKEN_KEY = 'token'
-const USER_INFO_KEY = 'userInfo'
+const TOKEN_KEY = "access_token";
+const REFRESH_TOKEN_KEY = "refresh_token";
+const USER_INFO_KEY = "user_info";
 const AVAILABLE_STORAGES = () => {
-  if (typeof window === 'undefined') return []
-  return [window.sessionStorage, window.localStorage]
-}
+  if (typeof window === "undefined") return [];
+  return [window.sessionStorage, window.localStorage];
+};
 
-export const useUserStore = defineStore('user', () => {
-  const token = ref<string>(getStoredToken())
-  const userInfo = ref<Record<string, any> | null>(null)
+export const useUserStore = defineStore("user", () => {
+  const accessToken = ref<string>(getStoredToken());
+  const refreshToken = ref<string>(getStoredRefreshToken());
+  const userInfo = ref<UserProfile | null>(getStoredUserInfo());
 
-  const isLoggedIn = computed(() => !!token.value)
-  const userRole = computed(() => userInfo.value?.role)
+  const isLoggedIn = computed(() => !!accessToken.value);
 
-  // 登录
-  function login(newToken: string, user: Record<string, any>, remember = false) {
-    // 先更新内存中的数据 (同步操作,立即生效)
-    token.value = newToken
-    userInfo.value = user
+  /**
+   * 登录：保存 token 和用户信息
+   */
+  function login(
+    newAccessToken: string,
+    newRefreshToken: string,
+    user: UserProfile,
+    remember = false,
+  ) {
+    // 先更新内存
+    accessToken.value = newAccessToken;
+    refreshToken.value = newRefreshToken;
+    userInfo.value = user;
 
-    const targetStorage = remember ? localStorage : sessionStorage
-    const staleStorage = remember ? sessionStorage : localStorage
+    const targetStorage = remember ? localStorage : sessionStorage;
+    const staleStorage = remember ? sessionStorage : localStorage;
 
-    // 再保存到存储
+    // 保存到存储
     const success =
-      safeSetItem(targetStorage, TOKEN_KEY, newToken) &&
-      safeSetItem(targetStorage, USER_INFO_KEY, JSON.stringify(user))
+      safeSetItem(targetStorage, TOKEN_KEY, newAccessToken) &&
+      safeSetItem(targetStorage, REFRESH_TOKEN_KEY, newRefreshToken) &&
+      safeSetItem(targetStorage, USER_INFO_KEY, JSON.stringify(user));
 
-    // 清理另一份存储，避免旧状态干扰
-    safeRemoveItem(staleStorage, TOKEN_KEY)
-    safeRemoveItem(staleStorage, USER_INFO_KEY)
+    // 清理另一份存储
+    safeRemoveItem(staleStorage, TOKEN_KEY);
+    safeRemoveItem(staleStorage, REFRESH_TOKEN_KEY);
+    safeRemoveItem(staleStorage, USER_INFO_KEY);
 
     if (!success) {
-      // 如果存储失败,清空内存中的数据
-      token.value = ''
-      userInfo.value = null
-      return false
+      accessToken.value = "";
+      refreshToken.value = "";
+      userInfo.value = null;
+      return false;
     }
 
-    // 添加日志,帮助调试
     if (import.meta.env.DEV) {
-      console.log('✅ 登录成功:', {
-        username: user?.name,
-        role: user?.role
-      })
+      console.log("✅ 登录成功:", {
+        username: user?.username,
+        roles: user?.roles,
+      });
     }
 
-    return true
+    return true;
   }
 
-  // 登出
-  function logout() {
-    token.value = ''
-    userInfo.value = null
+  /**
+   * 刷新 token
+   */
+  function setTokens(newAccessToken: string, newRefreshToken: string) {
+    accessToken.value = newAccessToken;
+    refreshToken.value = newRefreshToken;
+
     AVAILABLE_STORAGES().forEach((storage) => {
-      safeRemoveItem(storage, TOKEN_KEY)
-      safeRemoveItem(storage, USER_INFO_KEY)
-    })
+      safeSetItem(storage, TOKEN_KEY, newAccessToken);
+      safeSetItem(storage, REFRESH_TOKEN_KEY, newRefreshToken);
+    });
   }
 
-  // 初始化用户信息
+  /**
+   * 登出
+   */
+  function logout() {
+    accessToken.value = "";
+    refreshToken.value = "";
+    userInfo.value = null;
+
+    AVAILABLE_STORAGES().forEach((storage) => {
+      safeRemoveItem(storage, TOKEN_KEY);
+      safeRemoveItem(storage, REFRESH_TOKEN_KEY);
+      safeRemoveItem(storage, USER_INFO_KEY);
+    });
+  }
+
+  /**
+   * 初始化用户信息
+   */
   function initUserInfo() {
-    const { data, error } = getStoredUserInfo()
-    if (data) {
-      userInfo.value = data
-      return
+    const stored = getStoredUserInfo();
+    if (stored) {
+      userInfo.value = stored;
+      return;
     }
 
-    if (error && token.value) {
-      ElMessage.warning('用户信息已过期，请重新登录')
-      logout()
+    if (accessToken.value) {
+      ElMessage.warning("用户信息已过期，请重新登录");
+      logout();
     }
   }
 
-  // 安全的 localStorage 操作
+  /**
+   * 检查是否拥有指定角色（任一即可）
+   */
+  function hasRole(roles: string | string[]): boolean {
+    if (!userInfo.value?.roles) return false;
+    const checkRoles = Array.isArray(roles) ? roles : [roles];
+    return checkRoles.some((r) => userInfo.value!.roles.includes(r));
+  }
+
+  /**
+   * 检查是否拥有全部指定角色
+   */
+  function hasAllRoles(roles: string[]): boolean {
+    if (!userInfo.value?.roles) return false;
+    return roles.every((r) => userInfo.value!.roles.includes(r));
+  }
+
+  /**
+   * 计算属性：是否为管理员
+   */
+  const isAdmin = computed(() => hasRole("research_admin"));
+
+  /**
+   * 计算属性：是否为专家
+   */
+  const isExpert = computed(() => hasRole("research_expert"));
+
+  /**
+   * 计算属性：是否为项目负责人
+   */
+  const isProjectLeader = computed(() => hasRole("project_leader"));
+
+  /**
+   * 计算属性：是否为决策机构
+   */
+  const isDecisionOrg = computed(() => hasRole("decision_org"));
+
+  // ============ Storage Helpers ============
+
   function safeSetItem(storage: Storage, key: string, value: string) {
     try {
-      storage.setItem(key, value)
-      return true
+      storage.setItem(key, value);
+      return true;
     } catch (e) {
-      const error = new AppError(
-        '存储空间不足或浏览器限制',
-        ErrorType.RUNTIME,
-        'STORAGE_ERROR',
-        e
-      )
-      errorLogger.log(error)
-      ElMessage.error('保存用户信息失败，请检查浏览器设置')
-      return false
+      const error = new AppError("存储空间不足或浏览器限制", ErrorType.RUNTIME, "STORAGE_ERROR", e);
+      errorLogger.log(error);
+      ElMessage.error("保存用户信息失败，请检查浏览器设置");
+      return false;
     }
   }
 
   function safeRemoveItem(storage: Storage, key: string) {
     try {
-      storage.removeItem(key)
+      storage.removeItem(key);
     } catch (e) {
-      console.error('删除存储失败:', e)
+      console.error("删除存储失败:", e);
     }
-  }
-
-  function getStoredUserInfo(): {
-    data: Record<string, any> | null
-    error: AppError | null
-  } {
-    let parseError: AppError | null = null
-
-    for (const storage of AVAILABLE_STORAGES()) {
-      const stored = safeGetItem(storage, USER_INFO_KEY)
-      if (!stored) continue
-
-      try {
-        return {
-          data: JSON.parse(stored),
-          error: null
-        }
-      } catch (e) {
-        parseError = new AppError(
-          '用户信息已损坏，请重新登录',
-          ErrorType.VALIDATION,
-          'USER_INFO_PARSE_ERROR',
-          e
-        )
-        errorLogger.log(parseError)
-        safeRemoveItem(storage, USER_INFO_KEY)
-      }
-    }
-
-    return {
-      data: null,
-      error: parseError
-    }
-  }
-
-  function getStoredToken() {
-    for (const storage of AVAILABLE_STORAGES()) {
-      const stored = safeGetItem(storage, TOKEN_KEY)
-      if (stored) return stored
-    }
-    return ''
   }
 
   function safeGetItem(storage: Storage, key: string) {
     try {
-      return storage.getItem(key)
+      return storage.getItem(key);
     } catch (e) {
-      console.error('读取存储失败:', e)
-      return null
+      console.error("读取存储失败:", e);
+      return null;
     }
   }
 
-  // 检查权限
-  function hasRole(role: string | string[]) {
-    if (!userInfo.value) return false
-    const roles = Array.isArray(role) ? role : [role]
-    return roles.includes(userInfo.value.role)
+  function getStoredToken(): string {
+    for (const storage of AVAILABLE_STORAGES()) {
+      const stored = safeGetItem(storage, TOKEN_KEY);
+      if (stored) return stored;
+    }
+    return "";
   }
 
-  // 检查是否为管理员
-  const isAdmin = computed(() => hasRole(UserRole.ADMIN))
-  const isManager = computed(() => hasRole([UserRole.ADMIN, UserRole.MANAGER]))
-  const isExpert = computed(() => hasRole([UserRole.ADMIN, UserRole.EXPERT]))
+  function getStoredRefreshToken(): string {
+    for (const storage of AVAILABLE_STORAGES()) {
+      const stored = safeGetItem(storage, REFRESH_TOKEN_KEY);
+      if (stored) return stored;
+    }
+    return "";
+  }
+
+  function getStoredUserInfo(): UserProfile | null {
+    let parseError: AppError | null = null;
+
+    for (const storage of AVAILABLE_STORAGES()) {
+      const stored = safeGetItem(storage, USER_INFO_KEY);
+      if (!stored) continue;
+
+      try {
+        return JSON.parse(stored) as UserProfile;
+      } catch (e) {
+        parseError = new AppError(
+          "用户信息已损坏，请重新登录",
+          ErrorType.VALIDATION,
+          "USER_INFO_PARSE_ERROR",
+          e,
+        );
+        errorLogger.log(parseError);
+        safeRemoveItem(storage, USER_INFO_KEY);
+      }
+    }
+
+    return null;
+  }
 
   return {
-    token,
+    accessToken,
+    refreshToken,
     userInfo,
     isLoggedIn,
-    userRole,
     isAdmin,
-    isManager,
     isExpert,
+    isProjectLeader,
+    isDecisionOrg,
     login,
+    setTokens,
     logout,
     initUserInfo,
-    hasRole
-  }
-})
+    hasRole,
+    hasAllRoles,
+  };
+});

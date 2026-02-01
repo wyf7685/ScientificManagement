@@ -68,4 +68,15 @@ public class AuthController {
 
         return Result.success();
     }
+
+    /**
+     * 验证 Token
+     * 前端可调用此端点验证当前 token 的有效性
+     */
+    @Operation(description = "验证 Token")
+    @PostMapping("/verify")
+    public Result<KeycloakUser> verify(@CurrentUser KeycloakUser currentUser) {
+        log.debug("验证 Token: userId={}, username={}", currentUser.getId(), currentUser.getUsername());
+        return Result.success(currentUser);
+    }
 }

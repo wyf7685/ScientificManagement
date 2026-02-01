@@ -7,7 +7,7 @@
           <div class="brand-logo">Lab</div>
           <div class="brand-text">
             <div class="brand-title">Nexus</div>
-            <div class="brand-sub">{{ userStore.userInfo?.department || '科研机构' }}</div>
+            <!-- <div class="brand-sub">{{ userStore.userInfo?.department || '科研机构' }}</div> -->
           </div>
         </div>
         <div class="search-bar">
@@ -33,12 +33,12 @@
         </el-button>
         <el-dropdown @command="handleCommand">
           <div class="user-info pill">
-            <el-avatar :src="userStore.userInfo?.avatar" :size="32">
+            <!-- <el-avatar :src="userStore.userInfo?.avatar" :size="32">
               {{ userStore.userInfo?.name?.charAt(0) }}
-            </el-avatar>
+            </el-avatar> -->
             <div class="user-meta">
               <span class="username">{{ userStore.userInfo?.name }}</span>
-              <span class="role">{{ userStore.userInfo?.role }}</span>
+              <span class="role">{{ userStore.userInfo?.roles.join('/') }}</span>
             </div>
           </div>
           <template #dropdown>
@@ -70,7 +70,7 @@
               </el-icon>
               <span>{{ item.title }}</span>
             </el-menu-item>
-            
+
             <el-sub-menu
               v-else-if="item.children && hasPermission(item.roles)"
               :index="item.path"
@@ -103,12 +103,12 @@
             <div class="footer-desc">通知、偏好、主题</div>
           </div>
           <div class="profile-card">
-            <el-avatar :src="userStore.userInfo?.avatar" :size="40">
+            <!-- <el-avatar :src="userStore.userInfo?.avatar" :size="40">
               {{ userStore.userInfo?.name?.charAt(0) }}
-            </el-avatar>
+            </el-avatar> -->
             <div class="profile-meta">
               <div class="profile-name">{{ userStore.userInfo?.name || '用户' }}</div>
-              <div class="profile-role">{{ userStore.userInfo?.department || '实验室' }}</div>
+              <!-- <div class="profile-role">{{ userStore.userInfo?.department || '实验室' }}</div> -->
             </div>
           </div>
         </div>
@@ -173,6 +173,7 @@ import {
   List,
   FolderOpened
 } from '@element-plus/icons-vue'
+import { UserRole } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -181,7 +182,7 @@ const keyword = ref('')
 
 const currentRoute = computed(() => route)
 const activeMenu = computed(() => route.path)
-const showSystemSettingsCard = computed(() => userStore.isAdmin || userStore.isManager)
+const showSystemSettingsCard = computed(() => userStore.isAdmin)
 
 // 消息相关
 const messageDrawer = ref(false)
@@ -199,13 +200,13 @@ const menuItems = computed(() => {
   }> = []
 
   // 管理员菜单结构（优先级最高）
-  if (userStore.isManager) {
+  if (userStore.isAdmin) {
     // 顶部：创建成果物
     items.push({
       path: '/results/create',
       title: '创建成果物',
       icon: Plus,
-      roles: ['admin', 'manager']
+      roles: [UserRole.ADMIN]
     })
 
     // 顶部：科研看台
@@ -213,7 +214,7 @@ const menuItems = computed(() => {
       path: '/admin/dashboard',
       title: '科研看台',
       icon: DataAnalysis,
-      roles: ['admin', 'manager']
+      roles: [UserRole.ADMIN]
     })
 
     // 1. 成果物
@@ -221,7 +222,7 @@ const menuItems = computed(() => {
       path: '/results',
       title: '成果物',
       icon: Document,
-      roles: ['admin', 'manager'],
+      roles: [UserRole.ADMIN],
       children: [
         { path: '/results/list', title: '科研成果' },
         { path: '/results/search', title: '成果检索' },
@@ -234,7 +235,7 @@ const menuItems = computed(() => {
       path: '/review',
       title: '审核与权限',
       icon: Checked,
-      roles: ['admin', 'manager'],
+      roles: [UserRole.ADMIN],
       children: [
         { path: '/expert/reviews', title: '成果审核' },
         { path: '/admin/access-requests', title: '权限审核' },
@@ -247,7 +248,7 @@ const menuItems = computed(() => {
       path: '/insights',
       title: '科技助手',
       icon: DataAnalysis,
-      roles: ['admin', 'manager'],
+      roles: [UserRole.ADMIN],
       children: [
         { path: '/insights/demands', title: '需求洞察' },
         { path: '/admin/research-insights', title: '研究洞察' }
@@ -258,7 +259,7 @@ const menuItems = computed(() => {
     const systemConfigChildren = [
       { path: '/admin/system-settings', title: '系统设置' }
     ]
-    
+
     // 只有管理员可以访问成果类型配置
     if (userStore.isAdmin) {
       systemConfigChildren.push({ path: '/admin/result-types', title: '成果类型配置' })
@@ -268,7 +269,7 @@ const menuItems = computed(() => {
       path: '/system',
       title: '系统配置',
       icon: Setting,
-      roles: ['admin', 'manager'],
+      roles: [UserRole.ADMIN],
       children: systemConfigChildren
     })
   } else if (userStore.isExpert) {
@@ -277,31 +278,31 @@ const menuItems = computed(() => {
       path: '/results/create',
       title: '创建成果物',
       icon: Plus,
-      roles: ['researcher', 'expert', 'admin', 'manager']
+      roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN]
     })
     items.push({
       path: '/results/list',
       title: '科研成果',
       icon: List,
-      roles: ['researcher', 'expert', 'admin', 'manager']
+      roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN]
     })
     items.push({
       path: '/results/search',
       title: '成果检索',
       icon: Search,
-      roles: ['researcher', 'expert', 'admin', 'manager']
+      roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN]
     })
     items.push({
       path: '/insights/demands',
       title: '需求洞察',
       icon: DataAnalysis,
-      roles: ['researcher', 'expert', 'admin', 'manager']
+      roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN]
     })
     items.push({
       path: '/expert/reviews',
       title: '成果审核',
       icon: Checked,
-      roles: ['expert', 'admin']
+      roles: [UserRole.EXPERT, UserRole.ADMIN]
     })
   } else {
     // 普通用户菜单结构
@@ -309,37 +310,37 @@ const menuItems = computed(() => {
       path: '/dashboard',
       title: '个人概览',
       icon: House,
-      roles: ['researcher', 'expert', 'admin', 'manager']
+      roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN]
     })
     items.push({
       path: '/results/create',
       title: '创建成果物',
       icon: Plus,
-      roles: ['researcher', 'expert', 'admin', 'manager']
+      roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN]
     })
     items.push({
       path: '/results/my',
       title: '个人成果物',
       icon: Document,
-      roles: ['researcher', 'expert', 'admin', 'manager']
+      roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN]
     })
     items.push({
       path: '/results/list',
       title: '科研成果',
       icon: List,
-      roles: ['researcher', 'expert', 'admin', 'manager']
+      roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN]
     })
     items.push({
       path: '/results/search',
       title: '成果检索',
       icon: Search,
-      roles: ['researcher', 'expert', 'admin', 'manager']
+      roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN]
     })
     items.push({
       path: '/insights/demands',
       title: '需求洞察',
       icon: DataAnalysis,
-      roles: ['researcher', 'expert', 'admin', 'manager']
+      roles: [UserRole.RESEARCHER, UserRole.EXPERT, UserRole.ADMIN]
     })
   }
 
@@ -377,7 +378,7 @@ async function handleCommand(command) {
         type: 'warning'
       })
       userStore.logout()
-      router.push('/login')
+      redirectToLoginPortal()
       ElMessage.success('已退出登录')
     } catch {
       // 取消操作
@@ -385,6 +386,13 @@ async function handleCommand(command) {
   } else if (command === 'profile') {
     ElMessage.info('个人信息功能开发中')
   }
+}
+
+/**
+ * 跳转回 login-portal
+ */
+function redirectToLoginPortal() {
+  window.location.href = import.meta.env.VITE_LOGIN_PORTAL_URL
 }
 </script>
 

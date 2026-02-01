@@ -59,7 +59,7 @@
                 placeholder="请选择或输入作者"
                 style="width: 100%"
               >
-                <el-option :label="userStore.userInfo?.name" :value="userStore.userInfo?.name || ''" />
+                <el-option :label="currentUserName" :value="currentUserName" />
               </el-select>
             </el-form-item>
             <el-form-item label="所属项目">
@@ -111,7 +111,7 @@
                 style="width: 100%"
               />
             </el-form-item>
-            
+
             <!-- 动态字段 - 使用组件映射模型 -->
             <template v-if="selectedType">
               <el-form-item
@@ -278,12 +278,13 @@ const selectedType = computed(() => {
   const type = resultTypes.value.find(t => t.id === formData.typeId)
   return type || null
 })
+const currentUserName = computed(() => userStore.userInfo?.name || '')
 
 const formRef = ref()
 const formData = reactive({
   typeId: '',
   title: '',
-  authors: [userStore.userInfo?.name || ''],
+  authors: [currentUserName.value || ''],
   projectId: '',
   projectName: '',
   projectCode: '',
@@ -291,7 +292,7 @@ const formData = reactive({
   abstract: '',
   keywords: [],
   visibility: ResultVisibility.PRIVATE,
-  metadata: {},
+  metadata: {} as Record<string, any>,
   attachments: []
 })
 
@@ -369,29 +370,29 @@ function transformFieldDef(field: any) {
 async function handleTypeChange() {
   // 清空旧的元数据
   formData.metadata = {}
-  
+
   if (!formData.typeId) return
-  
+
   // 查找当前选择的类型
   const currentType = resultTypes.value.find(t => t.id === formData.typeId)
   if (!currentType) return
-  
+
   // 如果该类型已经加载过字段，不重复加载
   if (currentType.fields && currentType.fields.length > 0) return
-  
+
   loadingFields.value = true
   try {
     const res = await getFieldDefsByType(formData.typeId)
     const rawFields = res?.data || []
-    
+
     // 转换字段格式并排序
     const transformedFields = rawFields
       .map(transformFieldDef)
       .sort((a, b) => (a.order || 0) - (b.order || 0))
-    
+
     // 将字段定义注入到类型对象中
     currentType.fields = transformedFields
-    
+
     if (transformedFields.length === 0) {
       ElMessage.info('该类型暂未配置动态字段')
     }
@@ -423,7 +424,7 @@ async function nextStep() {
     ElMessage.warning('请先选择成果类型')
     return
   }
-  
+
   if (currentStep.value === 1) {
     try {
       await formRef.value?.validate()
@@ -433,7 +434,7 @@ async function nextStep() {
 
     if (!validateDynamicFields()) return
   }
-  
+
   currentStep.value++
 }
 
@@ -450,7 +451,7 @@ async function handleAutoFill() {
   if (autoFillType.value === 'journalRank' && !canRequestJournalRank()) {
     return
   }
-  
+
   autoFilling.value = true
   try {
     if (autoFillType.value !== 'journalRank') {
@@ -631,13 +632,13 @@ async function handleSubmit() {
   try {
     const payload = buildPayload()
     const rawFiles = fileList.value.filter(f => f.raw).map(f => f.raw) as File[]
-    
+
     if (rawFiles.length > 0) {
       await createResultWithFiles(payload, rawFiles)
     } else {
       await createResult(payload)
     }
-    
+
     ElMessage.success('提交成功')
     router.push('/results/my')
   } catch (error) {

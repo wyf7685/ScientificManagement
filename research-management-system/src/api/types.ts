@@ -3,7 +3,7 @@
 // 标准API响应格式
 export interface ApiResponse<T = any> {
   code: number
-  message: string
+  msg: string
   data: T
 }
 

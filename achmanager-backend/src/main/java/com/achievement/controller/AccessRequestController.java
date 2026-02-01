@@ -35,7 +35,7 @@ public class AccessRequestController {
     public Result<Page<AccessRequestVO>> getAccessRequests(
             AccessRequestQueryDTO queryDTO,
             @CurrentUser KeycloakUser currentUser) {
-        if (!currentUser.hasAnyRole("admin", "manager")) {
+        if (!currentUser.hasAnyRole("research_admin")) {
             throw new RuntimeException("无权限查看访问申请");
         }
         Page<AccessRequestVO> result = accessRequestService.pageAccessRequests(queryDTO);
@@ -52,7 +52,7 @@ public class AccessRequestController {
             @Validated @RequestBody AccessRequestReviewDTO reviewDTO,
             @CurrentUser KeycloakUser currentUser) {
 
-        if (!currentUser.hasAnyRole("admin", "manager")) {
+        if (!currentUser.hasAnyRole("research_admin")) {
             throw new RuntimeException("无权限审核访问申请");
         }
 

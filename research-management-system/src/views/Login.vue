@@ -6,14 +6,14 @@
       <p class="hero-sub">统一成果 · 高效协同 · 智能洞察</p>
       <div class="hero-stats">
         <div class="stat glass">
-          <div class="stat-label">在研项目</div>
-          <div class="stat-value">12</div>
-          <div class="stat-desc">3 个即将结题</div>
+          <div class="stat-label">系统状态</div>
+          <div class="stat-value">✓</div>
+          <div class="stat-desc">正在处理登录...</div>
         </div>
         <div class="stat glass">
-          <div class="stat-label">待处理事项</div>
-          <div class="stat-value">5</div>
-          <div class="stat-desc">设备采购与审批</div>
+          <div class="stat-label">进度</div>
+          <div class="stat-value">3/3</div>
+          <div class="stat-desc">{{ message }}</div>
         </div>
       </div>
     </div>
@@ -24,201 +24,183 @@
           <div class="card-title">科研成果管理系统</div>
           <div class="card-sub">登录以查看你的进展和任务</div>
         </div>
-        <div class="quick-accounts">
-          <span class="quick-label">一键填充</span>
-          <el-tag
-            v-for="acc in quickAccounts"
-            :key="acc.username"
-            type="info"
-            effect="plain"
-            class="quick-tag"
-            @click="fillAccount(acc)"
-          >
-            {{ acc.label }}
-          </el-tag>
-        </div>
       </div>
 
-      <el-form
-        ref="loginFormRef"
-        :model="loginForm"
-        :rules="rules"
-        class="login-form"
-        @submit.prevent="handleLogin"
-      >
-        <el-form-item prop="username">
-          <el-input
-            v-model="loginForm.username"
-            placeholder="请输入账号"
-            size="large"
-            :prefix-icon="User"
-          />
-        </el-form-item>
-        <el-form-item prop="password">
-          <el-input
-            v-model="loginForm.password"
-            type="password"
-            placeholder="请输入密码"
-            size="large"
-            :prefix-icon="Lock"
-            show-password
-          />
-        </el-form-item>
-        <div class="form-extra">
-          <el-checkbox v-model="loginForm.remember">记住登录状态</el-checkbox>
-          <span class="link">忘记密码？联系管理员</span>
+      <div class="loading-container">
+        <div class="spinner-wrapper">
+          <el-icon class="spinning">
+            <Loading />
+          </el-icon>
         </div>
-        <el-button
-          type="primary"
-          size="large"
-          :loading="loading"
-          class="login-button"
-          native-type="submit"
-        >
-          登录
-        </el-button>
-      </el-form>
+        <p class="loading-text">正在处理登录...</p>
+        <p class="loading-step">{{ message }}</p>
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { nextTick, reactive, ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { parseUserFromToken, verifyToken } from '@/api/auth'
 import { useUserStore } from '@/stores/user'
+import { Loading } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import type { FormInstance, FormRules } from 'element-plus'
-import { User, Lock } from '@element-plus/icons-vue'
-import { login } from '@/api/auth'
-import { useFormSubmit } from '@/composables/useErrorHandler'
-import { AppError, ErrorType } from '@/utils/errorHandler'
-import { UserRole } from '@/types'
-
-type LoginForm = {
-  username: string
-  password: string
-  remember: boolean
-}
-
-type LoginResponse = {
-  token: string
-  user: Record<string, any>
-}
-
-type QuickAccount = {
-  label: string
-  username: string
-  password: string
-}
+import { onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const message = ref('正在验证身份...')
 
-const loginFormRef = ref<FormInstance | null>(null)
-const quickAccounts: QuickAccount[] = [
-  { label: '管理员', username: 'admin', password: 'admin123' },
-  { label: '专家', username: 'expert', password: 'expert123' },
-  { label: '科研用户', username: 'researcher', password: 'researcher123' }
-]
+onMounted(async () => {
+  try {
+    // 从 URL 查询参数或 hash 中提取 token
+    const accessToken = extractTokenFromUrl()
 
-const loginForm = reactive<LoginForm>({
-  username: '',
-  password: '',
-  remember: false
-})
-
-const rules: FormRules<LoginForm> = {
-  username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
-}
-
-// 使用 useFormSubmit Hook 处理表单提交
-const { submitting: loading, submit } = useFormSubmit<LoginResponse>(
-  async (formData: LoginForm) => {
-    const res = await login({
-      username: formData.username.trim(),
-      password: formData.password
-    })
-    const { data } = res || {}
-
-    if (!data?.token || !data?.user) {
-      throw new AppError(
-        '登录响应异常，请稍后重试',
-        ErrorType.BUSINESS,
-        'LOGIN_RESPONSE_ERROR'
-      )
+    if (!accessToken) {
+      throw new Error('未找到有效的 token，请从 login-portal 登录')
     }
 
-    return data
-  },
-  {
-    validate: async () => {
-      if (!loginFormRef.value) return false
-      return await loginFormRef.value.validate()
-    },
-    onSuccess: async (data) => {
-      // 先保存登录信息（保存失败则不跳转）
-      const ok = userStore.login(data.token, data.user, loginForm.remember)
-      if (!ok) return
+    message.value = '正在解析用户信息...'
 
-      ElMessage.success('登录成功')
+    // 解析 JWT 获取基本用户信息
+    const partialUser = parseUserFromToken(accessToken)
+    if (!partialUser) {
+      throw new Error('Token 解析失败，请重试')
+    }
 
-      const role = data.user?.role || UserRole.RESEARCHER
-      const redirect = resolveRedirect(route.query.redirect, role)
+    message.value = '正在完整化用户数据...'
 
-      // 等待状态更新完成后再跳转
-      await nextTick()
-      router.replace(redirect)
-    },
-    successMessage: undefined // 已经在 onSuccess 中处理
+    // 从 URL 中获取 refresh_token（如果有）
+    const refreshToken = extractRefreshTokenFromUrl()
+    if (!refreshToken) {
+      throw new Error('未找到 refresh token，请重新登录')
+    }
+
+    // 调用后端验证接口补全系统 ID
+    let fullUser = partialUser
+    try {
+      const verifyRes = await verifyToken(accessToken)
+      if (verifyRes?.data) {
+        fullUser = verifyRes.data
+      }
+    } catch (e) {
+      // console.warn('后端验证失败，使用前端解析的用户信息:', e)
+      throw new Error('Token 验证失败，请重试')
+    }
+
+    // 保存 token 和用户信息到 store
+    const success = userStore.login(accessToken, refreshToken, fullUser, false)
+    if (!success) {
+      throw new Error('保存登录信息失败')
+    }
+
+    message.value = '登录成功，跳转中...'
+
+    // 等待 store 更新完成
+    await new Promise((resolve) => setTimeout(resolve, 500))
+
+    // 获取重定向目标
+    const redirect = getRedirectTarget()
+    router.replace(redirect)
+  } catch (error) {
+    console.error('登录回调处理失败:', error)
+    message.value = `错误：${error instanceof Error ? error.message : '未知错误'}`
+    ElMessage.error(`登录失败：${error instanceof Error ? error.message : '未知错误'}`)
+
+    // 3秒后跳转到 login-portal
+    setTimeout(() => {
+      redirectToLoginPortal()
+    }, 3000)
   }
-)
+})
 
-async function handleLogin() {
-  if (loading.value) return
-  await submit({ ...loginForm })
+/**
+ * 从 URL 中提取 access_token
+ * 支持格式：
+ * - ?token=xxx
+ * - ?access_token=xxx
+ * - #token=xxx
+ * - #access_token=xxx
+ */
+function extractTokenFromUrl(): string {
+  const params = new URLSearchParams(location.search)
+  let token = params.get('access_token')
+  if (!token) {
+    const hashParams = new URLSearchParams(location.hash.substring(1))
+    token = hashParams.get('access_token')
+  }
+
+  if (!token) {
+    // 兼容 token 参数
+    token = params.get('token')
+    if (!token) {
+      const hashParams = new URLSearchParams(location.hash.substring(1))
+      token = hashParams.get('token')
+    }
+  }
+
+  return token || '';
 }
 
-// 根据角色获取默认路由 - 使用传入的 role 参数,避免响应式延迟
-function getDefaultRouteByRole(role: string) {
-  if (role === UserRole.ADMIN || role === UserRole.MANAGER) {
+/**
+ * 从 URL 中提取 refresh_token
+ */
+function extractRefreshTokenFromUrl(): string {
+  const params = new URLSearchParams(location.search)
+  let token = params.get('refresh_token')
+
+  if (!token) {
+    const hashParams = new URLSearchParams(location.hash.substring(1))
+    token = hashParams.get('refresh_token')
+  }
+
+  return token || ''
+}
+
+/**
+ * 获取重定向目标
+ */
+function getRedirectTarget(): string {
+  // 优先使用 redirect 参数
+  const redirect = route.query.redirect as string
+  if (redirect && isValidRedirect(redirect)) {
+    return redirect
+  }
+
+  // 根据角色获取默认路由
+  if (!userStore.userInfo) return '/dashboard'
+
+  if (userStore.isAdmin) {
     return '/admin/dashboard'
-  } else if (role === UserRole.EXPERT) {
+  } else if (userStore.isExpert) {
     return '/expert/reviews'
   }
+
   return '/dashboard'
 }
 
-function resolveRedirect(rawRedirect: unknown, role: string) {
-  const fallback = getDefaultRouteByRole(role)
-  if (typeof rawRedirect !== 'string' || rawRedirect === '/' || rawRedirect === '/login') {
-    return fallback
+/**
+ * 验证重定向 URL 是否有效（防止开放重定向）
+ */
+function isValidRedirect(url: string): boolean {
+  if (!url || url.startsWith('http')) return false
+  try {
+    const resolved = router.resolve(url)
+    return resolved.matched.length > 0
+  } catch {
+    return false
   }
-
-  const resolved = router.resolve(rawRedirect)
-  if (!resolved.matched.length) {
-    return fallback
-  }
-
-  const requiredRoles = (resolved.meta.roles ||
-    resolved.matched[resolved.matched.length - 1]?.meta.roles) as string[] | undefined
-
-  if (Array.isArray(requiredRoles) && requiredRoles.length > 0 && !requiredRoles.includes(role)) {
-    return fallback
-  }
-
-  return resolved.fullPath
 }
 
-function fillAccount(acc: QuickAccount) {
-  loginForm.username = acc.username
-  loginForm.password = acc.password
-
-  // 清理上一次的校验提示
-  nextTick(() => {
-    loginFormRef.value?.clearValidate()
-  })
+/**
+ * 跳转回 login-portal
+ */
+function redirectToLoginPortal() {
+  window.location.href = import.meta.env.VITE_LOGIN_PORTAL_URL
 }
 </script>
 
@@ -285,12 +267,13 @@ function fillAccount(acc: QuickAccount) {
 .stat-value {
   font-size: 22px;
   font-weight: 800;
-  color: #0f172a;
+  color: #1d5bff;
 }
 
 .stat-desc {
   font-size: 12px;
   color: #6b7280;
+  margin-top: 2px;
 }
 
 .login-card {
@@ -305,7 +288,7 @@ function fillAccount(acc: QuickAccount) {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 18px;
+  margin-bottom: 28px;
   gap: 12px;
 }
 
@@ -321,45 +304,82 @@ function fillAccount(acc: QuickAccount) {
   font-size: 13px;
 }
 
-.quick-accounts {
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 24px 0;
+}
+
+.spinner-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e5edff 0%, #f0f4ff 100%);
 }
 
-.quick-label {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.quick-tag {
-  cursor: pointer;
-}
-
-.login-form {
-  margin-top: 8px;
-}
-
-.form-extra {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 8px 0 16px;
-  color: #6b7280;
-  font-size: 13px;
-}
-
-.link {
+.spinning {
+  font-size: 32px;
   color: #1d5bff;
-  cursor: pointer;
+  animation: spin 2s linear infinite;
 }
 
-.login-button {
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.loading-step {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  min-height: 20px;
+}
+
+.progress-bar {
   width: 100%;
-  height: 44px;
-  border-radius: 12px;
+  height: 4px;
+  background: #eef2f7;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1d5bff 0%, #667eea 100%);
+  border-radius: 2px;
+  animation: progress-animate 2s ease-in-out infinite;
+}
+
+@keyframes progress-animate {
+  0% {
+    width: 0%;
+  }
+
+  50% {
+    width: 80%;
+  }
+
+  100% {
+    width: 100%;
+  }
 }
 
 .glass {
@@ -378,6 +398,14 @@ function fillAccount(acc: QuickAccount) {
 
   .login-card {
     order: 1;
+  }
+
+  .hero-title {
+    font-size: 24px;
+  }
+
+  .login-card {
+    padding: 24px;
   }
 }
 </style>

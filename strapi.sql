@@ -1301,17 +1301,13 @@ CREATE TABLE `business_users` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `keycloak_user_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Keycloak 用户 UUID',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `uk_keycloak_user_id` (`keycloak_user_id`) USING BTREE,
+  UNIQUE KEY `uk_keycloak_user_id` (`keycloak_user_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='业务用户表';
 
 -- ----------------------------
 -- Records of business_users
 -- ----------------------------
 BEGIN;
-INSERT INTO `business_users` (`id`, `document_id`, `username`, `email`, `name`, `department`, `role`, `phone`, `is_active`, `last_login_at`, `created_at`, `updated_at`, `published_at`, `created_by_id`, `updated_by_id`, `locale`, `is_delete`) VALUES (1, 'user_001', 'researcher01', 'researcher01@example.com', '张三', '计算机学院', 'researcher', NULL, 1, '2026-01-24 23:31:04.167301', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', NULL, NULL, NULL, 0);
-INSERT INTO `business_users` (`id`, `document_id`, `username`, `email`, `name`, `department`, `role`, `phone`, `is_active`, `last_login_at`, `created_at`, `updated_at`, `published_at`, `created_by_id`, `updated_by_id`, `locale`, `is_delete`) VALUES (2, 'user_002', 'expert01', 'expert01@example.com', '李四', '信息学院', 'expert', NULL, 1, '2026-01-26 15:51:26.360740', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', NULL, NULL, NULL, 0);
-INSERT INTO `business_users` (`id`, `document_id`, `username`, `email`, `name`, `department`, `role`, `phone`, `is_active`, `last_login_at`, `created_at`, `updated_at`, `published_at`, `created_by_id`, `updated_by_id`, `locale`, `is_delete`) VALUES (3, 'user_003', 'manager01', 'manager01@example.com', '王五', '科研处', 'manager', NULL, 1, NULL, '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', NULL, NULL, NULL, 0);
-INSERT INTO `business_users` (`id`, `document_id`, `username`, `email`, `name`, `department`, `role`, `phone`, `is_active`, `last_login_at`, `created_at`, `updated_at`, `published_at`, `created_by_id`, `updated_by_id`, `locale`, `is_delete`) VALUES (4, 'user_004', 'admin01', 'admin01@example.com', '赵六', '管理部门', 'admin', NULL, 1, '2026-01-26 15:51:49.713048', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', '2026-01-21 15:29:18.884814', NULL, NULL, NULL, 0);
 COMMIT;
 
 -- ----------------------------

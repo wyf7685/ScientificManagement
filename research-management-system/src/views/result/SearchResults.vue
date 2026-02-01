@@ -8,7 +8,7 @@
         </div>
         <el-tag effect="plain" type="info" class="panel-total">匹配 {{ pagination.total }} 条</el-tag>
       </div>
-      
+
       <el-form :model="searchForm" label-width="90px" class="search-form">
         <el-row :gutter="18" class="form-grid">
           <el-col :xs="24" :md="12" :lg="12">
@@ -16,7 +16,7 @@
               <el-input
               v-model="searchForm.title"
               placeholder="输入成果名称/标题"
-              clearable 
+              clearable
               @keyup.enter="handleSearch"
               />
             </el-form-item>
@@ -157,9 +157,9 @@ import { ElMessage } from 'element-plus'
 import dayjs from 'dayjs'
 import { InfoFilled, Search as SearchIcon, RefreshRight as RefreshIcon, Download as DownloadIcon } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
-import { getVisibleResults, getResults, getMyResults, exportResults } from '@/api/result'
+import { getResults, getMyResults, exportResults } from '@/api/result'
 import { getProjects } from '@/api/project'
-import { getResultTypes } from '@/api/result' 
+import { getResultTypes } from '@/api/result'
 
 const router = useRouter()
 const route = useRoute()
@@ -229,9 +229,9 @@ async function handleSearch() {
       page: pagination.page,
       pageSize: pagination.pageSize
     }
-    
+
     // 管理员使用管理员接口，普通用户使用用户端检索接口
-    const res = userStore.isAdmin 
+    const res = userStore.isAdmin
       ? await getResults(params, true)
       : await getMyResults(params, true)
 

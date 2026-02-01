@@ -61,7 +61,7 @@ public class AchievementReviewController {
             @CurrentUser KeycloakUser currentUser) {
 
         // 验证用户是否有审核权限
-        if (!currentUser.hasAnyRole("admin", "expert", "manager")) {
+        if (!currentUser.hasAnyRole("research_admin", "research_expert")) {
             return Result.error(403, "无权限：只有管理员、专家或审核管理员可以审核成果");
         }
 
@@ -81,7 +81,7 @@ public class AchievementReviewController {
             @CurrentUser KeycloakUser currentUser) {
 
         // 只有管理员和审核管理员可以分配审核人
-        if (!currentUser.hasAnyRole("admin", "manager")) {
+        if (!currentUser.hasAnyRole("research_admin")) {
             return Result.error(403, "无权限：只有管理员可以分配审核人");
         }
 
@@ -101,7 +101,7 @@ public class AchievementReviewController {
             @CurrentUser KeycloakUser currentUser) {
 
         // 验证用户是否有审核权限
-        if (!currentUser.hasAnyRole("admin", "expert", "manager")) {
+        if (!currentUser.hasAnyRole("research_admin", "research_expert")) {
             return Result.error(403, "无权限：只有管理员、专家或审核管理员可以查看审核待办");
         }
 
@@ -120,7 +120,7 @@ public class AchievementReviewController {
             @RequestParam(defaultValue = "10") Integer pageSize,
             @CurrentUser KeycloakUser currentUser) {
         // 验证用户是否有审核权限
-        if (!currentUser.hasAnyRole("admin", "expert", "manager")) {
+        if (!currentUser.hasAnyRole("research_admin", "research_expert")) {
             return Result.error(403, "无权限：只有管理员、专家或审核管理员可以查看审核历史");
         }
 

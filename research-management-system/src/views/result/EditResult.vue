@@ -58,7 +58,7 @@
                 placeholder="请选择或输入作者"
                 style="width: 100%"
               >
-                <el-option :label="userStore.userInfo?.name" :value="userStore.userInfo?.name || ''" />
+                <el-option :label="currentUserName" :value="currentUserName" />
               </el-select>
             </el-form-item>
             <el-form-item label="所属项目">
@@ -110,7 +110,7 @@
                 style="width: 100%"
               />
             </el-form-item>
-            
+
             <!-- 动态字段 - 使用组件映射模型 -->
             <template v-if="selectedType">
               <el-form-item
@@ -274,12 +274,13 @@ const resultTypes = ref([])
 const projects = ref([])
 const resultId = computed(() => route.params.id?.toString())
 const selectedType = computed(() => resultTypes.value.find((t) => t.id === formData.typeId))
+const currentUserName = computed(() => userStore.userInfo?.name || '')
 
 const formRef = ref()
 const formData = reactive({
   typeId: '',
   title: '',
-  authors: [userStore.userInfo?.name || ''],
+  authors: [currentUserName],
   projectId: '',
   projectName: '',
   projectCode: '',
@@ -287,7 +288,7 @@ const formData = reactive({
   abstract: '',
   keywords: [],
   visibility: ResultVisibility.PRIVATE,
-  metadata: {},
+  metadata: {} as Record<string, any>,
   attachments: []
 })
 
@@ -651,13 +652,13 @@ async function handleSubmit() {
   try {
     const payload = buildPayload()
     const rawFiles = fileList.value.filter(f => f.raw).map(f => f.raw) as File[]
-    
+
     if (rawFiles.length > 0) {
       await updateResultWithFiles(resultId.value, payload, rawFiles)
     } else {
       await updateResult(resultId.value, payload)
     }
-    
+
     ElMessage.success('保存成功')
     router.push('/results/my')
   } catch (error) {

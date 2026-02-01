@@ -1,10 +1,9 @@
 // 业务常量：集中放置角色、状态和值域，避免魔法字符串。
 export const UserRole = {
-  ADMIN: 'admin',
-  MANAGER: 'manager',
-  RESEARCHER: 'researcher',
-  EXPERT: 'expert',
-  GUEST: 'guest'
+  ADMIN: 'research_admin',
+  RESEARCHER: 'project_leader',
+  EXPERT: 'research_expert',
+  DECISION_ORG: 'decision_org',
 } as const
 
 export type UserRole = typeof UserRole[keyof typeof UserRole]
