@@ -47,7 +47,7 @@ public interface AchievementMainsMapper extends BaseMapper<AchievementMains> {
     /**
      * 根据成果物类型统计数量
      */
-    List<TypeCountVO> countByType(@Param("creatorId") Long creatorId);
+    List<TypeCountVO> countByType(@Param("creatorId") Integer creatorId);
     
     /**
      * 查成果物主表
@@ -81,4 +81,6 @@ public interface AchievementMainsMapper extends BaseMapper<AchievementMains> {
     );
 
     Page<AchListVO> pageList4admin(Page<?> page, @Param("dto")AchListDTO2 achListDTO);
+
+    Page<AchListVO> pageListMySelf(Page<?> page, @Param("dto")AchListDTO achListDTO);
 }

@@ -15,7 +15,7 @@ import java.util.List;
 public class AchievementStatServiceImpl implements AchievementStatService {
     private final AchievementMainsMapper mainsMapper;
     @Override
-    public List<TypeCountVO> typePie(Long creatorId) {
+    public List<TypeCountVO> typePie(Integer creatorId) {
         return mainsMapper.countByType(creatorId);
     }
 }

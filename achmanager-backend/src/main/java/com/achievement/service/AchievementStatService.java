@@ -5,5 +5,5 @@ import com.achievement.domain.vo.TypeCountVO;
 import java.util.List;
 
 public interface AchievementStatService {
-    List<TypeCountVO> typePie(Long creatorId);
+    List<TypeCountVO> typePie(Integer creatorId);
 }

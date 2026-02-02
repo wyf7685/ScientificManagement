@@ -64,6 +64,14 @@ public class AchievementUserController {
     public Result<Page<AchListVO>> pageListAllVisible(@RequestBody AchListDTO2 achListDTO){
         return Result.success(achievementMainsService.pageList4Visibility(achListDTO));
     }
+    @Operation(description = "用户分页查询个人成果物列表接口")
+    @PostMapping("/pageList4User")
+    public Result<Page<AchListVO>> pageList4User(@RequestBody AchListDTO achListDTO, @CurrentUser BusinessUser businessUser){
+        if (businessUser == null) {
+            return Result.error("未登录");
+        }
+        return Result.success(achievementMainsService.pageList4UserAch(achListDTO,businessUser.getId()));
+    }
 
     @Operation(description = "用户新增成果物（主信息+多个字段值）")
     @PostMapping("/create")

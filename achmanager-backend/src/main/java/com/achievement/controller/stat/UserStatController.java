@@ -59,7 +59,7 @@ public class UserStatController {
         if (businessUser == null) {
             return Result.error("未登录");
         }
-        return Result.success(statService.typePie(Long.valueOf(businessUser.getId())));
+        return Result.success(statService.typePie(businessUser.getId()));
     }
 
 

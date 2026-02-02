@@ -43,4 +43,6 @@ public interface IAchievementMainsService extends IService<AchievementMains> {
     TypeYearTrendVo typeYearTrend(TrendQueryDTO trendQueryDTO);
 
     Page<AchListVO> pageList4Admin(AchListDTO2 achListDTO);
+
+    Page<AchListVO> pageList4UserAch(AchListDTO achListDTO, Integer userId);
 }

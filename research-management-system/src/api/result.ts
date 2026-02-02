@@ -175,7 +175,7 @@ function buildAchListPayload(params?: QueryParams, useTypeCode = false, onlyUnas
     payload.yearStart = String(yr[0] ?? '')
     payload.yearEnd = String(yr[1] ?? '')
   }
-  // ZZQ改 
+  // ZZQ改
 
   // 根据useTypeCode参数决定使用typeCode还是typeId
   if (useTypeCode) {
@@ -203,7 +203,13 @@ export function getTypePie(creatorId?: number): Promise<ApiResponse<any>> {
     params: creatorId ? { creatorId } : undefined
   })
 }
-
+export function getTypePie4User(creatorId?: number): Promise<ApiResponse<any>> {
+  return request({
+    url: '/user/stat/typePie',
+    method: 'get',
+    params: creatorId ? { creatorId } : undefined
+  })
+}
 // 获取高级分布数据
 export function getAdvancedDistribution(params?: QueryParams): Promise<ApiResponse<any>> {
   return request({
@@ -297,7 +303,14 @@ export async function getResult(id: string): Promise<StrapiSingleResponse<any>> 
   return { data: mapDetailItem(res?.data || {}) }
 }
 
-
+export async function selectResults(params?: QueryParams, useTypeCode = false): Promise<StrapiPaginatedResponse<any>> {
+  const res = await request({
+    url: '/user/achievement/pageList',
+    method: 'post',
+    data: buildAchListPayload(params, useTypeCode)
+  })
+  return normalizePageResult(res, mapListItem)
+}
 
 
 // 申请查看成果全文

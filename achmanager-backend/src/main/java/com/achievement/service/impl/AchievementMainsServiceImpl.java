@@ -394,6 +394,22 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
         page.setOptimizeCountSql(false);  // 关键：关闭 count SQL 优化解析
         return baseMapper.pageList4admin(page, achListDTO);
     }
+
+    @Override
+    public Page<AchListVO> pageList4UserAch(AchListDTO achListDTO, Integer userId) {
+        int pageNum  = (achListDTO.getPageNum()  == null || achListDTO.getPageNum()  < 1)  ? 1  : achListDTO.getPageNum();
+        int pageSize = (achListDTO.getPageSize() == null || achListDTO.getPageSize() < 1) ? 10 : achListDTO.getPageSize();
+        if (pageSize > 100) {
+            pageSize = 100; // 防止一次性查太多
+        }
+        achListDTO.setCreatorId(userId);
+        log.info("用户id:{}",userId);
+        //MybatisPlus的分页查询
+        Page<AchListVO> page = new Page<>(pageNum, pageSize);
+        page.setOptimizeCountSql(false);  // 关键：关闭 count SQL 优化解析
+        return baseMapper.pageListMySelf(page, achListDTO);
+    }
+
     @Override
     public Long countByTypeId(Long typeId) {
 

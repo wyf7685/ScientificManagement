@@ -11,12 +11,25 @@
     <!-- 筛选栏 -->
     <el-card class="filter-card" shadow="never">
       <el-form :inline="true" class="filter-form">
-        <el-form-item label="成果类型">
+        <!-- <el-form-item label="成果类型">
           <el-select v-model="filters.type" placeholder="全部类型" clearable style="width: 140px">
             <el-option label="全部类型" value="" />
             <el-option label="学术论文" value="paper" />
             <el-option label="发明专利" value="patent" />
             <el-option label="软件著作权" value="software" />
+          </el-select>
+        </el-form-item> 去除选项硬编码-->
+        <el-form-item label="成果类型">
+          <el-select
+            v-model="filters.type"
+            placeholder="全部类型"
+            clearable
+            filterable
+            style="width: 140px"
+            :loading="typeLoading"
+          >
+            <el-option label="全部类型" :value="''" />
+            <el-option v-for="t in resultTypes" :key="t.type_code" :label="t.type_name" :value="t.type_code" />
           </el-select>
         </el-form-item>
         <el-form-item label="年份范围">
@@ -25,7 +38,6 @@
             <el-option label="近1年" value="1y" />
             <el-option label="近3年" value="3y" />
             <el-option label="近5年" value="5y" />
-            
           </el-select>
         </el-form-item>
         <el-form-item label="排序方式">
@@ -98,6 +110,15 @@ import { ElMessage } from 'element-plus'
 import { getVisibleResults, getVisibleResults4Admin } from '@/api/result.ts'
 import { useUserStore } from '@/stores/user' 
 import ResultCard from './components/ResultCard.vue'
+import { getResultTypes } from '@/api/result'
+
+interface AchievementType {
+  type_code: string
+  type_name: string
+  is_delete?: number
+}
+const resultTypes = ref<AchievementType[]>([])
+const typeLoading = ref(false)
 
 const router = useRouter()
 const loading = ref(false)
@@ -117,10 +138,16 @@ const pagination = reactive({
   total: 0
 })
 
+
+
+
+
 onMounted(() => {
   userStore.initUserInfo()
+  loadResultTypes()
   loadResults()
 })
+
 
 async function loadResults() {
   loading.value = true
@@ -141,6 +168,19 @@ async function loadResults() {
     ElMessage.error('加载失败，请稍后重试')
   } finally {
     loading.value = false
+  }
+}
+async function loadResultTypes() {
+  typeLoading.value = true
+  try {
+    const res = await getResultTypes()
+    const list = res?.data ?? []
+    resultTypes.value = list.filter((t: AchievementType) => (t.is_delete ?? 0) === 0)
+  } catch (e) {
+    ElMessage.error('加载成果类型失败')
+    resultTypes.value = []
+  } finally {
+    typeLoading.value = false
   }
 }
 
