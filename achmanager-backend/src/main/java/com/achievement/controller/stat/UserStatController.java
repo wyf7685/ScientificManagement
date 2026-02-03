@@ -33,6 +33,7 @@ public class UserStatController {
     @Operation(description = "统计某用户的数据,包含该用户审核通过的成果物数量、论文数、专利数、本月新增")
     @GetMapping("/results/my-statistics")
     public Result<UserStatVo> userAchStat(@CurrentUser KeycloakUser currentUser) {
+        log.info("统计用户成果物数量，用户ID：{}", currentUser.getId());
         UserStatVo statVo = mainsService.countByUserId(currentUser.getId());
         return Result.success(statVo);
     }

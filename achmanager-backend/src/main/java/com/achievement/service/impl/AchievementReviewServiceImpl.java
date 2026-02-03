@@ -119,7 +119,7 @@ public class AchievementReviewServiceImpl implements IAchievementReviewService {
         LambdaUpdateWrapper<AchievementMains> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(AchievementMains::getDocumentId, achievementDocId)
                 .set(AchievementMains::getAchievementStatus, newStatus)
-                .set(AchievementMains::getReviewerId, reviewer.getUuid())
+                .set(AchievementMains::getReviewerId, reviewer.getId())
                 .set(AchievementMains::getReviewerName, reviewerName)
                 .set(AchievementMains::getReviewComment, reviewRequest.getComment())
                 .set(AchievementMains::getReviewedAt, LocalDateTime.now())
@@ -150,7 +150,7 @@ public class AchievementReviewServiceImpl implements IAchievementReviewService {
 
         LambdaUpdateWrapper<AchievementReviewerAssignment> assignmentUpdate = new LambdaUpdateWrapper<>();
         assignmentUpdate.eq(AchievementReviewerAssignment::getAchievementId, achievement.getId())
-                .eq(AchievementReviewerAssignment::getReviewerId, reviewer.getUuid())
+                .eq(AchievementReviewerAssignment::getReviewerId, reviewer.getId())
                 .eq(AchievementReviewerAssignment::getIsDelete, 0)
                 .eq(AchievementReviewerAssignment::getStatus, "pending")
                 .set(AchievementReviewerAssignment::getStatus, "completed")

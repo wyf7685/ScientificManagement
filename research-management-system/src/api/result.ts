@@ -298,6 +298,7 @@ export async function getResult(id: string): Promise<StrapiSingleResponse<any>> 
   const res = await request({
     url: '/user/achievement/detail', // ✅ 详情页统一走这个
     method: 'get',
+
     params: { achDocId: id }
   })
   return { data: mapDetailItem(res?.data || {}) }

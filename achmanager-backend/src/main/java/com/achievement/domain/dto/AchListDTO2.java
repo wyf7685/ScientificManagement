@@ -13,6 +13,8 @@ public class AchListDTO2 {
     @Schema(description = "每页大小，默认10")
     /** 每页大小 */
     private Integer pageSize = 10;
+    @Schema(description = "按成果物标题搜索")
+    private String title;
     @Schema(description = "按成果物类型id 搜索")
     /** 成果物类型ID（achievement_types.id） */
     private Integer typeId;
@@ -22,6 +24,9 @@ public class AchListDTO2 {
     private String recentRange; //一年/三年/五年/全部*/
     @Schema(description = "成果物范围起始时间")
     private String yearStart;
+    @Schema(description = "按成果物关键词模糊搜索")
+    /** 按成果物关键词模糊搜索 */
+    private String keyword;
     @Schema(description = "成果物范围结束时间")
     private String yearEnd;
     /// TODO 目前缺少用户ID

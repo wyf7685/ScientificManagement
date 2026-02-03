@@ -203,6 +203,8 @@
         t.type_name          AS typeName,
         m.achievement_status AS auditStatus,
         m.authors          AS authors,
+        m.year              AS year,
+        m.keywords         AS keywords,
         /*,
         p.project_name       AS projectName,*/
         m.summary            AS summary,
