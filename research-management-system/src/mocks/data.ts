@@ -874,63 +874,37 @@ export function nextId(prefix = 'r') {
 }
 
 // ==================== 中期成果物 Mock 数据 ====================
+const mockFileBase = 'http://localhost:5173/mock/files'
+
 export const interimResults = [
   {
     id: 'ir-001',
     projectId: 'p-001',
     projectName: '面向大规模预训练模型的参数高效微调方法研究',
-    projectCode: '62306124',
-    projectPhase: '需求分析',
-    name: '项目技术服务合同',
-    type: 'contract',
-    typeLabel: '合同',
-    description: '与XX公司签订的技术服务合同',
-    attachments: [
-      {
-        id: 'att-ir-001-1',
-        name: '技术服务合同_20241220.pdf',
-        url: '/mock/files/contract_001.pdf',
-        size: 2458624,
-        ext: 'pdf',
-        uploadedAt: '2024-12-20 14:30:00'
-      }
-    ],
-    submitter: '李研究员',
-    submitterDept: '人工智能学院',
-    submittedAt: '2024-12-20 14:30:00',
-    syncedAt: '2024-12-20 15:00:00',
-    source: 'process_system',
-    sourceRef: 'PS-P001-001',
-    sourceUrl: 'http://process.example.com/projects/p-001/deliverables/001',
-    tags: ['重要', '已归档'],
-    status: '已提交'
-  },
-  {
-    id: 'ir-002',
-    projectId: 'p-001',
-    projectName: '面向大规模预训练模型的参数高效微调方法研究',
-    projectCode: '62306124',
-    projectPhase: '需求分析',
+    projectCode: 'PROC000001',
+    projectPhase: '申报阶段',
     name: '项目申报书',
-    type: 'application',
+    type: 'proposal',
     typeLabel: '申报书',
-    description: '国家自然科学基金项目申报书',
+    description: '项目申报书（proposal）',
     attachments: [
       {
-        id: 'att-ir-002-1',
+        id: 'file-prop-001',
         name: '项目申报书_62306124.docx',
-        url: '/mock/files/application_001.docx',
+        url: `${mockFileBase}/application_001.docx`,
         size: 1856342,
         ext: 'docx',
-        uploadedAt: '2024-12-15 10:20:00'
+        uploadedAt: '2024-12-15 10:20:00',
+        category: 'proposal_file'
       },
       {
-        id: 'att-ir-002-2',
+        id: 'file-prop-att-001',
         name: '附件1_研究基础.pdf',
-        url: '/mock/files/application_001_att1.pdf',
+        url: `${mockFileBase}/application_001_att1.pdf`,
         size: 845632,
         ext: 'pdf',
-        uploadedAt: '2024-12-15 10:20:00'
+        uploadedAt: '2024-12-15 10:20:00',
+        category: 'attachment'
       }
     ],
     submitter: '张教授',
@@ -938,97 +912,141 @@ export const interimResults = [
     submittedAt: '2024-12-15 10:20:00',
     syncedAt: '2024-12-15 11:00:00',
     source: 'process_system',
-    sourceRef: 'PS-P001-002',
-    sourceUrl: 'http://process.example.com/projects/p-001/deliverables/002',
-    tags: ['重要'],
-    status: '已提交'
+    sourceRef: '10001',
+    sourceUrl: 'https://process.example.com/submissions/10001',
+    tags: ['proposal'],
+    status: 'synced'
+  },
+  {
+    id: 'ir-002',
+    projectId: 'p-001',
+    projectName: '面向大规模预训练模型的参数高效微调方法研究',
+    projectCode: 'PROC000001',
+    projectPhase: '执行阶段',
+    name: '已签署合同',
+    type: 'signed_contract',
+    typeLabel: '已签署合同',
+    description: '合同备注：已完成签署',
+    attachments: [
+      {
+        id: 'file-contract-001',
+        name: '已签署合同_20241220.pdf',
+        url: `${mockFileBase}/contract_001.pdf`,
+        size: 2458624,
+        ext: 'pdf',
+        uploadedAt: '2024-12-20 14:30:00',
+        category: 'signed_contract_file'
+      }
+    ],
+    submitter: '李研究员',
+    submitterDept: '人工智能学院',
+    submittedAt: '2024-12-20 14:30:00',
+    syncedAt: '2024-12-20 15:00:00',
+    source: 'process_system',
+    sourceRef: '10002',
+    sourceUrl: 'https://process.example.com/submissions/10002',
+    tags: ['signed_contract'],
+    status: 'synced'
   },
   {
     id: 'ir-003',
     projectId: 'p-002',
     projectName: '基于多模态融合的复杂场景自动驾驶感知关键技术',
-    projectCode: '2024YFB3301200',
-    projectPhase: '可行性研究',
-    name: '项目可行性研究报告',
-    type: 'feasibility_report',
-    typeLabel: '可行性报告',
-    description: '技术可行性和经济可行性分析报告',
+    projectCode: 'PROC000002',
+    projectPhase: '执行阶段',
+    name: '成果物报告（第一轮验收）',
+    type: 'deliverable_report',
+    typeLabel: '成果物报告',
+    description: '项目进展与阶段性成果总结',
     attachments: [
       {
-        id: 'att-ir-003-1',
-        name: '可行性研究报告.pdf',
-        url: '/mock/files/feasibility_001.pdf',
-        size: 5234567,
+        id: 'file-deliverable-001',
+        name: '成果物报告_2024Q3.pdf',
+        url: `${mockFileBase}/progress_001.pdf`,
+        size: 1234567,
         ext: 'pdf',
-        uploadedAt: '2024-11-10 16:45:00'
+        uploadedAt: '2024-09-30 17:00:00',
+        category: 'deliverable_file'
+      },
+      {
+        id: 'file-inspection-001',
+        name: '验收报告_2024Q3.pdf',
+        url: `${mockFileBase}/test_001.pdf`,
+        size: 3456789,
+        ext: 'pdf',
+        uploadedAt: '2024-09-30 17:00:00',
+        category: 'inspection_report_file'
       }
     ],
-    submitter: '王博士',
+    submitter: '刘博士',
     submitterDept: '电子信息学院',
-    submittedAt: '2024-11-10 16:45:00',
-    syncedAt: '2024-11-10 17:00:00',
+    submittedAt: '2024-09-30 17:00:00',
+    syncedAt: '2024-10-01 09:00:00',
     source: 'process_system',
-    sourceRef: 'PS-P002-001',
-    sourceUrl: 'http://process.example.com/projects/p-002/deliverables/001',
-    tags: ['已归档'],
-    status: '已提交'
+    sourceRef: '20001',
+    sourceUrl: 'https://process.example.com/submissions/20001',
+    tags: ['deliverable_report', '第1轮验收'],
+    status: 'synced'
   },
   {
     id: 'ir-004',
     projectId: 'p-002',
     projectName: '基于多模态融合的复杂场景自动驾驶感知关键技术',
-    projectCode: '2024YFB3301200',
-    projectPhase: '需求分析',
-    name: '系统需求规格说明书',
-    type: 'requirement_doc',
-    typeLabel: '需求文档',
-    description: '详细的系统功能和性能需求说明',
+    projectCode: 'PROC000002',
+    projectPhase: '评审阶段',
+    name: '成果物报告（最终验收）',
+    type: 'deliverable_report',
+    typeLabel: '成果物报告',
+    description: '最终验收成果物报告',
     attachments: [
       {
-        id: 'att-ir-004-1',
-        name: '需求规格说明书V1.0.docx',
-        url: '/mock/files/requirement_001.docx',
-        size: 3145728,
-        ext: 'docx',
-        uploadedAt: '2024-12-05 09:30:00'
+        id: 'file-deliverable-002',
+        name: '成果物报告_最终验收.pdf',
+        url: `${mockFileBase}/test_001.pdf`,
+        size: 3456789,
+        ext: 'pdf',
+        uploadedAt: '2024-12-10 15:20:00',
+        category: 'deliverable_file'
+      },
+      {
+        id: 'file-inspection-002',
+        name: '验收报告_最终验收.pdf',
+        url: `${mockFileBase}/progress_001.pdf`,
+        size: 1234567,
+        ext: 'pdf',
+        uploadedAt: '2024-12-10 15:20:00',
+        category: 'inspection_report_file'
       }
     ],
-    submitter: '李研究员',
+    submitter: '王博士',
     submitterDept: '电子信息学院',
-    submittedAt: '2024-12-05 09:30:00',
-    syncedAt: '2024-12-05 10:00:00',
+    submittedAt: '2024-12-10 15:20:00',
+    syncedAt: '2024-12-10 16:00:00',
     source: 'process_system',
-    sourceRef: 'PS-P002-002',
-    sourceUrl: 'http://process.example.com/projects/p-002/deliverables/002',
-    tags: [],
-    status: '已提交'
+    sourceRef: '20002',
+    sourceUrl: 'https://process.example.com/submissions/20002',
+    tags: ['deliverable_report', '最终验收'],
+    status: 'synced'
   },
   {
     id: 'ir-005',
     projectId: 'p-003',
     projectName: '高比能固态锂电池界面稳定性及调控机制',
-    projectCode: '52372056',
-    projectPhase: '设计阶段',
-    name: '技术方案设计文档',
-    type: 'design_doc',
-    typeLabel: '设计文档',
-    description: '界面改性技术方案详细设计',
+    projectCode: 'PROC000003',
+    projectPhase: '申报阶段',
+    name: '项目申报书',
+    type: 'proposal',
+    typeLabel: '申报书',
+    description: '项目申报书（proposal）',
     attachments: [
       {
-        id: 'att-ir-005-1',
-        name: '技术方案设计V2.0.pdf',
-        url: '/mock/files/design_001.pdf',
-        size: 4567890,
-        ext: 'pdf',
-        uploadedAt: '2024-10-20 14:00:00'
-      },
-      {
-        id: 'att-ir-005-2',
-        name: '设计图纸.dwg',
-        url: '/mock/files/design_001_drawing.dwg',
-        size: 2345678,
-        ext: 'dwg',
-        uploadedAt: '2024-10-20 14:00:00'
+        id: 'file-prop-002',
+        name: '项目申报书_52372056.docx',
+        url: `${mockFileBase}/application_001.docx`,
+        size: 1856342,
+        ext: 'docx',
+        uploadedAt: '2024-10-20 14:00:00',
+        category: 'proposal_file'
       }
     ],
     submitter: '陈教授',
@@ -1036,97 +1054,30 @@ export const interimResults = [
     submittedAt: '2024-10-20 14:00:00',
     syncedAt: '2024-10-20 15:00:00',
     source: 'process_system',
-    sourceRef: 'PS-P003-001',
-    sourceUrl: 'http://process.example.com/projects/p-003/deliverables/001',
-    tags: ['重要'],
-    status: '已提交'
+    sourceRef: '30001',
+    sourceUrl: 'https://process.example.com/submissions/30001',
+    tags: ['proposal'],
+    status: 'synced'
   },
   {
     id: 'ir-006',
     projectId: 'p-004',
     projectName: '气候变化背景下典型湿地生态系统碳汇功能演变特征',
-    projectCode: '32370412',
-    projectPhase: '执行中',
-    name: '2024年第一季度进展报告',
-    type: 'progress_report',
-    typeLabel: '进展报告',
-    description: '项目执行情况和阶段性成果总结',
+    projectCode: 'PROC000004',
+    projectPhase: '执行阶段',
+    name: '已签署合同',
+    type: 'signed_contract',
+    typeLabel: '已签署合同',
+    description: '合同备注：科研合作协议已生效',
     attachments: [
       {
-        id: 'att-ir-006-1',
-        name: 'Q1进展报告.pdf',
-        url: '/mock/files/progress_001.pdf',
-        size: 1234567,
-        ext: 'pdf',
-        uploadedAt: '2024-03-31 17:00:00'
-      }
-    ],
-    submitter: '刘博士',
-    submitterDept: '生态环境学院',
-    submittedAt: '2024-03-31 17:00:00',
-    syncedAt: '2024-04-01 09:00:00',
-    source: 'process_system',
-    sourceRef: 'PS-P004-001',
-    sourceUrl: 'http://process.example.com/projects/p-004/deliverables/001',
-    tags: [],
-    status: '已提交'
-  },
-  {
-    id: 'ir-007',
-    projectId: 'p-005',
-    projectName: '针对耐药菌的新型抗菌肽设计及其膜穿孔作用机理研究',
-    projectCode: '82303451',
-    projectPhase: '测试阶段',
-    name: '抗菌活性测试报告',
-    type: 'test_report',
-    typeLabel: '测试报告',
-    description: '新型抗菌肽的体外抗菌活性测试结果',
-    attachments: [
-      {
-        id: 'att-ir-007-1',
-        name: '抗菌活性测试报告.pdf',
-        url: '/mock/files/test_001.pdf',
-        size: 3456789,
-        ext: 'pdf',
-        uploadedAt: '2024-09-15 11:30:00'
-      },
-      {
-        id: 'att-ir-007-2',
-        name: '实验数据.xlsx',
-        url: '/mock/files/test_001_data.xlsx',
-        size: 567890,
-        ext: 'xlsx',
-        uploadedAt: '2024-09-15 11:30:00'
-      }
-    ],
-    submitter: '赵副教授',
-    submitterDept: '生物医药学院',
-    submittedAt: '2024-09-15 11:30:00',
-    syncedAt: '2024-09-15 12:00:00',
-    source: 'process_system',
-    sourceRef: 'PS-P005-001',
-    sourceUrl: 'http://process.example.com/projects/p-005/deliverables/001',
-    tags: [],
-    status: '已提交'
-  },
-  {
-    id: 'ir-008',
-    projectId: 'p-006',
-    projectName: '数字经济驱动下制造业供应链韧性提升策略研究',
-    projectCode: '72371089',
-    projectPhase: '需求分析',
-    name: '研究合作协议',
-    type: 'contract',
-    typeLabel: '合同',
-    description: '与企业签订的研究合作协议',
-    attachments: [
-      {
-        id: 'att-ir-008-1',
+        id: 'file-contract-002',
         name: '研究合作协议.pdf',
-        url: '/mock/files/contract_002.pdf',
+        url: `${mockFileBase}/contract_002.pdf`,
         size: 1987654,
         ext: 'pdf',
-        uploadedAt: '2023-12-10 15:20:00'
+        uploadedAt: '2023-12-10 15:20:00',
+        category: 'signed_contract_file'
       }
     ],
     submitter: '孙教授',
@@ -1134,9 +1085,9 @@ export const interimResults = [
     submittedAt: '2023-12-10 15:20:00',
     syncedAt: '2023-12-10 16:00:00',
     source: 'process_system',
-    sourceRef: 'PS-P006-001',
-    sourceUrl: 'http://process.example.com/projects/p-006/deliverables/001',
-    tags: ['已归档'],
-    status: '已提交'
+    sourceRef: '40001',
+    sourceUrl: 'https://process.example.com/submissions/40001',
+    tags: ['signed_contract'],
+    status: 'synced'
   }
 ]

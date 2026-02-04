@@ -220,8 +220,10 @@ function handleBusinessResponse(response: any) {
 export default async function request(config: AxiosRequestConfig) {
   const finalConfig = { ...config };
 
-  // 如果全局开启了 Mock，且当前请求没有显式禁用 Mock
-  if (isMockEnabled && finalConfig.mock !== false) {
+  const shouldMock = finalConfig.mock === true || (isMockEnabled && finalConfig.mock !== false)
+
+  // 如果全局开启了 Mock，或当前请求强制 Mock，且没有显式禁用 Mock
+  if (shouldMock) {
     // 模拟请求拦截器的 Token 注入逻辑，确保 Mock 接口能拿到 Token
     if (!finalConfig.skipAuth) {
       const { accessToken } = storeToRefs(useUserStore());

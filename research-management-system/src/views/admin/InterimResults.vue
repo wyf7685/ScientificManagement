@@ -326,6 +326,7 @@ const treeProps = {
   children: 'children',
   label: 'label'
 }
+const isMockEnabled = true
 
 // ==================== 计算属性 ====================
 const projectTreeData = computed(() => {
@@ -489,11 +490,15 @@ function canPreview(filename: string) {
 }
 
 function downloadFile(file: any) {
-  const url = getAttachmentDownloadUrl(file.id)
+  const url = isMockEnabled && file?.url ? file.url : getAttachmentDownloadUrl(file.id)
   window.open(url, '_blank')
 }
 
 function previewFile(file: any) {
+  if (isMockEnabled && file?.url) {
+    window.open(file.url, '_blank')
+    return
+  }
   // 预览功能需要后端支持
   ElMessage.info('预览功能开发中')
 }

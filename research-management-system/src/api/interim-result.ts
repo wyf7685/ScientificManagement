@@ -8,7 +8,8 @@ import type { InterimResult, InterimResultStats } from '@/types'
 export function getInterimResultStats(): Promise<ApiResponse<InterimResultStats>> {
   return request({
     url: '/interim-results/stats',
-    method: 'get'
+    method: 'get',
+    mock: true
   })
 }
 
@@ -31,7 +32,8 @@ export function getInterimResults(params?: {
   return request({
     url: '/interim-results',
     method: 'get',
-    params
+    params,
+    mock: true
   })
 }
 
@@ -41,7 +43,8 @@ export function getInterimResults(params?: {
 export function getInterimResultDetail(id: string): Promise<ApiResponse<InterimResult>> {
   return request({
     url: `/interim-results/${id}`,
-    method: 'get'
+    method: 'get',
+    mock: true
   })
 }
 
@@ -55,7 +58,8 @@ export function syncInterimResults(projectId?: string): Promise<ApiResponse<{
   return request({
     url: '/interim-results/sync',
     method: 'post',
-    data: { projectId }
+    data: { projectId },
+    mock: true
   })
 }
 
@@ -74,7 +78,8 @@ export function batchDownload(resultIds: string[]): Promise<Blob> {
     url: '/interim-results/batch-download',
     method: 'post',
     data: { resultIds },
-    responseType: 'blob'
+    responseType: 'blob',
+    mock: true
   })
 }
 
@@ -91,8 +96,8 @@ export function exportInterimResults(params?: {
     url: '/interim-results/export',
     method: 'get',
     params,
-    responseType: 'blob'
+    responseType: 'blob',
+    mock: true
   })
 }
-
 
