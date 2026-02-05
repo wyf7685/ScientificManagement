@@ -67,23 +67,13 @@
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="创建时间" width="180" />
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="320" fixed="right" header-align="center" class-name="action-col">
           <template #default="{ row }">
-            <el-button type="primary" link size="small" @click="editResult(row)">
-              编辑
-            </el-button>
-            <el-button type="primary" link size="small" @click="changeVisibility(row)">
-              修改可见范围
-            </el-button>
-            <el-button
-              v-if="row.status === 'draft'"
-              type="danger"
-              link
-              size="small"
-              @click="deleteResult(row)"
-            >
-              删除
-            </el-button>
+            <div class="action-btns">
+              <el-button type="primary" link size="small" @click="viewDetail(row)">查看详情</el-button>
+              <el-button type="primary" link size="small" @click="editResult(row)">编辑</el-button>
+              <el-button type="primary" link size="small" @click="changeVisibility(row)">修改可见范围</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -102,7 +92,7 @@
       </div>
     </el-card>
 
-    <!-- 详情抽屉 -->
+    <!-- 详情抽屉 //2026-2-05 zzq删除，如果没有后续没有问题可以删除注释的部分 
     <el-drawer v-model="detailDrawer" title="成果详情" size="60%">
       <div v-if="currentResult">
         <el-descriptions :column="2" border>
@@ -135,7 +125,7 @@
           </el-descriptions-item>
         </el-descriptions>
       </div>
-    </el-drawer>
+    </el-drawer> -->
   </div>
 </template>
 
@@ -151,8 +141,6 @@ import { ResultStatus, ResultVisibility } from '@/types'
 const router = useRouter()
 const loading = ref(false)
 const tableData = ref([])
-const detailDrawer = ref(false)
-const currentResult = ref(null)
 const projects = ref([])
 
 const STATUS_TYPE_MAP = {
@@ -228,10 +216,12 @@ function handleReset() {
   handleSearch()
 }
 
-function viewDetail(row) {
-  currentResult.value = row
-  detailDrawer.value = true
+function viewDetail(row: any) {
+  const id = row.documentId || row.id
+  if (!id) return
+  router.push(`/results/${id}`)
 }
+
 
 function editResult(row) {
   router.push(`/results/${row.id}/edit`)
@@ -299,4 +289,26 @@ async function loadProjects() {
   display: flex;
   justify-content: flex-end;
 }
+/* 操作列单元格：内容居中 */
+:deep(.action-col .cell) {
+  display: flex;
+  justify-content: center;
+}
+
+/* 按钮组本身：紧凑排列 */
+.action-btns {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;           /* 比你现在更自然 */
+  white-space: nowrap;
+}
+
+/* 按钮本身：不被撑宽 */
+:deep(.action-btns .el-button) {
+  margin: 0 !important;
+  padding: 0 2px;
+  min-width: auto;
+}
+
+
 </style>
