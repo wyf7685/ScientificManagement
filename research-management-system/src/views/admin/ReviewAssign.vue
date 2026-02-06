@@ -21,7 +21,11 @@
             <el-table-column prop="title" label="成果名称" min-width="220" show-overflow-tooltip />
             <el-table-column prop="type" label="类型" width="120" align="center" />
             <el-table-column prop="createdBy" label="提交人" width="140" align="center" show-overflow-tooltip />
-            <el-table-column prop="createdAt" label="提交时间" width="180" align="center" show-overflow-tooltip />
+            <el-table-column prop="createdAt" label="提交时间" width="180" align="center" show-overflow-tooltip>
+              <template #default="{ row }">
+                <span class="time-text">{{ formatDateTime(row.createdAt) }}</span>
+              </template>
+            </el-table-column>
             <el-table-column label="操作" width="140" align="center" fixed="right">
               <template #default="{ row }">
                 <el-button type="primary" size="small" @click="assignExpert(row)">
@@ -48,7 +52,7 @@
             <el-table-column prop="reviewerName" label="已分配审核人名称" min-width="180" align="center" show-overflow-tooltip />
             <el-table-column label="分配日期" width="190" align="center">
               <template #default="{ row }">
-                <span class="time-text">{{ formatTime(row.assignedAt) }}</span>
+                <span class="time-text">{{ formatDateTime(row.assignedAt) }}</span>
               </template>
             </el-table-column>
           </el-table>
@@ -103,6 +107,7 @@ import { ref, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getPendingAssignResults, assignReviewers, getAssignReviewersList } from '@/api/result'
 import { getExpertUsers, type KeycloakUser } from '@/api/user'
+import { formatDateTime } from '@/utils/date'
 
 // 如果你项目已有 dayjs：
 // import dayjs from 'dayjs'
@@ -143,14 +148,6 @@ onMounted(() => {
   else loadAssigned()
 })
 
-function formatTime(val?: string) {
-  if (!val) return '-'
-  // ✅ 如果你用 dayjs：
-  // return dayjs(val).format('YYYY-MM-DD HH:mm:ss')
-
-  // ✅ 不依赖库的写法（后端若已是 yyyy-MM-dd HH:mm:ss 就直接返回）
-  return String(val).replace('T', ' ').slice(0, 19)
-}
 
 async function loadPending() {
   loading.value = true

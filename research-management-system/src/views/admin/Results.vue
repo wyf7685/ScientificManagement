@@ -62,7 +62,11 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="170" />
+        <el-table-column prop="createdAt" label="创建时间" width="170">
+          <template #default="{ row }">
+            {{ formatDateTime(row.createdAt) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="180">
           <template #default="{ row }">
             <div class="ops">
@@ -138,6 +142,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowDown } from '@element-plus/icons-vue'
 import { getResults, deleteResult, assignReviewers, markFormatChecked, markFormatRejected } from '@/api/result'
+import { formatDateTime } from '@/utils/date'
 import { getExpertUsers, type KeycloakUser } from '@/api/user'
 import { ResultStatus } from '@/types'
 

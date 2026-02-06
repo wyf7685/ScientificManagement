@@ -193,7 +193,7 @@
                       <span class="dot">·</span>
                       <span>{{ item.owner || '负责人待定' }}</span>
                       <span class="dot">·</span>
-                      <span>{{ item.updatedAt || '更新时间未知' }}</span>
+                      <span>{{ item.updatedAt ? formatDateTime(item.updatedAt) : '更新时间未知' }}</span>
                     </div>
                   </div>
                   <div class="score-pill" :class="scoreClass(item.matchScore)">
@@ -228,6 +228,7 @@ import { getDemands, getDemandDetail, rematchDemand } from '@/api/demand'
 import { DemandItem, DemandMatch } from '@/types'
 import { useRequest, useAsyncAction } from '@/composables/useErrorHandler'
 import { AppError, ErrorType } from '@/utils/errorHandler'
+import { formatDateTime } from '@/utils/date'
 
 const router = useRouter()
 

@@ -66,7 +66,11 @@
             {{ getVisibilityText(row.visibility) }}
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="180" />
+        <el-table-column prop="createdAt" label="创建时间" width="180">
+          <template #default="{ row }">
+            {{ formatDateTime(row.createdAt) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="320" fixed="right" header-align="center" class-name="action-col">
           <template #default="{ row }">
             <div class="action-btns">
@@ -137,6 +141,7 @@ import { Search } from '@element-plus/icons-vue'
 import { getMyResults, deleteResult as deleteResultApi } from '@/api/result'
 import { getProjects } from '@/api/project'
 import { ResultStatus, ResultVisibility } from '@/types'
+import { formatDateTime } from '@/utils/date'
 
 const router = useRouter()
 const loading = ref(false)

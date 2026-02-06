@@ -186,9 +186,9 @@
                 <span class="prop-value">{{ stageText(result.sourceStage) }}</span>
               </div>
               <div class="prop-item">
-                <span class="prop-label">更新时间</span>
-                <span class="prop-value date-text">{{ result.syncTime || result.updatedAt }}</span>
-              </div>
+              <span class="prop-label">更新时间</span>
+              <span class="prop-value date-text">{{ formatDateTime(result.syncTime || result.updatedAt) }}</span>
+            </div>
             </div>
           </div>
 
@@ -286,6 +286,7 @@ import {
 } from '@element-plus/icons-vue'
 import { getResult, requestResultAccess, getFieldDefsByType } from '@/api/result'
 import { mapFieldType, FrontendFieldType } from '@/config/dynamicFields'
+import { formatDateTime } from '@/utils/date'
 import {
   AccessPermissionStatus,
   AccessRequestStatus,

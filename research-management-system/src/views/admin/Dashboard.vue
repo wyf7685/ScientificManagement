@@ -80,7 +80,11 @@
               </template>
             </el-table-column>
             <el-table-column prop="department" label="所属部门" width="160" show-overflow-tooltip />
-            <el-table-column prop="createdAt" label="入库时间" width="160" />
+            <el-table-column prop="createdAt" label="入库时间" width="160">
+              <template #default="{ row }">
+                {{ formatDateTime(row.createdAt) }}
+              </template>
+            </el-table-column>
           </el-table>
         </el-card>
       </el-col>
@@ -92,6 +96,7 @@
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { Document, Tickets, TrophyBase, TrendCharts } from '@element-plus/icons-vue'
 import { getStatistics, getResults, getAdvancedDistribution, getStackedTrend, getTypePie } from '@/api/result'
+import { formatDateTime } from '@/utils/date'
 import * as echarts from 'echarts'
 
 const loading = ref(false)

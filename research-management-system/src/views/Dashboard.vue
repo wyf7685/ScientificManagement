@@ -76,7 +76,11 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="180" />
+        <el-table-column prop="createdAt" label="创建时间" width="180">
+          <template #default="{ row }">
+            {{ formatDateTime(row.createdAt) }}
+          </template>
+        </el-table-column>
       </el-table>
       <el-empty v-if="!loading && recentResults.length === 0" description="暂无成果记录">
         <el-button type="primary" @click="router.push('/results/create')">
@@ -92,6 +96,7 @@ import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Document, Tickets, TrophyBase, TrendCharts } from '@element-plus/icons-vue'
 import { getMyStatistics, getMyResults, getTypePie4User } from '@/api/result'
+import { formatDateTime } from '@/utils/date'
 import * as echarts from 'echarts'
 import { ResultStatus } from '@/types'
 

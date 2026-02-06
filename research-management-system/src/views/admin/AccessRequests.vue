@@ -43,7 +43,7 @@
           <template #default="{ row }">
             <div class="applicant">
               <div class="name">{{ row.userName }}</div>
-              <div class="time">提交时间：{{ formatDate(row.createdAt) }}</div>
+              <div class="time">提交时间：{{ formatDateTime(row.createdAt) }}</div>
             </div>
           </template>
         </el-table-column>
@@ -57,7 +57,7 @@
               <div v-if="row.reviewer" class="reviewer">
                 审批人：{{ row.reviewer }}
               </div>
-              <div v-if="row.reviewedAt" class="time">审批时间：{{ formatDate(row.reviewedAt) }}</div>
+              <div v-if="row.reviewedAt" class="time">审批时间：{{ formatDateTime(row.reviewedAt) }}</div>
               <div v-if="row.comment" class="comment">备注：{{ row.comment }}</div>
             </div>
           </template>
@@ -104,6 +104,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getResultAccessRequests, reviewResultAccessRequest } from '@/api/result'
 import { AccessRequestStatus, ResultVisibility, type ResultAccessRequest } from '@/types'
+import { formatDateTime } from '@/utils/date'
 
 const isMockMode = import.meta.env.VITE_USE_MOCK === 'true'
 const loading = ref(false)
@@ -152,10 +153,6 @@ function statusTagType(status: string) {
   return STATUS_TAG[status] || 'info'
 }
 
-function formatDate(value?: string) {
-  if (!value) return '—'
-  return value.replace('T', ' ')
-}
 
 function resetFilters() {
   searchForm.keyword = ''

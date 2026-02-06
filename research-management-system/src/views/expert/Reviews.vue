@@ -16,7 +16,11 @@
               </template>
             </el-table-column>
             <el-table-column prop="creatorName" label="提交人" width="120" />
-            <el-table-column prop="createdAt" label="提交时间" width="180" />
+            <el-table-column prop="createdAt" label="提交时间" width="180">
+              <template #default="{ row }">
+                {{ formatDateTime(row.createdAt) }}
+              </template>
+            </el-table-column>
             <el-table-column label="操作" width="150">
               <template #default="{ row }">
                 <el-button type="primary" size="small" @click="handleReview(row)">
@@ -46,7 +50,11 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="reviewedAt" label="审核时间" width="180" />
+            <el-table-column prop="reviewedAt" label="审核时间" width="180">
+              <template #default="{ row }">
+                {{ formatDateTime(row.reviewedAt) }}
+              </template>
+            </el-table-column>
           </el-table>
         </el-tab-pane>
       </el-tabs>
@@ -92,7 +100,7 @@
             {{ currentResult.creatorName }}
           </el-descriptions-item>
           <el-descriptions-item label="提交时间">
-            {{ currentResult.createdAt }}
+            {{ formatDateTime(currentResult.createdAt) }}
           </el-descriptions-item>
           <el-descriptions-item label="作者" :span="2">
             {{ currentResult.authors?.join(', ') || '-' }}
@@ -164,6 +172,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { View, Document, Download } from '@element-plus/icons-vue'
 import { getReviewBacklog, getReviewHistory, reviewResult } from '@/api/result'
+import { formatDateTime } from '@/utils/date'
 import { getResult } from '@/api/result'
 const router = useRouter()
 const loading = ref(false)
