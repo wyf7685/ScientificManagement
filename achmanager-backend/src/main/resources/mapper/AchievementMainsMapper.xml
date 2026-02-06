@@ -36,7 +36,8 @@
         m.project_name       AS projectName,
         m.summary            AS summary,
         m.created_at         AS createdAt,
-        m.visibility_range   AS visibilityRange
+        m.visibility_range   AS visibilityRange,
+        m.created_by_user_id      AS creatorId
         FROM achievement_mains m
 
         LEFT JOIN achievement_mains_achievement_type_id_lnk mt
@@ -142,13 +143,11 @@
             m.created_at    AS createdAt,
             m.updated_at    AS updatedAt,
             m.published_at  AS publishedAt,
-            au.username     AS creatorName,
-
+            m.created_by_user_id AS createdByUserId,
             t.id            AS typeId,
             t.document_id   AS typeDocId,
             t.type_name     AS typeName,
             t.type_code     AS typeCode,
-            
             m.year          AS year,
             m.authors       AS authorsJson,
             m.keywords      AS keywordsJson,
@@ -156,8 +155,6 @@
             m.project_name  AS projectName,
             m.visibility_range AS visibilityRange
         FROM achievement_mains m
-                 LEFT JOIN admin_users au
-                           ON au.id = m.created_by_id
                  LEFT JOIN achievement_mains_achievement_type_id_lnk mt
                            ON mt.achievement_main_id = m.id
                  LEFT JOIN achievement_types t
@@ -268,7 +265,7 @@
             t.type_name      AS type,
             m.project_name   AS projectName,
             m.project_code   AS projectCode,
-            m.creator_name   AS createdBy,
+            m.created_by_user_id   AS creatorId,
             m.created_at     AS createdAt,
             m.achievement_status AS status
         FROM achievement_mains m

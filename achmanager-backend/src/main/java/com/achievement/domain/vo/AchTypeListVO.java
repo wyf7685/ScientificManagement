@@ -21,5 +21,7 @@ public class AchTypeListVO {
     //成果类型描述
     @Schema(description = "成果类型描述")
     private String description;
+    @Schema(description = "是否启用")
+    private Integer enabled;
 
 }

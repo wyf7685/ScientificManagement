@@ -37,18 +37,63 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
     private final StrapiClient strapiClient;
     private final ObjectMapper objectMapper;
     private final AchievementMainsMapper mainsMapper;
+    private final KeycloakUserServiceImpl keycloakUserServiceImpl;
     @Override
-    public Page<AchListVO> pageList(AchListDTO achListDTO){// 兜底：防止 null / 非法值（即使没有校验或校验被改了，其实也安全）
+    public Page<AchListVO> pageList(AchListDTO achListDTO) {
         int pageNum  = (achListDTO.getPageNum()  == null || achListDTO.getPageNum()  < 1)  ? 1  : achListDTO.getPageNum();
         int pageSize = (achListDTO.getPageSize() == null || achListDTO.getPageSize() < 1) ? 10 : achListDTO.getPageSize();
-        if (pageSize > 100) {
-            pageSize = 100; // 防止一次性查太多
-        }
-        //MybatisPlus的分页查询
+        if (pageSize > 100) pageSize = 100;
+
         Page<AchListVO> page = new Page<>(pageNum, pageSize);
-        page.setOptimizeCountSql(false);  // 关键：关闭 count SQL 优化解析
-        return baseMapper.pageList(page, achListDTO);
+        page.setOptimizeCountSql(false);
+
+        // 1) 执行分页查询
+        Page<AchListVO> result = baseMapper.pageList(page, achListDTO);
+
+        List<AchListVO> records = result.getRecords();
+        if (records == null || records.isEmpty()) {
+            return result;
+        }
+
+        // 2) 本页缓存：creatorId -> creatorName
+        Map<String, String> cache = new HashMap<>();
+
+        for (AchListVO vo : records) {
+            String creatorIdStr = vo.getCreatorId();
+            if (creatorIdStr == null || creatorIdStr.isBlank()) {
+                vo.setCreatorName("-");
+                continue;
+            }
+
+            // 命中缓存
+            if (cache.containsKey(creatorIdStr)) {
+                vo.setCreatorName(cache.get(creatorIdStr));
+                continue;
+            }
+
+            String creatorName = null;
+            try {
+                int creatorId = Integer.parseInt(creatorIdStr);
+                KeycloakUser user = keycloakUserServiceImpl.getUserById(creatorId);
+                if (user != null && user.getUsername() != null && !user.getUsername().isBlank()) {
+                    creatorName = user.getUsername();
+                }
+            } catch (NumberFormatException e) {
+                // creatorId 不是数字（比如 UUID），这里就不能 parseInt
+            } catch (Exception e) {
+                // keycloak 查询失败
+            }
+
+            if (creatorName == null) creatorName = "-";
+
+            cache.put(creatorIdStr, creatorName);
+            vo.setCreatorName(creatorName);
+        }
+
+        return result;
     }
+
+
     @Override
     public Page<AchListVO> pageList4User(AchListDTO achListDTO, Integer userId){// 兜底：防止 null / 非法值（即使没有校验或校验被改了，其实也安全）
         int pageNum  = (achListDTO.getPageNum()  == null || achListDTO.getPageNum()  < 1)  ? 1  : achListDTO.getPageNum();
@@ -89,11 +134,14 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
         }).toList();
 
         AchDetailVO vo = new AchDetailVO();
+        KeycloakUser User = keycloakUserServiceImpl.getUserById(Integer.parseInt(base.getCreatedByUserId()));
+        vo.setCreatorName(User.getUsername());
         vo.setDocumentId(base.getDocumentId());
+
         vo.setTitle(base.getTitle());
         vo.setSummary(base.getSummary());
         vo.setAuditStatus(base.getAuditStatus());
-        vo.setCreatorName(base.getCreatorName());
+        vo.setCreatorName(User.getUsername());
         vo.setCreatedAt(base.getCreatedAt());
         vo.setUpdatedAt(base.getUpdatedAt());
         vo.setPublishedAt(base.getPublishedAt());

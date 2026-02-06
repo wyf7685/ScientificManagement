@@ -15,7 +15,7 @@
                 <span v-else class="text-muted">无所属/其他</span>
               </template>
             </el-table-column>
-            <el-table-column prop="createdBy" label="提交人" width="120" />
+            <el-table-column prop="creatorName" label="提交人" width="120" />
             <el-table-column prop="createdAt" label="提交时间" width="180" />
             <el-table-column label="操作" width="150">
               <template #default="{ row }">
@@ -89,7 +89,7 @@
             <span v-else class="text-muted">无所属/其他</span>
           </el-descriptions-item>
           <el-descriptions-item label="提交人">
-            {{ currentResult.createdBy }}
+            {{ currentResult.creatorName }}
           </el-descriptions-item>
           <el-descriptions-item label="提交时间">
             {{ currentResult.createdAt }}
@@ -164,7 +164,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { View, Document, Download } from '@element-plus/icons-vue'
 import { getReviewBacklog, getReviewHistory, reviewResult } from '@/api/result'
-
+import { getResult } from '@/api/result'
 const router = useRouter()
 const loading = ref(false)
 const activeTab = ref('pending')
@@ -213,13 +213,22 @@ async function loadData() {
   }
 }
 
-function handleReview(row) {
-  currentResult.value = row
+// function handleReview(row) {
+//   currentResult.value = row
+//   reviewForm.action = 'approve'
+//   reviewForm.comment = ''
+//   reviewDialog.value = true
+// }
+async function handleReview(row) {
   reviewForm.action = 'approve'
   reviewForm.comment = ''
+
+  // 先查详情（包含 authors/keywords/summary/attachments）
+  const res = await getResult(row.id)
+  currentResult.value = res?.data || row
+
   reviewDialog.value = true
 }
-
 async function submitReview() {
   if (!reviewForm.comment) {
     ElMessage.warning('请输入审核意见')

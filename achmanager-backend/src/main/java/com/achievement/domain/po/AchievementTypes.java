@@ -39,6 +39,7 @@ public class AchievementTypes implements Serializable {
 
     private String description;
 
+    private Integer enabled;
     private Integer isDelete;
 
     private LocalDateTime createdAt;

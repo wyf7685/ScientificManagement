@@ -129,5 +129,28 @@ public class StrapiClient {
                 .bodyToMono(String.class)
                 .block();
     }
+    // ✅ 查询单条：GET /api/{collection}/{id}
+    public String findOne(String collection, Object id, Map<String, String> queryParams) {
+        Map<String, String> params = queryParams == null ? Map.of() : new LinkedHashMap<>(queryParams);
+
+        return strapiWebClient.get()
+                .uri(uriBuilder -> {
+                    UriBuilder builder = uriBuilder.path("/api/{collection}/{id}");
+                    for (Map.Entry<String, String> e : params.entrySet()) {
+                        if (e.getKey() == null || e.getValue() == null) continue;
+                        builder = builder.queryParam(e.getKey(), e.getValue());
+                    }
+                    return builder.build(collection, id);
+                })
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, resp ->
+                        resp.bodyToMono(String.class)
+                                .flatMap(err -> Mono.error(new RuntimeException("Strapi error: " + err)))
+                )
+                .bodyToMono(String.class)
+                .block();
+    }
+
 
 }

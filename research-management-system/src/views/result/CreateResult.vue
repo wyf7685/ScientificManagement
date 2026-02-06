@@ -12,7 +12,7 @@
 
       <div class="step-content">
         <!-- 步骤1: 选择类型 -->
-        <div v-show="currentStep === 0" class="step-panel">
+        <div v-if="currentStep === 0" class="step-panel">
           <h3>选择成果类型</h3>
           <el-select
             v-model="formData.typeId"
@@ -215,16 +215,41 @@
             <el-descriptions-item label="成果类型">{{ selectedType?.name }}</el-descriptions-item>
             <el-descriptions-item label="作者">{{ formData.authors.join(', ') }}</el-descriptions-item>
             <el-descriptions-item label="年份">{{ formData.year }}</el-descriptions-item>
+            <el-descriptions-item label="摘要">{{ formData.abstract }}</el-descriptions-item>
+            <el-descriptions-item label="关键词">{{ formData.keywords.join(', ') }}</el-descriptions-item>
+            <el-descriptions-item label="所属项目">{{ formData.projectName }}</el-descriptions-item>
+
             <el-descriptions-item label="可见范围" :span="2">
               {{ getVisibilityText(formData.visibility) }}
             </el-descriptions-item>
-            <el-descriptions-item label="附件数量" :span="2">
-              {{ fileList.length }} 个文件
-            </el-descriptions-item>
           </el-descriptions>
+            <!-- 扩展信息（动态字段） -->
+          <div v-if="confirmExtraFields.length" style="margin-top: 16px">
+            <h4 style="margin: 0 0 8px 0">扩展信息</h4>
+            <el-descriptions :column="2" border>
+            <el-descriptions-item
+              v-for="item in confirmExtraFields"
+              :key="item.key"
+              :label="item.label"
+              :span="item.span || 1"
+            >
+              {{ item.text }}
+            </el-descriptions-item>
+            </el-descriptions>
+          </div>
+
+          <!-- 附件列表 -->
+          <div style="margin-top: 16px">
+            <h4 style="margin: 0 0 8px 0">附件列表</h4>
+            <el-empty v-if="!fileList.length" description="未选择附件" />
+            <el-table v-else :data="confirmFiles" size="small" border max-height="320">
+              <el-table-column prop="name" label="文件名" min-width="220" />
+              <el-table-column prop="sizeText" label="大小" width="120" />
+              <el-table-column prop="type" label="类型" width="160" />
+            </el-table>
+          </div>
         </div>
       </div>
-
       <el-dialog v-model="projectDialogVisible" title="新建项目" width="480px">
         <el-form label-width="100px">
           <el-form-item label="项目名称" required>
@@ -321,25 +346,80 @@ const creatingProject = ref(false)
 onMounted(async () => {
   await Promise.all([loadResultTypes(), loadProjects()])
 })
+const confirmExtraFields = computed(() => {
+  const type = selectedType.value
+  const fields = type?.fields || []
+  if (!fields.length) return []
+
+  return fields.map((f: any) => {
+    const raw = formData.metadata?.[f.name]
+    const text = formatFieldValue(f, raw)
+    return {
+      key: f.name,
+      label: f.label,
+      text: text || '—'
+    }
+  })
+})
+
+const confirmFiles = computed(() => {
+  return (fileList.value || []).map((f: any) => {
+    const raw = f.raw || f
+    return {
+      name: raw?.name || f.name || 'unknown',
+      sizeText: formatFileSize(raw?.size || f.size || 0),
+      type: raw?.type || f.raw?.type || ''
+    }
+  })
+})
+
+function formatFieldValue(field: any, value: any) {
+  if (value === undefined || value === null || value === '') return ''
+  // 你 DynamicFieldRenderer 里可能有数组/对象，这里统一转成可读文本
+  if (Array.isArray(value)) return value.join('，')
+  if (typeof value === 'object') return JSON.stringify(value)
+  // switch/checkbox 这种 boolean
+  if (field.type === 'switch' || field.type === 'checkbox') return value ? '是' : '否'
+  return String(value)
+}
+
+function formatFileSize(bytes: number) {
+  const b = Number(bytes || 0)
+  if (b < 1024) return `${b} B`
+  const kb = b / 1024
+  if (kb < 1024) return `${kb.toFixed(1)} KB`
+  const mb = kb / 1024
+  if (mb < 1024) return `${mb.toFixed(1)} MB`
+  const gb = mb / 1024
+  return `${gb.toFixed(1)} GB`
+}
 
 async function loadResultTypes() {
   try {
     const res = await getResultTypes()
     const { data } = res || {}
-    // 映射 Strapi 返回的字段到前端模型
+
     resultTypes.value = (data || [])
-      .map((t: any) => ({
-        ...t,
-        id: t.documentId || t.id,
-        name: t.type_name || t.typeName || t.name,
-        code: t.type_code || t.typeCode || t.code,
-        enabled: t.is_delete === 0 || t.enabled === true
-      }))
-      .filter((t: any) => t.enabled)
+      .map((t: any) => {
+        const isDelete = Number(t.is_delete ?? t.isDelete ?? 0)
+        // 后端有 enabled 就用 enabled；没有 enabled 才从 is_delete 推导
+        const enabled =
+          t.enabled != null ? Number(t.enabled) : (isDelete === 1 ? 0 : 1)
+
+        return {
+          ...t,
+          id: t.documentId || t.id,
+          name: t.type_name || t.typeName || t.name,
+          code: t.type_code || t.typeCode || t.code,
+          enabled // ✅ 0/1
+        }
+      })
+      .filter((t: any) => t.enabled === 1) //  只显示启用(1)的类型
   } catch (error) {
     ElMessage.error('加载成果类型失败')
   }
 }
+
 
 async function loadProjects() {
   try {
@@ -768,4 +848,122 @@ function buildPayload() {
   padding: 20px;
   border-top: 1px solid #e4e7ed;
 }
+/* =========================
+   Step 5 确认提交页美化
+   ========================= */
+.step-panel {
+  padding: 24px;
+}
+
+/* 标题更稳重 */
+.step-panel h3 {
+  margin-bottom: 18px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2a37;
+  letter-spacing: 0.2px;
+}
+
+/* 给确认页加“分区卡片感” */
+.step-panel :deep(.el-descriptions) {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* descriptions 的 header/边框更柔和 */
+.step-panel :deep(.el-descriptions__header) {
+  margin-bottom: 10px;
+}
+
+/* 单元格样式（像你截图那种浅底分割） */
+.step-panel :deep(.el-descriptions__cell) {
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.step-panel :deep(.el-descriptions__label) {
+  width: 120px;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+}
+
+.step-panel :deep(.el-descriptions__content) {
+  color: #111827;
+}
+
+/* 关键 tag（关键词那种）更像胶囊 */
+.step-panel :deep(.el-tag) {
+  border-radius: 999px;
+  padding: 0 10px;
+}
+
+/* 分区标题（扩展信息 / 附件列表）统一风格 */
+.step-panel h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 10px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.step-panel h4::before {
+  content: "";
+  width: 4px;
+  height: 14px;
+  border-radius: 2px;
+  background: #22c55e; /* 绿色强调 */
+  display: inline-block;
+}
+
+/* 扩展信息块间距 */
+.step-panel > div[style*="margin-top: 16px"] {
+  margin-top: 18px !important;
+}
+
+/* 附件列表 table 更清爽 */
+.step-panel :deep(.el-table) {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* 表头 */
+.step-panel :deep(.el-table__header-wrapper th) {
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 700;
+}
+
+/* 表格行 hover 更轻 */
+.step-panel :deep(.el-table__body tr:hover > td) {
+  background: #f1f5f9 !important;
+}
+
+/* 表格单元格 padding 更舒服 */
+.step-panel :deep(.el-table__cell) {
+  padding: 12px 12px;
+  font-size: 13px;
+  color: #111827;
+}
+
+/* 附件为空时更居中更紧凑 */
+.step-panel :deep(.el-empty) {
+  padding: 18px 0;
+}
+
+/* 确认页整体“留白更像卡片” */
+.step-panel {
+  background: #ffffff;
+}
+
+/* 让确认页的三个区块更像独立小卡片（不改结构，靠 wrapper 选择器实现） */
+.step-panel :deep(.el-descriptions),
+.step-panel :deep(.el-table),
+.step-panel :deep(.el-empty) {
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+
 </style>

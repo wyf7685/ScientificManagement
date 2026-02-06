@@ -1,7 +1,12 @@
 package com.achievement.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import com.achievement.domain.vo.ReviewAssignVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -264,24 +269,61 @@ public class AchievementReviewServiceImpl implements IAchievementReviewService {
     public Page<ReviewBacklogVO> pageReviewBacklog(Integer reviewerId, Integer pageNum, Integer pageSize) {
         log.info("查询审核待办: reviewerId={}, page={}, size={}", reviewerId, pageNum, pageSize);
 
-        // 参数校验
         pageNum = (pageNum == null || pageNum < 1) ? 1 : pageNum;
         pageSize = (pageSize == null || pageSize < 1) ? 10 : pageSize;
-        if (pageSize > 100) {
-            pageSize = 100;
-        }
+        if (pageSize > 100) pageSize = 100;
 
-        // 创建分页对象
         Page<ReviewBacklogVO> page = new Page<>(pageNum, pageSize);
-
-        // 执行查询
         Page<ReviewBacklogVO> result = achievementMainsMapper.pageReviewBacklog(page, reviewerId);
 
-        log.info("查询审核待办完成: total={}, records={}", result.getTotal(), result.getRecords().size());
+        List<ReviewBacklogVO> records = result.getRecords();
+        log.info("查询审核待办完成: total={}, records={}", result.getTotal(), records == null ? 0 : records.size());
+
+        if (records == null || records.isEmpty()) {
+            return result;
+        }
+
+        // ✅ 本页缓存：creatorId -> creatorName，避免同页重复查 keycloak
+        Map<String, String> cache = new HashMap<>();
+
+        for (ReviewBacklogVO vo : records) {
+            String creatorIdStr = vo.getCreatorId();
+            if (creatorIdStr == null || creatorIdStr.isBlank()) {
+                continue;
+            }
+
+            // 命中缓存直接用
+            if (cache.containsKey(creatorIdStr)) {
+                vo.setCreatorName(cache.get(creatorIdStr));
+                continue;
+            }
+
+            String creatorName = null;
+            try {
+                int creatorId = Integer.parseInt(creatorIdStr);
+
+                KeycloakUser user = keycloakUserService.getUserById(creatorId);
+                if (user != null && user.getUsername() != null && !user.getUsername().isBlank()) {
+                    creatorName = user.getUsername();
+                }
+
+            } catch (NumberFormatException e) {
+                log.warn("审核待办：creatorId 非数字，无法查询 keycloak，creatorId={}", creatorIdStr);
+            } catch (Exception e) {
+                log.warn("审核待办：查询 keycloak 用户失败，creatorId={}", creatorIdStr, e);
+            }
+
+            // ✅ 兜底：查不到就用 '-' 或者用 creatorIdStr
+            if (creatorName == null) {
+                creatorName = "-";
+            }
+
+            cache.put(creatorIdStr, creatorName);
+            vo.setCreatorName(creatorName);
+        }
 
         return result;
     }
-
     @Override
     public Page<ReviewHistoryVO> pageReviewHistory(Integer reviewerId, Integer pageNum, Integer pageSize) {
         log.info("查询审核历史: reviewerId={}, page={}, size={}", reviewerId, pageNum, pageSize);
@@ -303,4 +345,65 @@ public class AchievementReviewServiceImpl implements IAchievementReviewService {
 
         return result;
     }
+
+    @Override
+    public Page<ReviewAssignVO> pageAssignReviewersList(Integer id, Integer pageNum, Integer pageSize) {
+        log.info("查询审核分配列表: operatorId={}, page={}, size={}", id, pageNum, pageSize);
+
+        pageNum = (pageNum == null || pageNum < 1) ? 1 : pageNum;
+        pageSize = (pageSize == null || pageSize < 1) ? 10 : pageSize;
+        if (pageSize > 100) pageSize = 100;
+
+        Page<ReviewAssignVO> page = new Page<>(pageNum, pageSize);
+
+        Page<ReviewAssignVO> result = assignmentMapper.pageAssignReviewersList(page);
+        List<ReviewAssignVO> records = result.getRecords();
+
+        log.info("查询审核分配列表完成: total={}, records={}", result.getTotal(), records == null ? 0 : records.size());
+
+        if (records == null || records.isEmpty()) {
+            return result;
+        }
+
+        // ✅ 本页缓存：creatorId -> creatorName
+        Map<String, String> cache = new HashMap<>();
+
+        for (ReviewAssignVO vo : records) {
+            String creatorIdStr = vo.getCreatorId();
+            if (creatorIdStr == null || creatorIdStr.isBlank()) {
+                vo.setCreatorName("-");
+                continue;
+            }
+
+            if (cache.containsKey(creatorIdStr)) {
+                vo.setCreatorName(cache.get(creatorIdStr));
+                continue;
+            }
+
+            String creatorName = null;
+            try {
+                int creatorId = Integer.parseInt(creatorIdStr);
+
+                KeycloakUser user = keycloakUserService.getUserById(creatorId);
+                if (user != null && user.getUsername() != null && !user.getUsername().isBlank()) {
+                    creatorName = user.getUsername();
+                }
+            } catch (NumberFormatException e) {
+                log.warn("审核分配列表：creatorId 非数字，creatorId={}", creatorIdStr);
+            } catch (Exception e) {
+                log.warn("审核分配列表：查询 keycloak 用户失败，creatorId={}", creatorIdStr, e);
+            }
+
+            if (creatorName == null) {
+                creatorName = "-";
+            }
+
+            cache.put(creatorIdStr, creatorName);
+            vo.setCreatorName(creatorName);
+        }
+
+        return result;
+    }
+
+
 }

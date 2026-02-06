@@ -22,12 +22,14 @@ import java.util.Map;
 //12.11 目前开发成果物类别相关的查询功能
 public class AchievementTypeController {
     private final IAchievementTypesService typesService;
-    //查询所有成果物类别
+    //查询所有成果物类别，只包含启用的类型
     @Operation(description = "查询所有成果物类别")
     @PostMapping("/list")
     public Result<List<AchTypeListVO>> typeList(){
         return Result.success(typesService.listAchType());
     }
+    //查询所有成果物类别，包含未启用的类型
+
     //查询成果物类型的详细属性
     @Operation(description = "查询成果物的详细属性")
     @GetMapping("/detail")
@@ -46,7 +48,7 @@ public class AchievementTypeController {
         return typesService.createType(req);
     }
     /*
-     * TODO 管理员更新成果物类型
+     *  管理员更新成果物类型
      * */
     @PutMapping("/types/{typeDocId}")
     @Operation(description = "更新成果物类型")
@@ -63,6 +65,25 @@ public class AchievementTypeController {
         log.info("删除成果物类型, typeDocId={}", typeDocId);
         return typesService.deleteType(typeDocId);
     }
+    /**
+     * *管理员 修改成果物启用状态
+     */
+    @PutMapping("/types/{typeDocId}/enable")
+    @Operation(description = "切换成果物类型启用状态")
+    public JsonNode toggleEnabledType(@PathVariable String typeDocId) {
+        log.info("成果物类型, typeDocId={}", typeDocId);
+        return typesService.toggleEnabledType(typeDocId);
+    }
+
+    /**
+     * 更新成果物类型字段排序
+     */
+    @PutMapping("/types/{typeDocId}/field-order")
+    @Operation(description = "更新成果物类型字段排序")
+    public Result<Void> updateFieldOrder(@PathVariable String typeDocId, @RequestBody List<String> fieldDefDocIds) {
+        log.info("更新字段排序, typeDocId={}, size={}", typeDocId, fieldDefDocIds == null ? 0 : fieldDefDocIds.size());
+        typesService.updateFieldOrder(typeDocId, fieldDefDocIds);
+        return Result.success();
+    }
 
 }
-

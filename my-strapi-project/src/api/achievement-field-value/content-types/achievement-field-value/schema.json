@@ -23,6 +23,9 @@
     "date_value": {
       "type": "date"
     },
+    "datetime_value": {
+      "type": "datetime"
+    },
     "media_value": {
       "type": "media",
       "multiple": true,

@@ -28,7 +28,9 @@ public class ReviewBacklogVO {
     private String projectCode;
     
     @Schema(description = "提交人")
-    private String createdBy;
+    private String creatorName;
+    @Schema(description = "提交人ID")
+    private String creatorId;
     
     @Schema(description = "提交时间")
     private LocalDateTime createdAt;

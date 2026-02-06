@@ -76,6 +76,31 @@ function mapListItem(item: any) {
   }
   // ZZQ改
 }
+function mapReviewAssignItem(item: any) {
+  return {
+    ...item,
+    id: item.documentId || item.id,
+    // 后端 VO：title/type/creatorName/reviewerName/assignedAt
+    title: item.title,
+    type: item.typeName || item.type,
+    createdBy: item.creatorName ,
+    reviewerName: item.reviewerName,
+    assignedAt: item.assignedAt
+  }
+}
+
+//  已分配审核列表（新接口）
+export async function getAssignReviewersList(params?: QueryParams): Promise<StrapiPaginatedResponse<any>> {
+  const res = await request({
+    url: '/results/assign-reviewers-list',
+    method: 'get',
+    params: {
+      page: params?.page ?? 1,
+      pageSize: params?.pageSize ?? 10
+    }
+  })
+  return normalizePageResult(res, mapReviewAssignItem)
+}
 
 
 function mapReviewHistoryItem(item: any) {
@@ -528,6 +553,7 @@ export interface AchievementType {
   type_code: string
   type_name: string
   description?: string
+   enabled?: number // 0/1
   is_delete?: number
 }
 
@@ -555,13 +581,17 @@ export function getResultTypes(): Promise<any> {
     const list = Array.isArray(res?.data) ? res.data : []
     const normalized = list.map((item: any) => ({
       ...item,
+      documentId: item.documentId ?? item.document_id, // 如果后端有下划线也兼容
       type_name: item.type_name ?? item.typeName,
       type_code: item.type_code ?? item.typeCode,
+      description: item.description,
+      enabled: Number(item.enabled ?? 1), // ✅ 统一成 0/1（默认 1）
       is_delete: item.is_delete ?? item.isDelete ?? 0
     }))
     return { data: normalized }
   })
 }
+
 
 // 创建成果类型
 export function createResultType(data: Partial<AchievementType>): Promise<any> {
@@ -586,6 +616,15 @@ export function deleteResultType(documentId: string): Promise<any> {
   return request({
     url: `/achievementType/types/${documentId}/delete`,
     method: 'put'
+  })
+}
+
+// 更新成果类型字段排序
+export function updateResultTypeFieldOrder(typeDocumentId: string, fieldDocIds: string[]): Promise<any> {
+  return request({
+    url: `/achievementType/types/${typeDocumentId}/field-order`,
+    method: 'put',
+    data: fieldDocIds
   })
 }
 

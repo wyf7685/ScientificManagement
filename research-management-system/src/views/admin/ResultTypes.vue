@@ -14,8 +14,8 @@
     <el-table-column prop="description" label="描述" min-width="200" />
     <el-table-column prop="enabled" label="状态" width="100">
      <template #default="{ row }">
-      <el-tag :type="row.enabled ? 'success' : 'info'">
-       {{ row.enabled ? '启用' : '停用' }}
+      <el-tag :type="row.enabled === 1 ? 'success' : 'info'">
+        {{ row.enabled === 1 ? '启用' : '停用' }}
       </el-tag>
      </template>
     </el-table-column>
@@ -104,14 +104,26 @@ async function loadTypes() {
   const list = response?.data || []
 
   if (Array.isArray(list)) {
-    types.value = list.map((item: any) => ({
-      name: item.type_name || item.typeName || item.name,
-      code: item.type_code || item.typeCode || item.code,
-      description: item.description,
-      documentId: item.documentId,
-      enabled: item.is_delete === 0 || item.enabled === true,
-      id: item.id
-    }))
+    types.value = list.map((item: any) => {
+  const isDelete = Number(item.is_delete ?? item.isDelete ?? 0)
+
+  // 后端有 enabled 就用 enabled；没有 enabled 才用 is_delete 推导
+  const enabled =
+    item.enabled != null
+      ? Number(item.enabled)
+      : (isDelete === 1 ? 0 : 1)
+
+  return {
+    name: item.type_name || item.typeName || item.name,
+    code: item.type_code || item.typeCode || item.code,
+    description: item.description,
+    documentId: item.documentId ?? item.document_id,
+    enabled,          // ✅ 0/1
+    is_delete: isDelete, // 可留可不留
+    id: item.id
+  }
+})
+
   } else {
     console.error('成果类型数据格式错误:', response)
     types.value = []
@@ -145,7 +157,7 @@ function handleSaveSuccess() {
 function addType() {
  isEdit.value = false
  // 注意：新增时确保传入的字段名是前端期望的 name/code
- currentRow.value = { id: '', name: '', code: '', description: '', enabled: true } 
+ currentRow.value = { id: '', name: '', code: '', description: '', enabled: 1} 
  currentDialogComponent.value = BaseInfoForm
  dialogVisible.value = true
 }

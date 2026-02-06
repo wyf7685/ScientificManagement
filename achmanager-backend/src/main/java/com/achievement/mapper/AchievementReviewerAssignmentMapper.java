@@ -1,6 +1,7 @@
 package com.achievement.mapper;
 
 import com.achievement.domain.po.AchievementReviewerAssignment;
+import com.achievement.domain.vo.ReviewAssignVO;
 import com.achievement.domain.vo.ReviewBacklogVO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -37,4 +38,9 @@ public interface AchievementReviewerAssignmentMapper extends BaseMapper<Achievem
         ORDER BY ara.assigned_at DESC
         """)
     IPage<ReviewBacklogVO> selectReviewBacklog(Page<?> page, @Param("reviewerId") Integer reviewerId);
+
+    Page<ReviewAssignVO> pageAssignReviewersList(
+            Page<ReviewAssignVO> page
+    );
+
 }

@@ -15,7 +15,7 @@ public class AchMainBaseRow {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime publishedAt;
-    private String creatorName;
+    private String createdByUserId;
 
     private Integer typeId;
     private String typeDocId;

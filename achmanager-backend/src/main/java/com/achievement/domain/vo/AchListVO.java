@@ -11,6 +11,7 @@ public class AchListVO {
     private String title;           // 成果物名称，对应 m.title
     private String typeName;       // 成果物类型
     private String auditStatus;    // 审核状态
+    private String creatorId;      // 创建者用户ID
     private String creatorName;    // 创建者用户名称
     private String year; // 成果物年份
     private List<String> authors;     // 成果物作者（若与创建者不同，按你的表字段映射）

@@ -1,5 +1,6 @@
 package com.achievement.controller;
 
+import com.achievement.domain.vo.ReviewAssignVO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -125,6 +126,22 @@ public class AchievementReviewController {
         }
 
         Page<ReviewHistoryVO> result = achievementReviewService.pageReviewHistory(
+                currentUser.getId(), page, pageSize);
+        return Result.success(result);
+    }
+    //获取审核分配列表
+    @Operation(description = "获取审核分配列表")
+    @GetMapping("/assign-reviewers-list")
+    public Result<Page<ReviewAssignVO>> getAssignReviewersList(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @CurrentUser KeycloakUser currentUser) {
+        // 只有管理员和审核管理员可以查看审核分配列表
+        if (!currentUser.hasAnyRole("research_admin")) {
+            return Result.error(403, "无权限：只有管理员可以查看审核分配列表");
+        }
+
+        Page<ReviewAssignVO> result = achievementReviewService.pageAssignReviewersList(
                 currentUser.getId(), page, pageSize);
         return Result.success(result);
     }

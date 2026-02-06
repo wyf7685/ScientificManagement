@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.achievement.mapper.AchievementReviewerAssignmentMapper">
+    <select id="pageAssignReviewersList" resultType="com.achievement.domain.vo.ReviewAssignVO">
+        SELECT
+            ra.achievement_doc_id AS id,
+            MAX(m.title)          AS title,
+            MAX(t.type_name)      AS type,
+            MAX(m.created_by_user_id) AS creatorId,
+            MAX(ra.assigned_at)   AS assignedAt,
+            MAX(ra.reviewer_name) AS reviewerName
+        FROM achievement_reviewer_assignments ra
+                 LEFT JOIN achievement_mains m
+                           ON m.document_id = ra.achievement_doc_id
+                               AND m.is_delete = 0
+                 LEFT JOIN achievement_mains_achievement_type_id_lnk mt
+                           ON mt.achievement_main_id = m.id
+                 LEFT JOIN achievement_types t
+                           ON t.id = mt.achievement_type_id
+        WHERE ra.is_delete = 0
+        GROUP BY ra.achievement_doc_id
+        ORDER BY assignedAt DESC
+    </select>
+</mapper>

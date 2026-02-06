@@ -96,6 +96,7 @@ import {
   createFieldDef, 
   updateFieldDef, 
   deleteFieldDef,
+  updateResultTypeFieldOrder,
   type AchievementFieldDef 
 } from '@/api/result'
 
@@ -105,7 +106,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
-const FIELD_TYPES = ["TEXT", "NUMBER", "BOOLEAN", "DATE", "MEDIA", "JSON", "EMAIL", "RICHTEXT"]
+const FIELD_TYPES = ["TEXT", "NUMBER", "BOOLEAN", "DATE", "MEDIA", "JSON", "EMAIL", "RICHTEXT","DATETIME"]
 const loading = ref(false)
 const saving = ref(false)
 
@@ -190,7 +191,9 @@ async function handleDeleteField(row: any, index: number) {
 async function saveAllFields() {
   saving.value = true
   try {
-    const promises = fields.value.map(async (field) => {
+    const orderedDocIds: string[] = []
+
+    for (const field of fields.value) {
       // 构造符合 Interface 定义的数据包
       const payload: AchievementFieldDef = {
         field_code: field.field_code,
@@ -204,21 +207,36 @@ async function saveAllFields() {
       if (field.documentId) {
         // === 更新 ===
         // 只需要更新字段本身的属性，不需要重复发 achievement_type
-        return updateFieldDef(field.documentId, payload)
+        await updateFieldDef(field.documentId, payload)
+        orderedDocIds.push(field.documentId)
       } else {
         // === 新增 ===
         // 关键点：如果是新增，必须告诉后端这个字段属于哪个 Type
-        // 假设 Strapi 中字段定义的关联属性名是 achievement_type (对应数据库 achievement_type_id)
         payload.achievement_type = props.initialData.documentId
-        
-        return createFieldDef(payload)
-      }
-    })
 
-    await Promise.all(promises)
-    
+        const res = await createFieldDef(payload)
+        const newDocId =
+          res?.data?.documentId ||
+          res?.data?.attributes?.documentId ||
+          res?.data?.attributes?.document_id ||
+          res?.data?.document_id
+        const newId = res?.data?.id
+
+        if (newDocId) {
+          field.documentId = newDocId
+          orderedDocIds.push(newDocId)
+        } else if (newId != null) {
+          orderedDocIds.push(String(newId))
+        }
+      }
+    }
+
+    if (props.initialData.documentId && orderedDocIds.length > 0) {
+      await updateResultTypeFieldOrder(props.initialData.documentId, orderedDocIds)
+    }
+
     ElMessage.success('配置已保存')
-    await fetchFields() // 重新拉取，确保拿到最新的 documentId
+    await fetchFields() // 重新拉取，确保拿到最新的 documentId 和顺序
   } catch (error) {
     console.error(error)
     ElMessage.error('保存失败，请检查网络或控制台')

@@ -42,6 +42,10 @@
       "relation": "oneToMany",
       "target": "api::achievement-main.achievement-main",
       "mappedBy": "achievement_type_id"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
     }
   }
 }

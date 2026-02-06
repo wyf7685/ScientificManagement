@@ -544,6 +544,7 @@ export interface ApiAchievementFieldValueAchievementFieldValue
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     date_value: Schema.Attribute.Date;
+    datetime_value: Schema.Attribute.DateTime;
     email_value: Schema.Attribute.Email;
     is_delete: Schema.Attribute.Integer &
       Schema.Attribute.Required &
@@ -717,6 +718,7 @@ export interface ApiAchievementTypeAchievementType
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     description: Schema.Attribute.Text;
+    enabled: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     is_delete: Schema.Attribute.Integer &
       Schema.Attribute.Required &
       Schema.Attribute.SetMinMax<

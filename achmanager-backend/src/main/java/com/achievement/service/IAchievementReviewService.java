@@ -3,6 +3,7 @@ package com.achievement.service;
 import com.achievement.domain.dto.AssignReviewerDTO;
 import com.achievement.domain.dto.KeycloakUser;
 import com.achievement.domain.dto.ReviewRequestDTO;
+import com.achievement.domain.vo.ReviewAssignVO;
 import com.achievement.domain.vo.ReviewBacklogVO;
 import com.achievement.domain.vo.ReviewHistoryVO;
 import com.achievement.domain.vo.ReviewResultVO;
@@ -56,4 +57,6 @@ public interface IAchievementReviewService {
      * @return 分页历史列表
      */
     Page<ReviewHistoryVO> pageReviewHistory(Integer reviewerId, Integer pageNum, Integer pageSize);
+
+    Page<ReviewAssignVO> pageAssignReviewersList(Integer id, Integer page, Integer pageSize);
 }
