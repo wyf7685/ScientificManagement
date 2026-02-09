@@ -8,7 +8,10 @@ import java.time.LocalDate;
 @Data
 public class AchFieldRow {
     private Integer fieldId;
+    // 字段定义 documentId
     private String documentId;
+    // 字段值 documentId（用于编辑时幂等更新）
+    private String fieldValueDocumentId;
     private String fieldCode;
     private String fieldName;
     private String fieldType;
@@ -20,4 +23,3 @@ public class AchFieldRow {
     private LocalDate dateValue;
     private String emailValue;
 }
-

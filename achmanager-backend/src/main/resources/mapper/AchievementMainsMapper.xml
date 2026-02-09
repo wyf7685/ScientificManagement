@@ -63,7 +63,17 @@
             AND m.title LIKE CONCAT('%', #{dto.title}, '%')
         </if>
         <if test="dto.status != null and dto.status != ''">
-            AND m.achievement_status = #{dto.status}
+            <choose>
+                <when test="dto.status == 'UNDER_REVIEW'">
+                    AND m.achievement_status IN ('UNDER_REVIEW', 'REVIEWING')
+                </when>
+                <when test="dto.status == 'NEEDS_MODIFICATION'">
+                    AND m.achievement_status IN ('NEEDS_MODIFICATION', 'NEED_MODIFY')
+                </when>
+                <otherwise>
+                    AND m.achievement_status = #{dto.status}
+                </otherwise>
+            </choose>
         </if>
 
         <!-- 只有在明确查询待分配审核的成果时才添加未分配审核人的条件 -->
@@ -168,6 +178,7 @@
         SELECT
             d.id            AS fieldId,
             d.document_id   AS documentId,
+            v.document_id   AS fieldValueDocumentId,
             d.field_code    AS fieldCode,
             d.field_name    AS fieldName,
             d.field_type    AS fieldType,
@@ -275,7 +286,7 @@
             ON t.id = mt.achievement_type_id
         WHERE m.is_delete = 0
           AND m.published_at IS NOT NULL
-          AND m.achievement_status = 'UNDER_REVIEW'
+          AND m.achievement_status IN ('UNDER_REVIEW', 'REVIEWING')
           AND (m.reviewer_id = #{reviewerId} OR m.reviewer_id IS NULL)
         ORDER BY m.created_at ASC
     </select>
@@ -520,7 +531,17 @@
             AND m.title LIKE CONCAT('%', #{dto.title}, '%')
         </if>
         <if test="dto.status != null and dto.status != ''">
-            AND m.achievement_status = #{dto.status}
+            <choose>
+                <when test="dto.status == 'UNDER_REVIEW'">
+                    AND m.achievement_status IN ('UNDER_REVIEW', 'REVIEWING')
+                </when>
+                <when test="dto.status == 'NEEDS_MODIFICATION'">
+                    AND m.achievement_status IN ('NEEDS_MODIFICATION', 'NEED_MODIFY')
+                </when>
+                <otherwise>
+                    AND m.achievement_status = #{dto.status}
+                </otherwise>
+            </choose>
         </if>
 
         <!-- 只有在明确查询待分配审核的成果时才添加未分配审核人的条件 -->
@@ -571,4 +592,3 @@
 
 
 </mapper>
-

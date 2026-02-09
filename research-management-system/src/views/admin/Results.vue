@@ -114,16 +114,17 @@
       <el-form label-width="88px">
         <el-form-item label="审核人" required>
           <el-select
-            v-model="assignForm.reviewerIds"
-            multiple
+            v-model="assignForm.reviewerId"
             placeholder="选择审核人"
+            filterable
+            clearable
             style="width: 100%"
           >
             <el-option
-              v-for="user in expertList"
-              :key="user.id"
-              :label="`${user.name}`"
-              :value="user.id"
+              v-for="expert in expertOptions"
+              :key="expert.id"
+              :label="expert.label"
+              :value="expert.id"
             />
           </el-select>
         </el-form-item>
@@ -154,8 +155,9 @@ const assigning = ref(false)
 const formatChecking = ref(false)
 const currentAssignId = ref('')
 const expertList = ref<KeycloakUser[]>([])
+const expertOptions = ref<Array<{ id: number; label: string }>>([])
 const assignForm = reactive({
-  reviewerIds: [] as number[]
+  reviewerId: null as number | null
 })
 
 const searchForm = reactive({
@@ -178,10 +180,35 @@ onMounted(() => {
 async function loadExpertList() {
   try {
     const res = await getExpertUsers()
-    expertList.value = res?.data || []
+    expertList.value = Array.isArray(res?.data) ? res.data : []
+    const seen = new Set<number>()
+    expertOptions.value = expertList.value
+      .map((expert) => {
+        const id = Number(expert?.id)
+        if (!Number.isFinite(id) || seen.has(id)) return null
+        seen.add(id)
+        return {
+          id,
+          label: getExpertLabel(expert)
+        }
+      })
+      .filter((item): item is { id: number; label: string } => item !== null)
   } catch (e) {
     console.error('加载专家列表失败', e)
   }
+}
+
+function getExpertLabel(expert: Partial<KeycloakUser>) {
+  const name = expert?.name?.trim()
+  if (name) return name
+
+  const username = expert?.username?.trim()
+  if (username) return username
+
+  const email = expert?.email?.trim()
+  if (email) return email
+
+  return `专家${expert?.id ?? ''}`
 }
 
 async function handleSearch() {
@@ -220,25 +247,30 @@ function canFormatReject(row: any) {
 
 function openAssign(row: any) {
   currentAssignId.value = row.id
-  assignForm.reviewerIds = Array.isArray(row?.assignedReviewerIds) ? [...row.assignedReviewerIds] : []
+  const assignedReviewerIds = Array.isArray(row?.assignedReviewerIds) ? row.assignedReviewerIds : []
+  assignForm.reviewerId = assignedReviewerIds.length
+    ? Number(assignedReviewerIds[0])
+    : row?.reviewerId ? Number(row.reviewerId) : null
   assignDialogVisible.value = true
 }
 
 async function handleAssign() {
   if (!currentAssignId.value) return
-  if (!assignForm.reviewerIds || assignForm.reviewerIds.length === 0) {
-    ElMessage.warning('请选择至少一位审核人')
+  if (assignForm.reviewerId === null) {
+    ElMessage.warning('请选择审核人')
     return
   }
   assigning.value = true
   try {
-    const reviewerNames = assignForm.reviewerIds
-      .map((id) => expertList.value.find((u) => u.id === id)?.name)
-      .filter(Boolean) as string[]
+    const selectedExpert = expertOptions.value.find((expert) => expert.id === assignForm.reviewerId)
+    if (!selectedExpert) {
+      ElMessage.warning('专家信息异常，请刷新后重试')
+      return
+    }
 
     await assignReviewers(currentAssignId.value, {
-      reviewerIds: assignForm.reviewerIds,
-      reviewerNames
+      reviewerIds: [selectedExpert.id],
+      reviewerNames: [selectedExpert.label]
     })
     ElMessage.success('已分配审核人')
     assignDialogVisible.value = false

@@ -274,7 +274,6 @@
         <el-button v-if="currentStep === 4" type="success" :loading="submitting" @click="handleSubmit">
           提交审核
         </el-button>
-        <el-button @click="handleSaveDraft" :loading="saving">保存草稿</el-button>
       </div>
     </el-card>
   </div>
@@ -286,7 +285,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { UploadFilled } from '@element-plus/icons-vue'
-import { getResultTypes, getFieldDefsByType, createResult, createResultWithFiles, saveDraft, autoFillMetadata } from '@/api/result'
+import { getResultTypes, getFieldDefsByType, createResult, createResultWithFiles, autoFillMetadata } from '@/api/result'
 import { getProjects, createProject } from '@/api/project'
 import { ResultVisibility } from '@/types'
 import DynamicFieldRenderer from '@/components/DynamicFieldRenderer.vue'
@@ -334,7 +333,6 @@ const autoFilling = ref(false)
 const journalRankItems = ref<string[]>([])
 const lastJournalRankAt = ref(0)
 const submitting = ref(false)
-const saving = ref(false)
 const MAX_FILE_SIZE = 20 * 1024 * 1024
 const projectDialogVisible = ref(false)
 const projectForm = reactive({
@@ -694,19 +692,6 @@ async function handleCreateProject() {
   }
 }
 
-async function handleSaveDraft() {
-  saving.value = true
-  try {
-    const payload = buildDraftPayload()
-    await saveDraft(payload)
-    ElMessage.success('草稿已保存')
-  } catch (error) {
-    ElMessage.error('保存草稿失败')
-  } finally {
-    saving.value = false
-  }
-}
-
 async function handleSubmit() {
   submitting.value = true
   try {
@@ -760,16 +745,6 @@ function buildFieldValues() {
       return payload
     })
     .filter(Boolean)
-}
-
-function buildDraftPayload() {
-  const project = projects.value.find((p) => p.id === formData.projectId)
-  return {
-    ...formData,
-    projectName: project?.name || formData.projectName || '',
-    projectCode: project?.code || formData.projectCode || '',
-    metadata: { ...formData.metadata }
-  }
 }
 
 function buildPayload() {

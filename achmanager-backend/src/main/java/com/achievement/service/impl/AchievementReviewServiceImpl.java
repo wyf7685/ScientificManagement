@@ -57,7 +57,9 @@ public class AchievementReviewServiceImpl implements IAchievementReviewService {
 
         // 检查状态
         String currentStatus = achievement.getAchievementStatus();
-        if (!"PENDING".equals(currentStatus) && !"NEEDS_MODIFICATION".equals(currentStatus)) {
+        if (!"PENDING".equals(currentStatus)
+                && !"NEEDS_MODIFICATION".equals(currentStatus)
+                && !"NEED_MODIFY".equals(currentStatus)) {
             throw new RuntimeException("当前状态不允许提交审核");
         }
 
@@ -93,7 +95,8 @@ public class AchievementReviewServiceImpl implements IAchievementReviewService {
         }
 
         // 检查状态
-        if (!"UNDER_REVIEW".equals(achievement.getAchievementStatus())) {
+        String reviewingStatus = achievement.getAchievementStatus();
+        if (!"UNDER_REVIEW".equals(reviewingStatus) && !"REVIEWING".equals(reviewingStatus)) {
             throw new RuntimeException("成果不在审核状态");
         }
 

@@ -124,6 +124,7 @@ public class AchievementMainsServiceImpl extends ServiceImpl<AchievementMainsMap
             AchFieldVO vo = new AchFieldVO();
             vo.setId(r.getFieldId());
             vo.setDocumentId(r.getDocumentId());
+            vo.setFieldValueDocumentId(r.getFieldValueDocumentId());
             vo.setFieldCode(r.getFieldCode());
             vo.setFieldName(r.getFieldName());
             vo.setFieldType(r.getFieldType());

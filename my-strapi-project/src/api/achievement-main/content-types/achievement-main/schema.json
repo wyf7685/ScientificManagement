@@ -22,9 +22,11 @@
       "default": "PENDING",
       "enum": [
         "PENDING",
+        "UNDER_REVIEW",
         "REVIEWING",
         "APPROVED",
         "REJECTED",
+        "NEEDS_MODIFICATION",
         "NEED_MODIFY"
       ]
     },

@@ -636,7 +636,15 @@ export interface ApiAchievementMainAchievementMain
       'api::achievement-file.achievement-file'
     >;
     achievement_status: Schema.Attribute.Enumeration<
-      ['PENDING', 'REVIEWING', 'APPROVED', 'REJECTED', 'NEED_MODIFY']
+      [
+        'PENDING',
+        'UNDER_REVIEW',
+        'REVIEWING',
+        'APPROVED',
+        'REJECTED',
+        'NEEDS_MODIFICATION',
+        'NEED_MODIFY',
+      ]
     > &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'PENDING'>;

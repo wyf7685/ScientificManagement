@@ -194,16 +194,26 @@ public class AchievementAdminServiceImpl implements IAchievementAdminService {
             fieldResults.add(readJson(raw));
         }
 
-        ArrayNode attachmentResults = objectMapper.createArrayNode();
-        for (Map<String, Object> attachmentItem : attachments) {
-            AchievementFileRequest fileReq = normalizeAchievementFileRequest(attachmentItem, achievementDocId);
-            if (fileReq.isAllEmpty()) {
-                continue;
+        JsonNode attachmentResults = objectMapper.createArrayNode();
+        if (mainAndFields.attachmentsProvided) {
+            // 只要前端显式传了 attachments，就按“当前列表覆盖”同步（支持删除全部附件）
+            List<Integer> fileIds = extractFileIdsFromAttachments(attachments);
+            replaceAttachmentsByFileIds(achievementDocId, fileIds);
+            attachmentResults = queryActiveAttachments(achievementDocId);
+        } else {
+            // 兼容旧调用：未显式传 attachments 时，维持增量行为
+            ArrayNode incrementalResults = objectMapper.createArrayNode();
+            for (Map<String, Object> attachmentItem : attachments) {
+                AchievementFileRequest fileReq = normalizeAchievementFileRequest(attachmentItem, achievementDocId);
+                if (fileReq.isAllEmpty()) {
+                    continue;
+                }
+                String raw = (fileReq.documentId == null || fileReq.documentId.isBlank())
+                        ? strapiClient.create(ACHIEVEMENT_FILE_COLLECTION, fileReq.body)
+                        : strapiClient.update(ACHIEVEMENT_FILE_COLLECTION, fileReq.documentId, fileReq.body);
+                incrementalResults.add(readJson(raw));
             }
-            String raw = (fileReq.documentId == null || fileReq.documentId.isBlank())
-                    ? strapiClient.create(ACHIEVEMENT_FILE_COLLECTION, fileReq.body)
-                    : strapiClient.update(ACHIEVEMENT_FILE_COLLECTION, fileReq.documentId, fileReq.body);
-            attachmentResults.add(readJson(raw));
+            attachmentResults = incrementalResults;
         }
 
         ObjectNode out = objectMapper.createObjectNode();
@@ -242,69 +252,32 @@ public class AchievementAdminServiceImpl implements IAchievementAdminService {
             return updateAchievementInternal(achievementDocId, req, forcePending);
         }
 
-        // 3) 取 req.data，并移除 attachments，避免 updateAchievement() 再创建附件记录导致重复
+        // 3) 取 req.data。先提取前端保留的旧附件 fileIds，再移除 attachments，
+        // 避免 updateAchievement() 里重复处理附件
         Object dataObj = req.get("data");
         if (!(dataObj instanceof Map<?, ?> dataAny)) {
             throw new RuntimeException("请求体必须包含 data 对象");
         }
         Map<String, Object> data = (Map<String, Object>) dataAny;
+        List<Integer> keepFileIds = Collections.emptyList();
+        Object attachmentsObj = data.get("attachments");
+        if (attachmentsObj instanceof List<?> list) {
+            keepFileIds = extractFileIdsFromAttachments((List<Map<String, Object>>) list);
+        }
         data.remove("attachments");
 
         // 4) 先更新成果物主信息 + fields（按 forcePending 决定是否强制状态）
         JsonNode out = updateAchievementInternal(achievementDocId, req, forcePending);
 
-        // 5) 查询旧的 achievement-files（is_delete=0），全部软删（is_delete=1）
+        // 5) 附件覆盖同步：保留前端现有附件 + 新上传附件
+        LinkedHashSet<Integer> mergedIds = new LinkedHashSet<>(keepFileIds);
+        mergedIds.addAll(fileIds);
+        replaceAttachmentsByFileIds(achievementDocId, new ArrayList<>(mergedIds));
+
+        // 6) 可选：把最新附件查出来回填到响应（前端立刻看到替换后的结果）
         try {
-            Map<String, String> params = new LinkedHashMap<>();
-            params.put("filters[achievement_main_id][documentId][$eq]", achievementDocId);
-            params.put("filters[is_delete][$eq]", "0");
-            params.put("pagination[pageSize]", "100");
-            String raw = strapiClient.query(ACHIEVEMENT_FILE_COLLECTION, params);
-            JsonNode listJson = readJson(raw);
-
-            JsonNode items = listJson.path("data");
-            if (items.isArray()) {
-                Map<String, Object> delBody = new HashMap<>();
-                delBody.put("data", Map.of("is_delete", 1));
-                log.info("覆盖附件：开始软删除旧 achievement-files，achievementDocId={}, count={}",
-                        achievementDocId, items.size());
-                for (JsonNode item : items) {
-                    String oldDocId = extractDocumentId(item);
-                    if (oldDocId != null && !oldDocId.isBlank()) {
-                        strapiClient.update(ACHIEVEMENT_FILE_COLLECTION, oldDocId, delBody);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.warn("覆盖附件：软删除旧 achievement-files 失败，achievementDocId={}", achievementDocId, e);
-        }
-
-        // 6) 创建新的 achievement-files 记录（这一条记录里可以包含多个 files）
-        try {
-            Map<String, Object> body = new HashMap<>();
-            Map<String, Object> bodyData = new HashMap<>();
-            bodyData.put("achievement_main_id", achievementDocId);
-            bodyData.put("files", fileIds);
-            bodyData.put("is_delete", 0);
-            body.put("data", bodyData);
-
-            strapiClient.create(ACHIEVEMENT_FILE_COLLECTION, body);
-        } catch (Exception e) {
-            log.warn("覆盖附件：创建新 achievement-files 失败，achievementDocId={}", achievementDocId, e);
-        }
-
-        // 7) 可选：把最新附件查出来回填到响应（前端立刻看到替换后的结果）
-        try {
-            Map<String, String> params = new LinkedHashMap<>();
-            params.put("filters[achievement_main_id][documentId][$eq]", achievementDocId);
-            params.put("filters[is_delete][$eq]", "0");
-            params.put("populate", "files");
-            params.put("pagination[pageSize]", "100");
-            String raw = strapiClient.query(ACHIEVEMENT_FILE_COLLECTION, params);
-            JsonNode latestAttachments = objectMapper.readTree(raw);
-
             if (out instanceof ObjectNode obj) {
-                obj.set("attachments", latestAttachments);
+                obj.set("attachments", queryActiveAttachments(achievementDocId));
             }
         } catch (Exception e) {
             log.warn("覆盖附件：回填 attachments 失败，achievementDocId={}", achievementDocId, e);
@@ -357,6 +330,7 @@ public class AchievementAdminServiceImpl implements IAchievementAdminService {
             fields = (List<Map<String, Object>>) list;
         }
 
+        boolean attachmentsProvided = ((Map<?, ?>) data).containsKey("attachments");
         Object attachmentsObj = ((Map<?, ?>) data).get("attachments");
         List<Map<String, Object>> attachments = Collections.emptyList();
         if (attachmentsObj instanceof List<?> list) {
@@ -373,7 +347,7 @@ public class AchievementAdminServiceImpl implements IAchievementAdminService {
 
         Map<String, Object> mainReq = new HashMap<>();
         mainReq.put("data", mainData);
-        return new MainAndFields(mainReq, fields, attachments);
+        return new MainAndFields(mainReq, fields, attachments, attachmentsProvided);
     }
 
     private void normalizeMainKeys(Map<String, Object> mainData) {
@@ -606,11 +580,135 @@ public class AchievementAdminServiceImpl implements IAchievementAdminService {
         private final Map<String, Object> mainReq;
         private final List<Map<String, Object>> fields;
         private final List<Map<String, Object>> attachments;
+        private final boolean attachmentsProvided;
 
-        private MainAndFields(Map<String, Object> mainReq, List<Map<String, Object>> fields, List<Map<String, Object>> attachments) {
+        private MainAndFields(Map<String, Object> mainReq,
+                              List<Map<String, Object>> fields,
+                              List<Map<String, Object>> attachments,
+                              boolean attachmentsProvided) {
             this.mainReq = mainReq;
             this.fields = fields;
             this.attachments = attachments;
+            this.attachmentsProvided = attachmentsProvided;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Integer> extractFileIdsFromAttachments(List<Map<String, Object>> attachments) {
+        if (attachments == null || attachments.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        LinkedHashSet<Integer> ids = new LinkedHashSet<>();
+        for (Map<String, Object> attachmentItem : attachments) {
+            if (attachmentItem == null) {
+                continue;
+            }
+            Object dataObj = attachmentItem.get("data");
+            Map<String, Object> data = dataObj instanceof Map<?, ?> m
+                    ? (Map<String, Object>) m
+                    : attachmentItem;
+            collectFileIds(data.get("files"), ids);
+        }
+        return new ArrayList<>(ids);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void collectFileIds(Object filesObj, Set<Integer> out) {
+        if (filesObj == null || out == null) {
+            return;
+        }
+        if (filesObj instanceof List<?> list) {
+            for (Object item : list) {
+                collectFileIds(item, out);
+            }
+            return;
+        }
+        if (filesObj instanceof Number n) {
+            out.add(n.intValue());
+            return;
+        }
+        if (filesObj instanceof String s) {
+            try {
+                out.add(Integer.parseInt(s.trim()));
+            } catch (NumberFormatException ignore) {
+                // ignore invalid id
+            }
+            return;
+        }
+        if (filesObj instanceof Map<?, ?> map) {
+            Object dataObj = map.get("data");
+            if (dataObj != null) {
+                collectFileIds(dataObj, out);
+            }
+            Object idObj = map.get("id");
+            if (idObj != null) {
+                collectFileIds(idObj, out);
+            }
+        }
+    }
+
+    private void replaceAttachmentsByFileIds(String achievementDocId, List<Integer> fileIds) {
+        softDeleteCurrentAttachments(achievementDocId);
+
+        if (fileIds == null || fileIds.isEmpty()) {
+            return;
+        }
+
+        try {
+            Map<String, Object> body = new HashMap<>();
+            Map<String, Object> bodyData = new HashMap<>();
+            bodyData.put("achievement_main_id", achievementDocId);
+            bodyData.put("files", fileIds);
+            bodyData.put("is_delete", 0);
+            body.put("data", bodyData);
+            strapiClient.create(ACHIEVEMENT_FILE_COLLECTION, body);
+        } catch (Exception e) {
+            log.warn("覆盖附件：创建新 achievement-files 失败，achievementDocId={}", achievementDocId, e);
+        }
+    }
+
+    private void softDeleteCurrentAttachments(String achievementDocId) {
+        try {
+            Map<String, String> params = new LinkedHashMap<>();
+            params.put("filters[achievement_main_id][documentId][$eq]", achievementDocId);
+            params.put("filters[is_delete][$eq]", "0");
+            params.put("pagination[pageSize]", "100");
+
+            String raw = strapiClient.query(ACHIEVEMENT_FILE_COLLECTION, params);
+            JsonNode listJson = readJson(raw);
+            JsonNode items = listJson.path("data");
+            if (!items.isArray()) {
+                return;
+            }
+
+            Map<String, Object> delBody = new HashMap<>();
+            delBody.put("data", Map.of("is_delete", 1));
+            log.info("覆盖附件：开始软删除旧 achievement-files，achievementDocId={}, count={}",
+                    achievementDocId, items.size());
+            for (JsonNode item : items) {
+                String oldDocId = extractDocumentId(item);
+                if (oldDocId != null && !oldDocId.isBlank()) {
+                    strapiClient.update(ACHIEVEMENT_FILE_COLLECTION, oldDocId, delBody);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("覆盖附件：软删除旧 achievement-files 失败，achievementDocId={}", achievementDocId, e);
+        }
+    }
+
+    private JsonNode queryActiveAttachments(String achievementDocId) {
+        try {
+            Map<String, String> params = new LinkedHashMap<>();
+            params.put("filters[achievement_main_id][documentId][$eq]", achievementDocId);
+            params.put("filters[is_delete][$eq]", "0");
+            params.put("populate", "files");
+            params.put("pagination[pageSize]", "100");
+            String raw = strapiClient.query(ACHIEVEMENT_FILE_COLLECTION, params);
+            return objectMapper.readTree(raw);
+        } catch (Exception e) {
+            log.warn("查询最新附件失败，achievementDocId={}", achievementDocId, e);
+            return objectMapper.createObjectNode();
         }
     }
 

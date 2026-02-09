@@ -28,9 +28,11 @@ function mapStatus(status?: string) {
   const map: Record<string, string> = {
     PENDING: 'pending',
     UNDER_REVIEW: 'reviewing',
+    REVIEWING: 'reviewing',
     APPROVED: 'published',
     REJECTED: 'rejected',
-    NEEDS_MODIFICATION: 'revision'
+    NEEDS_MODIFICATION: 'revision',
+    NEED_MODIFY: 'revision'
   }
   return map[normalized] || status
 }

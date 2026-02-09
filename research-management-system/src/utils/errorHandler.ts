@@ -2,6 +2,16 @@ import { ElMessage, ElNotification } from 'element-plus'
 import type { App } from 'vue'
 import router from '@/router'
 
+const IGNORED_RUNTIME_ERROR_PATTERNS = [
+  /ResizeObserver loop limit exceeded/i,
+  /ResizeObserver loop completed with undelivered notifications/i
+]
+
+function isIgnoredRuntimeError(message?: string) {
+  if (!message) return false
+  return IGNORED_RUNTIME_ERROR_PATTERNS.some((pattern) => pattern.test(message))
+}
+
 /**
  * 错误类型枚举
  */
@@ -243,6 +253,8 @@ export class ErrorHandler {
 export function setupErrorHandler(app: App) {
   // Vue 错误处理
   app.config.errorHandler = (err: any, instance, info) => {
+    if (isIgnoredRuntimeError(err?.message)) return
+
     console.error('Vue Error:', err, info)
     
     const error = new AppError(
@@ -264,6 +276,14 @@ export function setupErrorHandler(app: App) {
 
   // 全局未捕获的 Promise 错误
   window.addEventListener('unhandledrejection', (event) => {
+    const reasonMessage = typeof event.reason === 'string'
+      ? event.reason
+      : event.reason?.message
+    if (isIgnoredRuntimeError(reasonMessage)) {
+      event.preventDefault()
+      return
+    }
+
     console.error('Unhandled Promise Rejection:', event.reason)
     
     const error = new AppError(
@@ -279,6 +299,12 @@ export function setupErrorHandler(app: App) {
 
   // 全局 JavaScript 错误
   window.addEventListener('error', (event) => {
+    const runtimeMessage = event.error?.message || event.message
+    if (isIgnoredRuntimeError(runtimeMessage)) {
+      event.preventDefault()
+      return
+    }
+
     console.error('Global Error:', event.error)
     
     const error = new AppError(

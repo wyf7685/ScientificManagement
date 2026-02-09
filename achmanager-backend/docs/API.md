@@ -328,7 +328,7 @@ Base Path：`/admin/achievement`
   }
 }
 ```
-- 说明：管理员更新时，后端会强制把 `achievement_status` 改为 `PENDING`（即使前端没传）。
+- 说明：管理员更新时，后端会保留原有 `achievement_status`（不会强制改为 `PENDING`）。
 
 ### 4.6 一次请求“上传文件 + 更新成果物”（multipart/form-data）
 

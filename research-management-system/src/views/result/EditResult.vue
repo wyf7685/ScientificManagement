@@ -11,7 +11,7 @@
 
       <div class="step-content">
         <!-- 步骤1: 选择类型 -->
-        <div v-show="currentStep === 0" class="step-panel">
+        <div v-if="currentStep === 0" class="step-panel">
           <h3>选择成果类型</h3>
           <el-select
             v-model="formData.typeId"
@@ -38,7 +38,7 @@
         </div>
 
         <!-- 步骤2: 填写基础信息 -->
-        <div v-show="currentStep === 1" class="step-panel">
+        <div v-if="currentStep === 1" class="step-panel">
           <h3>填写基础信息</h3>
           <el-form
             ref="formRef"
@@ -130,7 +130,7 @@
         </div>
 
         <!-- 步骤3: 智能补全 -->
-        <div v-show="currentStep === 2" class="step-panel">
+        <div v-if="currentStep === 2" class="step-panel">
           <h3>智能补全（可选）</h3>
           <el-form label-width="120px">
             <el-form-item label="补全方式">
@@ -180,7 +180,7 @@
         </div>
 
         <!-- 步骤4: 上传附件 -->
-        <div v-show="currentStep === 3" class="step-panel">
+        <div v-if="currentStep === 3" class="step-panel">
           <h3>上传附件与设置可见范围</h3>
           <el-form label-width="120px">
             <el-form-item label="附件上传">
@@ -207,7 +207,7 @@
         </div>
 
         <!-- 步骤5: 确认提交 -->
-        <div v-show="currentStep === 4" class="step-panel">
+        <div v-if="currentStep === 4" class="step-panel">
           <h3>确认信息</h3>
           <el-descriptions :column="2" border>
             <el-descriptions-item label="成果标题">{{ formData.title }}</el-descriptions-item>
@@ -256,10 +256,9 @@
         <el-button v-if="currentStep === 4" type="success" :loading="submitting" @click="handleSubmit">
           保存修改
         </el-button>
-        <el-button @click="handleSaveDraft" :loading="saving">保存草稿</el-button>
       </div>
 
-      <el-dialog v-model="projectDialogVisible" title="新建项目" width="480px">
+      <el-dialog v-model="projectDialogVisible" title="新建项目" width="480px" destroy-on-close>
         <el-form label-width="100px">
           <el-form-item label="项目名称" required>
             <el-input v-model="projectForm.name" placeholder="请输入项目名称" />
@@ -290,7 +289,6 @@ import {
   getFieldDefsByType,
   getResult,
   getAdminResult,
-  saveDraft,
   updateResult,
   updateResultWithFiles,
   updateAdminResult,
@@ -337,13 +335,13 @@ const formRules = {
 }
 
 const fileList = ref([])
+const fieldValueDocIdByCode = ref<Record<string, string>>({})
 const autoFillType = ref('doi')
 const autoFillValue = ref('')
 const autoFilling = ref(false)
 const journalRankItems = ref<string[]>([])
 const lastJournalRankAt = ref(0)
 const submitting = ref(false)
-const saving = ref(false)
 const MAX_FILE_SIZE = 20 * 1024 * 1024
 const projectDialogVisible = ref(false)
 const projectForm = reactive({
@@ -463,8 +461,15 @@ async function loadDetail() {
     formData.visibility = detail.visibility || ResultVisibility.PRIVATE
     formData.metadata = { ...(detail.metadata || {}) }
     formData.attachments = detail.attachments || []
+    fieldValueDocIdByCode.value = (detail.fields || []).reduce((acc: Record<string, string>, field: any) => {
+      if (field?.fieldCode && field?.fieldValueDocumentId) {
+        acc[field.fieldCode] = field.fieldValueDocumentId
+      }
+      return acc
+    }, {})
 
     fileList.value = (detail.attachments || []).map((file) => ({
+      id: file.id,
       name: file.name,
       url: file.url,
       size: file.size,
@@ -486,6 +491,7 @@ async function loadProjects() {
 
 function handleTypeChange() {
   formData.metadata = {}
+  fieldValueDocIdByCode.value = {}
   if (formData.typeId) {
     loadFieldDefs(formData.typeId)
   }
@@ -717,20 +723,6 @@ function formatFileSize(bytes: number) {
   return `${gb.toFixed(1)} GB`
 }
 
-async function handleSaveDraft() {
-  if (!resultId.value) return
-  saving.value = true
-  try {
-    const payload = { ...buildDraftPayload(), status: 'draft' }
-    await saveDraft(payload)
-    ElMessage.success('草稿已保存（Mock）')
-  } catch (error) {
-    ElMessage.error('保存草稿失败')
-  } finally {
-    saving.value = false
-  }
-}
-
 async function handleSubmit() {
   if (!resultId.value) return
   submitting.value = true
@@ -772,6 +764,10 @@ function buildFieldValues() {
       const payload: Record<string, any> = {
         achievement_field_def_id: field.documentId
       }
+      const fieldValueDocId = fieldValueDocIdByCode.value[field.name]
+      if (fieldValueDocId) {
+        payload.documentId = fieldValueDocId
+      }
 
       if (field.type === 'number') {
         payload.numberValue = Number(value)
@@ -788,14 +784,24 @@ function buildFieldValues() {
     .filter(Boolean)
 }
 
-function buildDraftPayload() {
-  const project = projects.value.find((p) => p.id === formData.projectId)
-  return {
-    ...formData,
-    projectName: project?.name || formData.projectName || '',
-    projectCode: project?.code || formData.projectCode || '',
-    metadata: { ...formData.metadata }
+function buildAttachmentPayload() {
+  const existingFileIds = (fileList.value || [])
+    .filter((f: any) => !f?.raw)
+    .map((f: any) => Number(f?.id))
+    .filter((id: number) => Number.isFinite(id))
+
+  if (!existingFileIds.length) {
+    return []
   }
+
+  return [
+    {
+      data: {
+        files: existingFileIds,
+        is_delete: 0
+      }
+    }
+  ]
 }
 
 function buildPayload() {
@@ -811,7 +817,8 @@ function buildPayload() {
       projectCode: project?.code || formData.projectCode || '',
       projectName: project?.name || formData.projectName || '',
       visibilityRange: formData.visibility,
-      fields: buildFieldValues()
+      fields: buildFieldValues(),
+      attachments: buildAttachmentPayload()
     }
   }
 }

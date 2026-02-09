@@ -10,6 +10,15 @@
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
         <!-- 待分配 -->
         <el-tab-pane label="待分配" name="pending">
+          <div class="pending-toolbar">
+            <el-button
+              type="primary"
+              :disabled="!selectedResultIds.length"
+              @click="assignSelectedResults"
+            >
+              批量分配专家（已选 {{ selectedResultIds.length }} 项）
+            </el-button>
+          </div>
           <el-table
             :data="tableData"
             v-loading="loading"
@@ -17,7 +26,10 @@
             border
             class="table"
             :header-cell-style="headerStyle"
+            row-key="id"
+            @selection-change="handlePendingSelectionChange"
           >
+            <el-table-column type="selection" width="55" align="center" />
             <el-table-column prop="title" label="成果名称" min-width="220" show-overflow-tooltip />
             <el-table-column prop="type" label="类型" width="120" align="center" />
             <el-table-column prop="createdBy" label="提交人" width="140" align="center" show-overflow-tooltip />
@@ -29,7 +41,7 @@
             <el-table-column label="操作" width="140" align="center" fixed="right">
               <template #default="{ row }">
                 <el-button type="primary" size="small" @click="assignExpert(row)">
-                  分配专家
+                  单条分配
                 </el-button>
               </template>
             </el-table-column>
@@ -74,20 +86,24 @@
     </el-card>
 
     <!-- 分配弹窗 -->
-    <el-dialog v-model="assignDialog" title="分配审核专家" width="600px">
+    <el-dialog v-model="assignDialog" title="分配审核专家" width="560px" destroy-on-close>
       <el-form label-width="100px">
+        <el-form-item label="已选成果">
+          <span>{{ targetAchievementIds.length }} 条</span>
+        </el-form-item>
         <el-form-item label="选择专家">
           <el-select
-            v-model="selectedExperts"
-            multiple
+            v-model="selectedExpertId"
             placeholder="请选择专家"
+            filterable
+            clearable
             v-loading="expertsLoading"
             style="width: 100%"
           >
             <el-option
-              v-for="expert in experts"
+              v-for="expert in expertOptions"
               :key="expert.id"
-              :label="expert.name"
+              :label="expert.label"
               :value="expert.id"
             />
           </el-select>
@@ -131,9 +147,11 @@ const assignedPagination = ref({
 
 // 分配弹窗
 const assignDialog = ref(false)
-const selectedExperts = ref<any[]>([])
-const currentResult = ref<any>(null)
+const selectedExpertId = ref<number | null>(null)
+const selectedResultIds = ref<string[]>([])
+const targetAchievementIds = ref<string[]>([])
 const experts = ref<KeycloakUser[]>([])
+const expertOptions = ref<Array<{ id: number; label: string }>>([])
 
 const headerStyle = computed(() => ({
   background: '#fafafa',
@@ -154,6 +172,7 @@ async function loadPending() {
   try {
     const res = await getPendingAssignResults({ page: 1, pageSize: 50 })
     tableData.value = res?.data?.list || []
+    selectedResultIds.value = []
   } catch (e) {
     console.error(e)
     ElMessage.error('加载待分配数据失败')
@@ -183,7 +202,19 @@ async function loadExperts() {
   expertsLoading.value = true
   try {
     const res = await getExpertUsers()
-    experts.value = res?.data || []
+    experts.value = Array.isArray(res?.data) ? res.data : []
+    const seen = new Set<number>()
+    expertOptions.value = experts.value
+      .map((expert) => {
+        const id = Number(expert?.id)
+        if (!Number.isFinite(id) || seen.has(id)) return null
+        seen.add(id)
+        return {
+          id,
+          label: getExpertLabel(expert)
+        }
+      })
+      .filter((item): item is { id: number; label: string } => item !== null)
   } catch (error) {
     console.error('加载专家列表失败:', error)
     ElMessage.error('加载专家列表失败')
@@ -197,6 +228,7 @@ function handleTabChange() {
   if (activeTab.value === 'pending') {
     loadPending()
   } else {
+    selectedResultIds.value = []
     assignedPagination.value.page = 1
     loadAssigned()
   }
@@ -213,42 +245,90 @@ function handleAssignedCurrentChange(page: number) {
   loadAssigned()
 }
 
-function assignExpert(row: any) {
-  currentResult.value = row
-  selectedExperts.value = []
+function getExpertLabel(expert: Partial<KeycloakUser>) {
+  const name = expert?.name?.trim()
+  if (name) return name
+
+  const username = expert?.username?.trim()
+  if (username) return username
+
+  const email = expert?.email?.trim()
+  if (email) return email
+
+  return `专家${expert?.id ?? ''}`
+}
+
+function toAchievementId(id: any) {
+  if (id === undefined || id === null) return ''
+  return String(id)
+}
+
+function handlePendingSelectionChange(rows: any[]) {
+  selectedResultIds.value = rows
+    .map((row) => toAchievementId(row?.id))
+    .filter((id) => !!id)
+}
+
+function openAssignDialog(ids: string[]) {
+  if (!ids.length) {
+    ElMessage.warning('请先选择成果')
+    return
+  }
+  targetAchievementIds.value = ids
+  selectedExpertId.value = null
   assignDialog.value = true
 }
 
+function assignExpert(row: any) {
+  const id = toAchievementId(row?.id)
+  openAssignDialog(id ? [id] : [])
+}
+
+function assignSelectedResults() {
+  openAssignDialog([...selectedResultIds.value])
+}
+
 async function confirmAssign() {
-  if (!currentResult.value) {
+  if (!targetAchievementIds.value.length) {
     ElMessage.warning('未选择成果')
     return
   }
-  if (!selectedExperts.value.length) {
+  if (selectedExpertId.value === null) {
     ElMessage.warning('请选择专家')
+    return
+  }
+  const selectedExpert = expertOptions.value.find((expert) => expert.id === selectedExpertId.value)
+  if (!selectedExpert) {
+    ElMessage.warning('专家信息异常，请刷新后重试')
     return
   }
 
   assignLoading.value = true
   try {
-    const selectedExpertNames = selectedExperts.value.map((id: any) => {
-      const expert = experts.value.find(e => e.id === id)
-      return expert ? expert.name : `专家${id}`
-    })
+    const payload = {
+      reviewerIds: [selectedExpert.id],
+      reviewerNames: [selectedExpert.label]
+    }
+    const assignResults = await Promise.allSettled(
+      targetAchievementIds.value.map((id) => assignReviewers(id, payload))
+    )
+    const successCount = assignResults.filter((item) => item.status === 'fulfilled').length
+    const failureCount = assignResults.length - successCount
 
-    await assignReviewers(currentResult.value.id, {
-      reviewerIds: selectedExperts.value,
-      reviewerNames: selectedExpertNames
-    })
-
-    ElMessage.success('分配成功')
+    if (failureCount === 0) {
+      ElMessage.success(`分配成功，共 ${successCount} 条`)
+    } else {
+      ElMessage.warning(`部分分配成功：成功 ${successCount} 条，失败 ${failureCount} 条`)
+      assignResults
+        .filter((item) => item.status === 'rejected')
+        .forEach((item) => console.error('分配失败明细:', item.reason))
+    }
     assignDialog.value = false
 
-    // ✅ 分配成功后刷新当前页的数据，更符合用户心智
     if (activeTab.value === 'pending') {
-      loadPending()
+      await loadPending()
     } else {
-      loadAssigned()
+      await loadAssigned()
     }
   } catch (error) {
     console.error('分配失败:', error)
@@ -277,6 +357,12 @@ async function confirmAssign() {
 .title {
   font-size: 16px;
   font-weight: 600;
+}
+
+.pending-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
 }
 
 .table :deep(.el-table__cell) {
