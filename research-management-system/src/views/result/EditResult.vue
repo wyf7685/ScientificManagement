@@ -377,16 +377,18 @@ const confirmExtraFields = computed(() => {
     }
   })
 })
-
 const confirmFiles = computed(() => {
-  return (fileList.value || []).map((f: any) => {
-    const raw = f.raw || f
-    return {
-      name: raw?.name || f.name || 'unknown',
-      sizeText: formatFileSize(raw?.size || f.size || 0),
-      type: raw?.type || f.raw?.type || ''
-    }
-  })
+  // 【修改点】：增加 filter(f => f.raw)，只显示本次新上传的文件
+  return (fileList.value || [])
+    .filter((f: any) => f.raw) 
+    .map((f: any) => {
+      const raw = f.raw
+      return {
+        name: raw.name,
+        sizeText: formatFileSize(raw.size),
+        type: raw.type || ''
+      }
+    })
 })
 
 onMounted(async () => {
@@ -475,12 +477,7 @@ async function loadDetail() {
     formData.metadata = { ...(detail.metadata || {}) }
     formData.attachments = detail.attachments || []
 
-    fileList.value = (detail.attachments || []).map((file) => ({
-      name: file.name,
-      url: file.url,
-      size: file.size,
-      status: 'success'
-    }))
+    fileList.value = []
   } catch (error) {
     ElMessage.error('加载详情失败')
   }
@@ -719,6 +716,42 @@ function formatFileSize(bytes: number) {
   const gb = mb / 1024
   return `${gb.toFixed(1)} GB`
 }
+function buildPayload() {
+  const project = projects.value.find((p) => p.id === formData.projectId)
+
+  // 【新增逻辑】：筛选出当前 fileList 中那些已经是服务器上的旧附件（没有 raw 属性的文件）
+  // 这样后端才知道你“保留”了哪些，从而剔除那些你删掉的
+  const remainingOldAttachments = fileList.value
+    .filter(f => !f.raw) 
+    .map(f => ({
+      documentId: f.documentId, // 如果后端需要 id 来识别旧附件，请确保这里包含
+      name: f.name,
+      url: f.url,
+      size: f.size
+    }))
+
+  return {
+    data: {
+      title: formData.title,
+      summary: formData.abstract,
+      typeDocId: formData.typeId,
+      year: formData.year,
+      authors: formData.authors,
+      keywords: formData.keywords,
+      projectCode: project?.code || formData.projectCode || '',
+      projectName: project?.name || formData.projectName || '',
+      visibilityRange: formData.visibility,
+      fields: buildFieldValues(),
+      
+      // 【关键修改】：将保留的旧附件清单传回
+      attachments: remainingOldAttachments, 
+      
+      // 如果后端需要明确的清空指令，保留这一行
+      //clearAttachments: clearAttachments.value === true
+    }
+  }
+}
+
 //防御性修改，避免上传和清空附件冲突
 function handleFileChange(file, files) {
   if (clearAttachments.value) {
@@ -758,8 +791,11 @@ async function handleSubmit() {
   submitting.value = true
   try {
     const payload = buildPayload()
+    // 提取新选的文件流
     const rawFiles = fileList.value.filter(f => f.raw).map(f => f.raw) as File[]
 
+    // 逻辑：只要有新文件，就走带文件上传的接口；否则走普通更新接口
+    // 注意：即使 rawFiles 为空，payload.data.attachments 也会告诉后端现在的旧文件剩余情况
     if (rawFiles.length > 0) {
       if (isAdmin.value) {
         await updateAdminResultWithFiles(resultId.value, payload, rawFiles)
@@ -767,6 +803,7 @@ async function handleSubmit() {
         await updateResultWithFiles(resultId.value, payload, rawFiles)
       }
     } else {
+      // 此时即便 rawFiles 是空，但 payload 里的 attachments 数组已经不包含你删掉的那个文件了
       if (isAdmin.value) {
         await updateAdminResult(resultId.value, payload)
       } else {
@@ -777,6 +814,7 @@ async function handleSubmit() {
     ElMessage.success('保存成功')
     router.push('/results/my')
   } catch (error) {
+    console.error('提交失败详情:', error)
     ElMessage.error('保存失败')
   } finally {
     submitting.value = false
@@ -820,27 +858,6 @@ function buildDraftPayload() {
   }
 }
 
-function buildPayload() {
-  const project = projects.value.find((p) => p.id === formData.projectId)
-
-  return {
-    data: {
-      title: formData.title,
-      summary: formData.abstract,
-      typeDocId: formData.typeId,
-      year: formData.year,
-      authors: formData.authors,
-      keywords: formData.keywords,
-      projectCode: project?.code || formData.projectCode || '',
-      projectName: project?.name || formData.projectName || '',
-      visibilityRange: formData.visibility,
-      fields: buildFieldValues(),
-
-      // 👇 新增这一句（核心）
-      //clearAttachments: clearAttachments.value === true
-    }
-  }
-}
 
 </script>
 
