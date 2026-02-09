@@ -90,7 +90,7 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
                     .uuid(userId)
                     .username(username)
                     .email(email)
-                    .name(name)
+                    .name(keycloakUserService.getUserRealName(userId).orElse(name))
                     .roles(roles)
                     .build();
 

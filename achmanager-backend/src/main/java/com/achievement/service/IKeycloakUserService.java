@@ -1,6 +1,7 @@
 package com.achievement.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.achievement.domain.dto.KeycloakUser;
 
@@ -18,4 +19,5 @@ public interface IKeycloakUserService {
 
     Integer getOrCreateUserId(String keycloakUserId);
 
+    Optional<String> getUserRealName(String userId);
 }

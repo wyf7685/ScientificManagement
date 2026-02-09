@@ -3,6 +3,7 @@ package com.achievement.service.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.keycloak.admin.client.Keycloak;
@@ -15,6 +16,7 @@ import com.achievement.domain.dto.KeycloakUser;
 import com.achievement.domain.po.BusinessUser;
 import com.achievement.mapper.BusinessUserMapper;
 import com.achievement.service.IKeycloakUserService;
+import com.achievement.utils.TwoLevelCache;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,17 @@ public class KeycloakUserServiceImpl implements IKeycloakUserService {
     private final Keycloak keycloak;
     private final KeycloakConfig keycloakConfig;
     private final BusinessUserMapper businessUserMapper;
+    private final TwoLevelCache twoLevelCache;
+
+    private static class KeycloakConstants {
+        public static class Attributes {
+            public static final String REAL_NAME = "real_name";
+        }
+
+        public static class CacheKeys {
+            public static final String USER_REAL_NAME = "ach:kc:user_real_name:";
+        }
+    }
 
     @Override
     public Integer getOrCreateUserId(String keycloakUserId) {
@@ -131,10 +144,35 @@ public class KeycloakUserServiceImpl implements IKeycloakUserService {
                 .uuid(userRep.getId())
                 .username(userRep.getUsername())
                 .email(userRep.getEmail())
-                .name(buildFullName(userRep.getFirstName(), userRep.getLastName()))
+                .name(getUserRealName(userRep))
                 .roles(userRep.getRealmRoles())
                 .enabled(userRep.isEnabled())
                 .build();
+    }
+
+    private String getUserRealName(UserRepresentation userRep) {
+        return Optional.ofNullable(userRep.firstAttribute(KeycloakConstants.Attributes.REAL_NAME))
+                .orElseGet(() -> buildFullName(userRep.getFirstName(), userRep.getLastName()));
+    }
+
+    @Override
+    public Optional<String> getUserRealName(String userId) {
+        if (userId == null) {
+            return Optional.empty();
+        }
+
+        String cacheKey = KeycloakConstants.CacheKeys.USER_REAL_NAME + userId;
+        String realName = twoLevelCache.get(cacheKey, String.class, () -> {
+            try {
+                UserRepresentation userRep = getRealmResource().users().get(userId).toRepresentation();
+                return getUserRealName(userRep);
+            } catch (Exception e) {
+                log.error("Failed to get real name for userId: {}", userId, e);
+                return null;
+            }
+        }, 3600);
+
+        return Optional.ofNullable(realName);
     }
 
     /**
