@@ -311,7 +311,7 @@ export function exportResults(params?: QueryParams): Promise<Blob> {
 // 获取我的成果列表（也可用于用户端通用检索）
 export async function getMyResults(params?: QueryParams, useTypeCode = false): Promise<StrapiPaginatedResponse<any>> {
   const res = await request({
-    url: '/user/achievement/pageList',
+    url: '/user/achievement/pageList4User',
     method: 'post',
     data: buildAchListPayload(params, useTypeCode)
   })
