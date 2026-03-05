@@ -88,6 +88,18 @@
       "type": "string",
       "required": false,
       "unique": false
+    },
+    "reviewer_id": {
+      "type": "integer"
+    },
+    "reviewer_name": {
+      "type": "string"
+    },
+    "review_comment": {
+      "type": "text"
+    },
+    "reviewed_at": {
+      "type": "datetime"
     }
   }
 }
