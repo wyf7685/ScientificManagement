@@ -684,6 +684,10 @@ export interface ApiAchievementMainAchievementMain
         maxLength: 255;
       }>;
     publishedAt: Schema.Attribute.DateTime;
+    review_comment: Schema.Attribute.Text;
+    reviewed_at: Schema.Attribute.DateTime;
+    reviewer_id: Schema.Attribute.Integer;
+    reviewer_name: Schema.Attribute.String;
     summary: Schema.Attribute.Text;
     title: Schema.Attribute.String &
       Schema.Attribute.Required &
