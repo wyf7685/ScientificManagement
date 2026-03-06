@@ -20,7 +20,7 @@ public interface AchievementReviewerAssignmentMapper extends BaseMapper<Achievem
         SELECT
             am.document_id AS documentId,
             am.title AS title,
-            am.creator_name AS creatorName,
+            am.created_by_user_id AS creatorId,
             am.created_at AS createdAt,
             am.project_name AS projectName,
             am.project_code AS projectCode,

@@ -55,12 +55,6 @@ public class AchievementMains implements Serializable {
 
     private String visibilityRange;
 
-    private Integer creatorId;
-
-    private String creatorName;
-
-    private String creatorDept;
-
     private Integer reviewerId;
 
     private String reviewerName;
